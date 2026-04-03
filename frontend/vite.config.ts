@@ -11,11 +11,12 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    port: 3001,
+    host: '127.0.0.1',
+    port: 3002,
     proxy: {
-      '/api': 'http://localhost:3000',
+      '/api': 'http://127.0.0.1:3001',
       '/ws': {
-        target: 'ws://localhost:3000',
+        target: 'ws://127.0.0.1:3001',
         ws: true,
       },
     },

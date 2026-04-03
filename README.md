@@ -18,7 +18,13 @@ Requires Node.js >= 20.0.0.
 npm run dev
 ```
 
+- Backend API / app server: `http://127.0.0.1:3001`
+- Frontend dev server (Vite): `http://127.0.0.1:3002`
+
 By default, the server opens the current directory. To point dev mode at a fixture or workspace, set `OPENSPEC_WEBUI_DEV_PATH`:
+
+- `npm run dev` / `npm run dev:server` は、この repo ではデフォルトで `./openspec` を開きます
+- CLI 単体の `openspec-webui` コマンド既定値は引き続きカレントディレクトリです
 
 ```bash
 OPENSPEC_WEBUI_DEV_PATH=./test-openspec npm run dev:server
@@ -43,7 +49,7 @@ openspec-webui --no-open            # Don't auto-open browser
 
 | Option | Description |
 |--------|-------------|
-| `-p, --port <port>` | Port to run server on (default: 3000) |
+| `-p, --port <port>` | Port to run server on (default: 3001) |
 | `--no-open` | Don't open browser automatically |
 | `-V, --version` | Display version |
 | `-h, --help` | Display help |

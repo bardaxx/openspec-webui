@@ -45,6 +45,9 @@
   <!-- Header -->
   <div class="flex items-center gap-4">
     <button
+      type="button"
+      aria-label="Back to specs list"
+      title="Back to specs list"
       class="p-2 hover:bg-gray-700 rounded-lg"
       onclick={() => navigateTo('/specs')}
     >

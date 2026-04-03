@@ -12,7 +12,7 @@ program
   .description('Interactive browser UI for OpenSpec-compatible directories')
   .version('0.2.0')
   .argument('[path]', 'Path to an OpenSpec-compatible directory', '.')
-  .option('-p, --port <number>', 'Port to run server on', '3000')
+  .option('-p, --port <number>', 'Port to run server on', '3001')
   .option('--no-open', 'Do not open browser automatically')
   .action(async (path: string, options: { port: string; open: boolean }) => {
     const openspecPath = resolve(process.cwd(), path);
@@ -81,7 +81,7 @@ program
       const message = error instanceof Error ? error.message : String(error);
       if (message.includes('already in use') || (error as NodeJS.ErrnoException).code === 'EADDRINUSE') {
         console.error(`Error: Port ${port} is already in use`);
-        console.error('Try using a different port: openspec-webui --port 3001');
+        console.error('Try using a different port: openspec-webui --port 3003');
         process.exit(1);
       }
       console.error('Failed to start server:', message);

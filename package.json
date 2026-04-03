@@ -8,8 +8,8 @@
   },
   "main": "./dist/cli/index.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:frontend\"",
-    "dev:server": "tsx watch src/cli/index.ts -- ${OPENSPEC_WEBUI_DEV_PATH:-.}",
+    "dev": "concurrently \"npm run dev:server -- --no-open\" \"npm run dev:frontend\"",
+    "dev:server": "tsx watch src/cli/index.ts ${OPENSPEC_WEBUI_DEV_PATH:-./openspec}",
     "dev:frontend": "vite --config frontend/vite.config.ts",
     "build": "npm run build:server && npm run build:frontend",
     "build:server": "tsc",
