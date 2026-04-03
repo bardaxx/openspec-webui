@@ -1,7 +1,12 @@
 <script lang="ts">
   import { stats, activeChanges, project, navigateTo } from '../stores/index';
+  import { commandPreferencesStore } from '../stores/commandPreferences';
+  import { getWorkspaceCommands } from '../lib/commandShortcuts';
   import TaskProgress from './TaskProgress.svelte';
   import MarkdownRenderer from './MarkdownRenderer.svelte';
+  import CommandShortcutBar from './CommandShortcutBar.svelte';
+
+  $: workspaceCommands = getWorkspaceCommands($activeChanges, $commandPreferencesStore);
 </script>
 
 <div class="space-y-6">
@@ -12,6 +17,12 @@
       <p class="text-gray-400 mt-1">{$project.description}</p>
     {/if}
   </div>
+
+  <CommandShortcutBar
+    title="Workspace Commands"
+    description="Copy OpenSpec commands for workspace-level actions. These shortcuts do not include arguments."
+    commands={workspaceCommands}
+  />
 
   <!-- Stats Cards -->
   {#if $stats}

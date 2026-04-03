@@ -10,6 +10,7 @@
     toasts,
     navigateTo,
   } from './stores/index';
+  import { commandPreferencesStore } from './stores/commandPreferences';
   import Navigation from './components/Navigation.svelte';
   import Dashboard from './components/Dashboard.svelte';
   import SpecsList from './components/SpecsList.svelte';
@@ -24,6 +25,7 @@
 
     // Initialize data and WebSocket
     initializeData();
+    void commandPreferencesStore.initialize();
     const unsubscribe = setupWebSocket();
 
     return () => {

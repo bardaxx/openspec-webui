@@ -1,3 +1,5 @@
+import type { ExpandedCommand } from './commandTypes';
+
 const API_BASE = '/api';
 
 export interface Project {
@@ -105,6 +107,14 @@ export interface SearchResult {
   matchLine: number;
 }
 
+export interface CommandAvailability {
+  status: 'ready' | 'unavailable';
+  profile: string | null;
+  workflows: string[];
+  availableExpandedCommands: ExpandedCommand[];
+  error: string | null;
+}
+
 async function fetchApi<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`);
   if (!response.ok) {
@@ -145,6 +155,11 @@ export async function getStats(): Promise<Stats> {
 export async function search(query: string): Promise<SearchResult[]> {
   const data = await fetchApi<{ results: SearchResult[] }>(`/search?q=${encodeURIComponent(query)}`);
   return data.results;
+}
+
+export async function getCommandAvailability(): Promise<CommandAvailability> {
+  const data = await fetchApi<{ availability: CommandAvailability }>('/commands/availability');
+  return data.availability;
 }
 
 export function getChangeFileUrl(changeName: string, filePath: string): string {

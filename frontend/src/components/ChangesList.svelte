@@ -1,8 +1,13 @@
 <script lang="ts">
   import { activeChanges, archivedChanges, navigateTo } from '../stores/index';
+  import { commandPreferencesStore } from '../stores/commandPreferences';
+  import { getWorkspaceCommands } from '../lib/commandShortcuts';
   import TaskProgress from './TaskProgress.svelte';
+  import CommandShortcutBar from './CommandShortcutBar.svelte';
 
   let showArchived = false;
+
+  $: workspaceCommands = getWorkspaceCommands($activeChanges, $commandPreferencesStore);
 </script>
 
 <div class="space-y-6">
@@ -10,6 +15,12 @@
     <h1 class="text-2xl font-bold text-gray-100">Changes</h1>
     <p class="text-gray-400 mt-1">Proposals - what SHOULD change</p>
   </div>
+
+  <CommandShortcutBar
+    title="Workspace Commands"
+    description="Copy OpenSpec commands for change-level workflow management without additional arguments."
+    commands={workspaceCommands}
+  />
 
   <!-- Active Changes -->
   <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700">

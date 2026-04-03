@@ -2,6 +2,10 @@ import type { FastifyInstance } from 'fastify';
 import { readFile } from 'fs/promises';
 import type { OpenSpecData } from '../../parser/index.js';
 import { parseSpec, parseChangeByName, searchOpenSpec } from '../../parser/index.js';
+import {
+  inspectCommandAvailability,
+  type CommandAvailability,
+} from '../openspec-config.js';
 
 /**
  * Register API routes
@@ -11,6 +15,19 @@ export async function registerApiRoutes(
   getData: () => OpenSpecData | null,
   getOpenSpecPath: () => string
 ) {
+  let cachedCommandAvailability: CommandAvailability | null = null;
+
+  async function getCommandAvailability() {
+    const availability = await inspectCommandAvailability(getOpenSpecPath());
+
+    if (availability.status === 'ready') {
+      cachedCommandAvailability = availability;
+      return availability;
+    }
+
+    return cachedCommandAvailability ?? availability;
+  }
+
   // Get project info
   fastify.get('/api/project', async (request, reply) => {
     const data = getData();
@@ -116,6 +133,12 @@ export async function registerApiRoutes(
       return reply.status(503).send({ error: 'Data not loaded' });
     }
     return { stats: data.stats };
+  });
+
+  // Get local OpenSpec command availability
+  fastify.get('/api/commands/availability', async () => {
+    const availability = await getCommandAvailability();
+    return { availability };
   });
 
   // Search
