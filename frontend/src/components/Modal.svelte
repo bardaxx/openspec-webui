@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-
   export let open = false;
   export let title = '';
   export let description: string | null = null;
@@ -9,50 +7,29 @@
 
   $: maxWidthClass = size === 'lg' ? 'max-w-3xl' : 'max-w-2xl';
 
-  function handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
+  function handleWindowKeydown(event: KeyboardEvent) {
+    if (open && event.key === 'Escape') {
       onClose();
     }
   }
-
-  function handleBackdropKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      onClose();
-    }
-  }
-
-  onMount(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const onWindowKeydown = (event: KeyboardEvent) => {
-      if (open && event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    window.addEventListener('keydown', onWindowKeydown);
-
-    return () => {
-      window.removeEventListener('keydown', onWindowKeydown);
-    };
-  });
 </script>
 
+<svelte:window onkeydown={handleWindowKeydown} />
+
 {#if open}
-  <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/80 px-4 py-6"
-    role="presentation"
-    tabindex="-1"
-    onclick={handleBackdropClick}
-    onkeydown={handleBackdropKeydown}
-  >
+  <div class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6" role="presentation">
+    <button
+      type="button"
+      class="absolute inset-0 bg-gray-950/80"
+      aria-label="Close dialog"
+      onclick={onClose}
+    ></button>
+
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
-      class={`w-full ${maxWidthClass} rounded-xl border border-gray-700 bg-gray-800 shadow-2xl`}
+      class={`relative z-10 w-full ${maxWidthClass} rounded-xl border border-gray-700 bg-gray-800 shadow-2xl`}
     >
       <div class="flex items-start justify-between gap-4 border-b border-gray-700 px-6 py-4">
         <div>
