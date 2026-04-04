@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import path from 'path';
 
+const debugSourcemap = process.env.OPENSPEC_WEBUI_SOURCEMAP === '1';
+
 export default defineConfig({
   plugins: [svelte()],
   root: path.resolve(__dirname, '.'),
@@ -9,6 +11,7 @@ export default defineConfig({
   build: {
     outDir: '../dist-frontend',
     emptyOutDir: true,
+    sourcemap: debugSourcemap,
   },
   server: {
     host: '127.0.0.1',
