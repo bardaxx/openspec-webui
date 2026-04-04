@@ -2,7 +2,7 @@
   import { activeChanges, archivedChanges, navigateTo } from '../stores/index';
   import { commandPreferencesStore } from '../stores/commandPreferences';
   import { getWorkspaceCommands } from '../lib/commandShortcuts';
-  import TaskProgress from './TaskProgress.svelte';
+  import ActiveChangesList from './ActiveChangesList.svelte';
   import CommandShortcutBar from './CommandShortcutBar.svelte';
 
   let showArchived = false;
@@ -16,53 +16,13 @@
     <p class="text-gray-400 mt-1">Proposals - what SHOULD change</p>
   </div>
 
-  <CommandShortcutBar
-    title="Workspace Commands"
-    description="Copy OpenSpec commands for change-level workflow management without additional arguments."
-    commands={workspaceCommands}
-  />
-
   <!-- Active Changes -->
   <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700">
-    <div class="px-6 py-4 border-b border-gray-700">
+    <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
       <h2 class="text-lg font-semibold text-gray-100">Active Changes</h2>
+      <CommandShortcutBar commands={workspaceCommands} />
     </div>
-    <div class="divide-y divide-gray-700">
-      {#if $activeChanges.length === 0}
-        <div class="px-6 py-8 text-center text-gray-400">
-          No active changes
-        </div>
-      {:else}
-        {#each $activeChanges as change}
-          <button
-            class="w-full px-6 py-4 hover:bg-gray-700/50 text-left"
-            onclick={() => navigateTo(`/changes/${change.name}`)}
-          >
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-blue-900 flex items-center justify-center">
-                  <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </div>
-                <div>
-                  <div class="font-medium text-gray-100">{change.name}</div>
-                  <div class="text-sm text-gray-400 flex items-center gap-2 mt-1">
-                    <span>{change.specDeltaCount} spec delta{change.specDeltaCount !== 1 ? 's' : ''}</span>
-                    {#if change.hasDesign}
-                      <span class="px-1.5 py-0.5 text-xs bg-purple-900 text-purple-300 rounded">design</span>
-                    {/if}
-                  </div>
-                </div>
-              </div>
-              <div class="w-32">
-                <TaskProgress progress={change.taskProgress} size="sm" />
-              </div>
-            </div>
-          </button>
-        {/each}
-      {/if}
-    </div>
+    <ActiveChangesList changes={$activeChanges} onSelect={(name) => navigateTo(`/changes/${name}`)} />
   </div>
 
   <!-- Archived Changes Toggle -->

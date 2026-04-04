@@ -1,20 +1,4 @@
-# command-shortcuts Specification
-
-## Purpose
-Generates and surfaces copyable OpenSpec commands in the web UI using the operator's preferred AI tool syntax, with visibility rules that adapt to workspace state and change completion status.
-## Requirements
-### Requirement: Generate command text from the active syntax preference
-The system SHALL generate OpenSpec commands with `/opsx-<workflow>` when the AI tool preference is `default`, SHALL generate OpenSpec commands with `/opsx:<workflow>` when the AI tool preference is `Claude Code`, SHALL append no positional arguments for workspace-scoped commands, and SHALL append `<change-name>` only for change-scoped commands.
-
-#### Scenario: Generate a workspace command with the default syntax
-- **WHEN** the operator uses a workspace-scoped command while the AI tool preference is `default`
-- **THEN** the system generates a command such as `/opsx-propose`
-- **AND** does not append a change argument
-
-#### Scenario: Generate a change-scoped command with the Claude Code syntax
-- **WHEN** the operator uses a change-scoped command while the AI tool preference is `Claude Code`
-- **THEN** the system generates a command such as `/opsx:apply <change-name>`
-- **AND** does not append a task label or other extra argument
+## MODIFIED Requirements
 
 ### Requirement: Show workspace command buttons on Dashboard and Changes
 The system SHALL render copy-command buttons inline within the Active Changes section header on the Dashboard and Changes views, SHALL always include the core workspace commands `propose` and `explore`, SHALL include `new` only when that expanded command is both available and enabled, SHALL include `bulk-archive` only when at least one active change is fully complete and that expanded command is both available and enabled, and SHALL include `continue` and `ff` only when at least one active change remains incomplete and those expanded commands are both available and enabled. The command buttons SHALL be rendered as a compact button row without a surrounding card, title, or description block.

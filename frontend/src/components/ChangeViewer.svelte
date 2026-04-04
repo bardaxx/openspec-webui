@@ -174,6 +174,7 @@
         </div>
       {/if}
     </div>
+    <CommandShortcutBar commands={changeCommands} changeName={change?.name ?? null} />
     <!-- Suggest Changes button -->
     {#if !change?.isArchived}
       <button
@@ -203,13 +204,6 @@
       <p class="text-red-300">{error}</p>
     </div>
   {:else if change}
-    <CommandShortcutBar
-      title="Change Commands"
-      description="Copy commands for the current change. Change-scoped shortcuts include the change name only."
-      commands={changeCommands}
-      changeName={change.name}
-    />
-
     <!-- Primary tabs: Groups + Deltas -->
     <div class="border-b border-gray-700">
       <nav class="flex space-x-4">
