@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { getSpec, type Spec } from '../lib/api';
   import { navigateTo, specsRefreshTrigger } from '../stores/index';
+  import Icon from './Icon.svelte';
   import MarkdownRenderer from './MarkdownRenderer.svelte';
 
   export let specName: string;
@@ -51,9 +52,7 @@
       class="p-2 hover:bg-surface rounded-lg"
       onclick={() => navigateTo('/specs')}
     >
-      <svg class="w-5 h-5 text-on-surface-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-      </svg>
+      <Icon name="chevron-left" class="h-5 w-5 text-on-surface-muted" />
     </button>
     <div>
       <h1 class="text-2xl font-bold text-on-bg">{specName}</h1>

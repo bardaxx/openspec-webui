@@ -3,6 +3,7 @@
   import { generatePrompt } from '../lib/promptGenerator';
   import { addToast } from '../stores/index';
   import type { Change } from '../lib/api';
+  import Icon from './Icon.svelte';
 
   export let changeName: string;
   export let change: Change | null;
@@ -70,9 +71,7 @@
       class="p-1 hover:bg-surface rounded transition-colors"
       title="Exit suggestion mode"
     >
-      <svg class="w-5 h-5 text-on-surface-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-      </svg>
+      <Icon name="close" class="h-5 w-5 text-on-surface-muted" />
     </button>
   </div>
 
@@ -87,10 +86,7 @@
   <div class="flex-1 overflow-y-auto p-4 space-y-3">
     {#if suggestions.length === 0}
       <div class="text-center text-on-surface-muted py-8">
-        <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-        </svg>
+        <Icon name="pencil-square" class="mx-auto mb-3 h-12 w-12 opacity-50" />
         <p>No suggestions yet</p>
         <p class="text-xs mt-1">Click on a text block to add one</p>
       </div>
@@ -105,20 +101,14 @@
                 class="p-1 hover:bg-surface rounded text-on-surface-muted hover:text-on-surface transition-colors"
                 title="Edit suggestion"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
+                <Icon name="pencil" class="h-4 w-4" />
               </button>
               <button
                 onclick={() => handleRemove(suggestion.id)}
                 class="rounded p-1 text-on-surface-muted transition-colors hover:bg-surface hover:text-danger"
                 title="Remove suggestion"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
+                <Icon name="trash" class="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -144,10 +134,7 @@
              hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed
              transition-colors flex items-center justify-center gap-2"
     >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-      </svg>
+      <Icon name="document-arrow" class="h-5 w-5" />
       Generate Instructions
     </button>
     <p class="text-xs text-on-surface-muted text-center mt-2">
@@ -168,9 +155,7 @@
           class="p-1 hover:bg-surface rounded transition-colors"
           title="Close modal"
         >
-          <svg class="w-5 h-5 text-on-surface-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <Icon name="close" class="h-5 w-5 text-on-surface-muted" />
         </button>
       </div>
 
@@ -192,10 +177,7 @@
           class="px-4 py-2 bg-brand text-on-brand rounded-lg font-medium
                  hover:bg-brand-hover transition-colors flex items-center gap-2"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-          </svg>
+          <Icon name="document-arrow" class="h-5 w-5" />
           Copy to Clipboard
         </button>
       </div>

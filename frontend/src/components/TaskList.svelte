@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Task } from '../lib/api';
+  import Icon from './Icon.svelte';
 
   export let tasks: Task[];
   export let depth: number = 0;
@@ -11,13 +12,9 @@
       <div class="flex items-start gap-2">
         <div class="mt-0.5">
           {#if task.completed}
-            <svg class="w-5 h-5 text-success-solid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <Icon name="check-circle" class="h-5 w-5 text-success-solid" />
           {:else}
-            <svg class="w-5 h-5 text-on-surface-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="9" stroke-width="2" />
-            </svg>
+            <Icon name="circle" class="h-5 w-5 text-on-surface-muted" />
           {/if}
         </div>
         <span class="{task.completed ? 'text-on-surface-muted line-through' : 'text-on-surface'}">
