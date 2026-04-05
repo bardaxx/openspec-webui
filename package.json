@@ -21,6 +21,7 @@
     "build:server": "node ./scripts/run-local-bin.mjs tsc",
     "build:frontend": "node ./scripts/run-local-bin.mjs vite build --config frontend/vite.config.ts",
     "start": "node ./scripts/start.mjs",
+    "test": "node --import tsx --test frontend/src/stores/theme.test.ts",
     "typecheck": "npm run typecheck:server && npm run typecheck:frontend",
     "typecheck:server": "node ./scripts/run-local-bin.mjs tsc --noEmit",
     "typecheck:frontend": "node ./scripts/run-local-bin.mjs svelte-check --tsconfig ./frontend/tsconfig.json",

@@ -11,6 +11,7 @@
     navigateTo,
   } from './stores/index';
   import { commandPreferencesStore } from './stores/commandPreferences';
+  import { themeStore } from './stores/theme';
   import Navigation from './components/Navigation.svelte';
   import Dashboard from './components/Dashboard.svelte';
   import SpecsList from './components/SpecsList.svelte';
@@ -23,6 +24,9 @@
     // Set initial route from URL
     currentRoute.set(window.location.pathname);
 
+    // Initialize theme
+    themeStore.initialize();
+
     // Initialize data and WebSocket
     initializeData();
     void commandPreferencesStore.initialize();
@@ -30,6 +34,7 @@
 
     return () => {
       unsubscribe();
+      themeStore.destroy();
     };
   });
 
@@ -56,20 +61,20 @@
   $: routeInfo = parseRoute($currentRoute);
 </script>
 
-<div class="min-h-screen bg-gray-900">
+<div class="min-h-screen bg-bg">
   <Navigation projectName={$project?.name || 'OpenSpec WebUI'} />
 
   <main class="max-w-7xl mx-auto px-4 py-6">
     {#if $isLoading}
       <div class="flex items-center justify-center h-64">
-        <div class="text-gray-400">Loading...</div>
+        <div class="text-on-surface-muted">Loading...</div>
       </div>
     {:else if $error}
-      <div class="bg-red-900/50 border border-red-700 rounded-lg p-4">
-        <h2 class="text-red-400 font-semibold">Error</h2>
-        <p class="text-red-300">{$error}</p>
+      <div class="rounded-lg border border-danger-border bg-danger-bg p-4">
+        <h2 class="font-semibold text-danger">Error</h2>
+        <p class="text-danger">{$error}</p>
         <button
-          class="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          class="mt-2 rounded px-4 py-2 bg-danger-solid text-on-brand transition-colors hover:bg-danger-solid-hover"
           onclick={() => initializeData()}
         >
           Retry

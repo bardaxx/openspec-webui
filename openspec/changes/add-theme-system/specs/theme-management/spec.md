@@ -7,11 +7,21 @@ Defines how the UI theme (light, dark, system) is defined, switched, persisted, 
 The system SHALL define semantic color tokens via CSS custom properties in the `@theme` block, covering at minimum: background, surface, text, border, brand, and input colors. Each token SHALL have distinct values for light and dark themes.
 
 #### Scenario: Light theme colors are applied
-- **WHEN** the `<html>` element has no `data-theme` attribute or `data-theme="light"`
+- **WHEN** the `<html>` element has `data-theme="light"`
+- **THEN** all semantic color tokens resolve to their light theme values
+
+#### Scenario: System mode resolves to light colors
+- **WHEN** the `<html>` element has no `data-theme` attribute
+- **AND** the operating system prefers a light color scheme
 - **THEN** all semantic color tokens resolve to their light theme values
 
 #### Scenario: Dark theme colors are applied
 - **WHEN** the `<html>` element has `data-theme="dark"`
+- **THEN** all semantic color tokens resolve to their dark theme values
+
+#### Scenario: System mode resolves to dark colors
+- **WHEN** the `<html>` element has no `data-theme` attribute
+- **AND** the operating system prefers a dark color scheme
 - **THEN** all semantic color tokens resolve to their dark theme values
 
 ### Requirement: Switch between light, dark, and system themes
@@ -42,6 +52,11 @@ The system SHALL persist the selected theme mode in browser `localStorage` under
 #### Scenario: Restore saved theme on page load
 - **WHEN** the user opens the application after a previous visit
 - **THEN** the theme from localStorage is applied immediately
+
+#### Scenario: Saved theme is applied before app mount
+- **WHEN** a saved theme exists in localStorage on page load
+- **THEN** the initial document theme is applied before the Svelte application mounts
+- **AND** the user does not see a flash of the wrong theme
 
 #### Scenario: Default to dark theme for first visit
 - **WHEN** the user opens the application for the first time (no localStorage value)

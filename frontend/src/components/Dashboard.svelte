@@ -12,18 +12,18 @@
 <div class="space-y-6">
   <!-- Header -->
   <div>
-    <h1 class="text-2xl font-bold text-gray-100">Home</h1>
+    <h1 class="text-2xl font-bold text-on-bg">Home</h1>
     {#if $project?.description}
-      <p class="text-gray-400 mt-1">{$project.description}</p>
+      <p class="text-on-surface-muted mt-1">{$project.description}</p>
     {/if}
   </div>
 
   <!-- Active Changes -->
-  <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700">
-    <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
-      <h2 class="text-lg font-semibold text-gray-100">
+  <div class="bg-surface rounded-lg shadow-lg border border-border">
+    <div class="px-6 py-4 border-b border-border flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-on-bg">
         Active Changes
-        <span class="ml-2 px-1.5 py-0.5 text-xs bg-gray-600 text-gray-300 rounded-full">{$activeChanges.length}</span>
+        <span class="ml-2 px-1.5 py-0.5 text-xs bg-input-border text-on-surface rounded-full">{$activeChanges.length}</span>
       </h2>
       <CommandShortcutBar commands={workspaceCommands} />
     </div>
@@ -32,9 +32,9 @@
 
   <!-- Project Info -->
   {#if $project?.content}
-    <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700">
-      <div class="px-6 py-4 border-b border-gray-700">
-        <h2 class="text-lg font-semibold text-gray-100">Project Documentation</h2>
+    <div class="bg-surface rounded-lg shadow-lg border border-border">
+      <div class="px-6 py-4 border-b border-border">
+        <h2 class="text-lg font-semibold text-on-bg">Project Documentation</h2>
       </div>
       <div class="px-6 py-4">
         <MarkdownRenderer content={$project.content} />

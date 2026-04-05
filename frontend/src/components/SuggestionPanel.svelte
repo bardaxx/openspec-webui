@@ -61,24 +61,24 @@
 </script>
 
 <!-- Side panel -->
-<div class="fixed top-0 right-0 h-full w-96 bg-gray-800 border-l border-gray-700 shadow-xl z-40 flex flex-col">
+<div class="fixed top-0 right-0 h-full w-96 bg-surface border-l border-border shadow-xl z-40 flex flex-col">
   <!-- Header -->
-  <div class="flex items-center justify-between p-4 border-b border-gray-700">
-    <h2 class="text-lg font-semibold text-gray-100">Suggestions</h2>
+  <div class="flex items-center justify-between p-4 border-b border-border">
+    <h2 class="text-lg font-semibold text-on-bg">Suggestions</h2>
     <button
       onclick={handleExit}
-      class="p-1 hover:bg-gray-700 rounded transition-colors"
+      class="p-1 hover:bg-surface rounded transition-colors"
       title="Exit suggestion mode"
     >
-      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-5 h-5 text-on-surface-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
     </button>
   </div>
 
   <!-- Instructions -->
-  <div class="px-4 py-3 bg-blue-900/20 border-b border-gray-700">
-    <p class="text-sm text-blue-300">
+  <div class="border-b border-border bg-info-bg px-4 py-3">
+    <p class="text-sm text-info">
       Click on any text block in the proposal to add a suggestion.
     </p>
   </div>
@@ -86,7 +86,7 @@
   <!-- Suggestions list -->
   <div class="flex-1 overflow-y-auto p-4 space-y-3">
     {#if suggestions.length === 0}
-      <div class="text-center text-gray-500 py-8">
+      <div class="text-center text-on-surface-muted py-8">
         <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -96,13 +96,13 @@
       </div>
     {:else}
       {#each suggestions as suggestion, index}
-        <div class="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
+        <div class="bg-surface-alt/50 rounded-lg p-3 border border-border">
           <div class="flex items-start justify-between mb-2">
-            <span class="text-xs font-medium text-gray-400">Suggestion {index + 1}</span>
+            <span class="text-xs font-medium text-on-surface-muted">Suggestion {index + 1}</span>
             <div class="flex gap-1">
               <button
                 onclick={() => handleEdit(suggestion)}
-                class="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-gray-200 transition-colors"
+                class="p-1 hover:bg-surface rounded text-on-surface-muted hover:text-on-surface transition-colors"
                 title="Edit suggestion"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,7 +112,7 @@
               </button>
               <button
                 onclick={() => handleRemove(suggestion.id)}
-                class="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-red-400 transition-colors"
+                class="rounded p-1 text-on-surface-muted transition-colors hover:bg-surface hover:text-danger"
                 title="Remove suggestion"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,12 +122,12 @@
               </button>
             </div>
           </div>
-          <div class="text-xs text-gray-500 mb-1">Original:</div>
-          <div class="text-sm text-gray-400 bg-gray-800 rounded p-2 mb-2 line-clamp-2">
+          <div class="text-xs text-on-surface-muted mb-1">Original:</div>
+          <div class="text-sm text-on-surface-muted bg-surface rounded p-2 mb-2 line-clamp-2">
             {truncateText(suggestion.originalText, 80)}
           </div>
-          <div class="text-xs text-gray-500 mb-1">Suggested:</div>
-          <div class="text-sm text-gray-200 bg-gray-800 rounded p-2 line-clamp-3">
+          <div class="text-xs text-on-surface-muted mb-1">Suggested:</div>
+          <div class="text-sm text-on-surface bg-surface rounded p-2 line-clamp-3">
             {truncateText(suggestion.suggestedChange, 120)}
           </div>
         </div>
@@ -136,12 +136,12 @@
   </div>
 
   <!-- Footer -->
-  <div class="p-4 border-t border-gray-700">
+  <div class="p-4 border-t border-border">
       <button
         onclick={handleGeneratePrompt}
       disabled={suggestions.length === 0}
-      class="w-full py-2.5 bg-blue-600 text-white rounded-lg font-medium
-             hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed
+      class="w-full py-2.5 bg-brand text-on-brand rounded-lg font-medium
+             hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed
              transition-colors flex items-center justify-center gap-2"
     >
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,7 +150,7 @@
       </svg>
       Generate Instructions
     </button>
-    <p class="text-xs text-gray-500 text-center mt-2">
+    <p class="text-xs text-on-surface-muted text-center mt-2">
       {suggestions.length} suggestion{suggestions.length === 1 ? '' : 's'}
     </p>
   </div>
@@ -158,17 +158,17 @@
 
 <!-- Prompt Modal -->
 {#if showPromptModal}
-  <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-    <div class="bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] flex flex-col">
+  <div class="fixed inset-0 bg-overlay z-50 flex items-center justify-center p-4">
+    <div class="bg-surface rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] flex flex-col">
       <!-- Modal header -->
-      <div class="flex items-center justify-between p-4 border-b border-gray-700">
-        <h3 class="text-lg font-semibold text-gray-100">Generated Instructions</h3>
+      <div class="flex items-center justify-between p-4 border-b border-border">
+        <h3 class="text-lg font-semibold text-on-bg">Generated Instructions</h3>
         <button
           onclick={handleCloseModal}
-          class="p-1 hover:bg-gray-700 rounded transition-colors"
+          class="p-1 hover:bg-surface rounded transition-colors"
           title="Close modal"
         >
-          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 text-on-surface-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -176,21 +176,21 @@
 
       <!-- Modal content -->
       <div class="flex-1 overflow-y-auto p-4">
-        <pre class="text-sm text-gray-300 whitespace-pre-wrap bg-gray-900 rounded-lg p-4 font-mono">{generatedPrompt}</pre>
+        <pre class="text-sm text-on-surface whitespace-pre-wrap bg-surface-alt rounded-lg p-4 font-mono">{generatedPrompt}</pre>
       </div>
 
       <!-- Modal footer -->
-      <div class="flex justify-end gap-3 p-4 border-t border-gray-700">
+      <div class="flex justify-end gap-3 p-4 border-t border-border">
         <button
           onclick={handleCloseModal}
-          class="px-4 py-2 text-gray-400 hover:text-gray-200 transition-colors"
+          class="px-4 py-2 text-on-surface-muted hover:text-on-surface transition-colors"
         >
           Cancel
         </button>
         <button
           onclick={handleCopyPrompt}
-          class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium
-                 hover:bg-blue-500 transition-colors flex items-center gap-2"
+          class="px-4 py-2 bg-brand text-on-brand rounded-lg font-medium
+                 hover:bg-brand-hover transition-colors flex items-center gap-2"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

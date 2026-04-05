@@ -11,16 +11,16 @@
       <div class="flex items-start gap-2">
         <div class="mt-0.5">
           {#if task.completed}
-            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-success-solid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           {:else}
-            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-on-surface-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="9" stroke-width="2" />
             </svg>
           {/if}
         </div>
-        <span class="{task.completed ? 'text-gray-500 line-through' : 'text-gray-200'}">
+        <span class="{task.completed ? 'text-on-surface-muted line-through' : 'text-on-surface'}">
           {task.text}
         </span>
       </div>

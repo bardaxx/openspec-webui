@@ -3,14 +3,14 @@
   export let type: 'info' | 'success' | 'error' = 'info';
 
   const colors = {
-    info: 'bg-blue-500',
-    success: 'bg-green-900',
-    error: 'bg-red-500',
+    info: 'bg-info-solid',
+    success: 'bg-success-solid',
+    error: 'bg-danger-solid',
   };
 </script>
 
 <div
-  class="px-4 py-2 rounded-lg text-white shadow-lg animate-fade-in {colors[type]}"
+  class="px-4 py-2 rounded-lg text-on-brand shadow-lg animate-fade-in {colors[type]}"
   role="alert"
 >
   {message}

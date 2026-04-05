@@ -48,44 +48,44 @@
       type="button"
       aria-label="Back to specs list"
       title="Back to specs list"
-      class="p-2 hover:bg-gray-700 rounded-lg"
+      class="p-2 hover:bg-surface rounded-lg"
       onclick={() => navigateTo('/specs')}
     >
-      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-5 h-5 text-on-surface-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
     </button>
     <div>
-      <h1 class="text-2xl font-bold text-gray-100">{specName}</h1>
-      <p class="text-gray-400">Specification</p>
+      <h1 class="text-2xl font-bold text-on-bg">{specName}</h1>
+      <p class="text-on-surface-muted">Specification</p>
     </div>
   </div>
 
   {#if loading}
     <div class="flex items-center justify-center h-64">
-      <div class="text-gray-400">Loading...</div>
+      <div class="text-on-surface-muted">Loading...</div>
     </div>
   {:else if error}
-    <div class="bg-red-900/50 border border-red-700 rounded-lg p-4">
-      <p class="text-red-300">{error}</p>
+    <div class="rounded-lg border border-danger-border bg-danger-bg p-4">
+      <p class="text-danger">{error}</p>
     </div>
   {:else if spec}
     <!-- Tabs -->
     {#if spec.designContent}
-      <div class="border-b border-gray-700">
+      <div class="border-b border-border">
         <nav class="flex space-x-4">
           <button
             class="px-4 py-2 border-b-2 font-medium text-sm transition-colors {activeTab === 'spec'
-              ? 'border-blue-500 text-blue-400'
-              : 'border-transparent text-gray-400 hover:text-gray-300'}"
+              ? 'border-brand text-brand'
+              : 'border-transparent text-on-surface-muted hover:text-on-surface'}"
             onclick={() => (activeTab = 'spec')}
           >
             Specification
           </button>
           <button
             class="px-4 py-2 border-b-2 font-medium text-sm transition-colors {activeTab === 'design'
-              ? 'border-blue-500 text-blue-400'
-              : 'border-transparent text-gray-400 hover:text-gray-300'}"
+              ? 'border-brand text-brand'
+              : 'border-transparent text-on-surface-muted hover:text-on-surface'}"
             onclick={() => (activeTab = 'design')}
           >
             Design
@@ -95,7 +95,7 @@
     {/if}
 
     <!-- Content -->
-    <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700 p-6">
+    <div class="bg-surface rounded-lg shadow-lg border border-border p-6">
       {#if activeTab === 'spec'}
         <MarkdownRenderer content={spec.specContent} />
       {:else if spec.designContent}

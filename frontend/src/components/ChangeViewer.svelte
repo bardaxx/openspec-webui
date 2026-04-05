@@ -152,18 +152,18 @@
       type="button"
       aria-label="Back to changes list"
       title="Back to changes list"
-      class="p-2 hover:bg-gray-700 rounded-lg"
+      class="p-2 hover:bg-surface rounded-lg"
       onclick={() => navigateTo(backLink)}
     >
-      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-5 h-5 text-on-surface-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
     </button>
     <div class="flex-1">
       <div class="flex items-center gap-3">
-        <h1 class="text-2xl font-bold text-gray-100">{changeName}</h1>
+        <h1 class="text-2xl font-bold text-on-bg">{changeName}</h1>
         {#if change?.isArchived}
-          <span class="px-2 py-1 text-xs bg-gray-700 text-gray-400 rounded">Archived</span>
+          <span class="px-2 py-1 text-xs bg-input-bg text-on-surface-muted rounded">Archived</span>
         {/if}
       </div>
       {#if change}
@@ -171,7 +171,7 @@
           <div class="w-48">
             <TaskProgress progress={change.taskProgress} size="sm" />
           </div>
-          <span class="text-sm text-gray-400">
+          <span class="text-sm text-on-surface-muted">
             {change.taskProgress.done} of {change.taskProgress.total} tasks complete
           </span>
         </div>
@@ -184,8 +184,8 @@
         onclick={toggleSuggestionMode}
         class="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors
                {suggestionModeActive
-                 ? 'bg-blue-600 text-white'
-                 : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}"
+                 ? 'bg-brand text-on-brand'
+                 : 'bg-input-bg text-on-surface hover:bg-input-border'}"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -200,26 +200,26 @@
 
   {#if loading}
     <div class="flex items-center justify-center h-64">
-      <div class="text-gray-400">Loading...</div>
+      <div class="text-on-surface-muted">Loading...</div>
     </div>
   {:else if error}
-    <div class="bg-red-900/50 border border-red-700 rounded-lg p-4">
-      <p class="text-red-300">{error}</p>
+    <div class="rounded-lg border border-danger-border bg-danger-bg p-4">
+      <p class="text-danger">{error}</p>
     </div>
   {:else if change}
     <!-- Primary tabs: Groups + Deltas -->
-    <div class="border-b border-gray-700">
+    <div class="border-b border-border">
       <nav class="flex space-x-4">
         {#each change.fileGroups as group, i}
           <button
             class="px-4 py-2 border-b-2 font-medium text-sm transition-colors {activeGroupIndex === i && !isDeltasActive
-              ? 'border-blue-500 text-blue-400'
-              : 'border-transparent text-gray-400 hover:text-gray-300'}"
+              ? 'border-brand text-brand'
+              : 'border-transparent text-on-surface-muted hover:text-on-surface'}"
             onclick={() => selectGroup(i)}
           >
             {group.name}
             {#if group.files.length > 1}
-              <span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-700 rounded-full">
+              <span class="ml-1 px-1.5 py-0.5 text-xs bg-input-bg rounded-full">
                 {group.files.length}
               </span>
             {/if}
@@ -229,12 +229,12 @@
         {#if showDeltasTab}
           <button
             class="px-4 py-2 border-b-2 font-medium text-sm transition-colors {isDeltasActive
-              ? 'border-blue-500 text-blue-400'
-              : 'border-transparent text-gray-400 hover:text-gray-300'}"
+              ? 'border-brand text-brand'
+              : 'border-transparent text-on-surface-muted hover:text-on-surface'}"
             onclick={selectDeltas}
           >
             Spec Deltas
-            <span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-700 text-gray-300 rounded-full">
+            <span class="ml-1 px-1.5 py-0.5 text-xs bg-input-bg text-on-surface rounded-full">
               {change.specDeltas.length}
             </span>
           </button>
@@ -248,13 +248,13 @@
         {#each activeGroup.files as file, i}
           <button
             class="px-3 py-1.5 text-sm rounded-md transition-colors {activeFileIndex === i
-              ? 'bg-gray-700 text-gray-100'
-              : 'text-gray-400 hover:text-gray-300 hover:bg-gray-800'}"
+              ? 'bg-input-bg text-on-bg'
+              : 'text-on-surface-muted hover:text-on-surface hover:bg-surface'}"
             onclick={() => (activeFileIndex = i)}
           >
             {file.name}
             {#if file.type === 'html'}
-              <span class="ml-1 text-xs text-orange-400">HTML</span>
+              <span class="ml-1 text-xs text-html">HTML</span>
             {/if}
           </button>
         {/each}
@@ -263,7 +263,7 @@
 
     <!-- Content area -->
     <div
-      class="bg-gray-800 rounded-lg shadow-lg border border-gray-700 p-6 transition-all duration-300"
+      class="bg-surface rounded-lg shadow-lg border border-border p-6 transition-all duration-300"
       class:mr-96={suggestionModeActive}
     >
       {#if isDeltasActive}
@@ -271,8 +271,8 @@
         <div class="space-y-8">
           {#each change.specDeltas as delta}
             <div>
-              <h3 class="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
-                <span class="px-2 py-1 text-sm bg-green-900 text-green-300 rounded">{delta.capability}</span>
+              <h3 class="text-lg font-semibold text-on-bg mb-4 flex items-center gap-2">
+                <span class="rounded px-2 py-1 text-sm bg-success-bg text-success">{delta.capability}</span>
               </h3>
               <MarkdownRenderer content={delta.content} highlightDiff={true} suggestionModeEnabled={suggestionModeActive} />
             </div>

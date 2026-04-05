@@ -17,14 +17,14 @@
   }
 </script>
 
-<div class="html-preview rounded-lg overflow-hidden border border-gray-600">
-  <div class="bg-gray-700 px-4 py-2 flex items-center justify-between">
-    <span class="text-sm text-gray-300">{title}</span>
+<div class="html-preview rounded-lg overflow-hidden border border-input-border">
+  <div class="bg-input-bg px-4 py-2 flex items-center justify-between">
+    <span class="text-sm text-on-surface">{title}</span>
     <a
       href={src}
       target="_blank"
       rel="noopener noreferrer"
-      class="text-sm text-blue-400 hover:text-blue-300"
+      class="text-sm text-brand hover:text-brand-hover"
     >
       Open in new tab
     </a>
@@ -34,7 +34,7 @@
     {src}
     title={title}
     sandbox="allow-scripts allow-same-origin"
-    class="w-full bg-white"
+    class="w-full bg-bg"
     style="height: {iframeHeight}px; min-height: 400px; max-height: 80vh;"
     onload={handleLoad}
   ></iframe>
@@ -42,6 +42,6 @@
 
 <style>
   .html-preview {
-    background: #1f2937;
+    background: var(--surface);
   }
 </style>

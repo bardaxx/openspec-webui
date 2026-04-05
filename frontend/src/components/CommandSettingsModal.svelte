@@ -4,12 +4,17 @@
   import { buildCommand, isExpandedCommandAvailable } from '../lib/commandShortcuts';
   import Modal from './Modal.svelte';
   import { commandPreferencesStore } from '../stores/commandPreferences';
+  import { themeStore, type Theme } from '../stores/theme';
 
   export let open = false;
   export let onClose: () => void = () => {};
 
   function setAiTool(aiTool: AiTool) {
     commandPreferencesStore.setAiTool(aiTool);
+  }
+
+  function setTheme(theme: Theme) {
+    themeStore.setTheme(theme);
   }
 
   function toggleCommand(command: ExpandedCommand, event: Event) {
@@ -31,12 +36,12 @@
   <div class="space-y-6">
     <section class="space-y-3">
       <div>
-        <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-400">AI Tool</h3>
-        <p class="mt-1 text-sm text-gray-400">The selected tool controls whether copied commands use `/opsx-*` or `/opsx:*` syntax.</p>
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-on-surface-muted">AI Tool</h3>
+        <p class="mt-1 text-sm text-on-surface-muted">The selected tool controls whether copied commands use `/opsx-*` or `/opsx:*` syntax.</p>
       </div>
 
       <div class="grid gap-3 md:grid-cols-2">
-        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-700 bg-gray-900/50 p-4 text-sm text-gray-200">
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-surface-alt/50 p-4 text-sm text-on-surface">
           <input
             type="radio"
             name="ai-tool"
@@ -45,12 +50,12 @@
             onchange={() => setAiTool('default')}
           />
           <div>
-            <div class="font-medium text-gray-100">Default</div>
-            <div class="mt-1 text-gray-400">Uses workspace-friendly commands like <code class="rounded bg-gray-950 px-1.5 py-0.5 text-xs text-blue-300">/opsx-propose</code>.</div>
+            <div class="font-medium text-on-bg">Default</div>
+            <div class="mt-1 text-on-surface-muted">Uses workspace-friendly commands like <code class="rounded bg-surface-alt px-1.5 py-0.5 text-xs text-brand-hover">/opsx-propose</code>.</div>
           </div>
         </label>
 
-        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-700 bg-gray-900/50 p-4 text-sm text-gray-200">
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-surface-alt/50 p-4 text-sm text-on-surface">
           <input
             type="radio"
             name="ai-tool"
@@ -59,51 +64,103 @@
             onchange={() => setAiTool('claude-code')}
           />
           <div>
-            <div class="font-medium text-gray-100">Claude Code</div>
-            <div class="mt-1 text-gray-400">Uses Claude-style commands like <code class="rounded bg-gray-950 px-1.5 py-0.5 text-xs text-blue-300">/opsx:propose</code>.</div>
+            <div class="font-medium text-on-bg">Claude Code</div>
+            <div class="mt-1 text-on-surface-muted">Uses Claude-style commands like <code class="rounded bg-surface-alt px-1.5 py-0.5 text-xs text-brand-hover">/opsx:propose</code>.</div>
           </div>
         </label>
       </div>
 
-      <div class="rounded-lg border border-blue-900/60 bg-blue-950/30 px-4 py-3 text-sm text-blue-200">
-        Preview: <code class="rounded bg-gray-950 px-1.5 py-0.5 text-xs text-blue-300">{previewCommand}</code>
+      <div class="rounded-lg border border-info-border bg-info-bg px-4 py-3 text-sm text-info">
+        Preview: <code class="rounded bg-surface-alt px-1.5 py-0.5 text-xs text-brand-hover">{previewCommand}</code>
+      </div>
+    </section>
+
+    <!-- Appearance -->
+    <section class="space-y-3">
+      <div>
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-on-surface-muted">Appearance</h3>
+        <p class="mt-1 text-sm text-on-surface-muted">Choose the color theme for the interface.</p>
+      </div>
+
+      <div class="grid gap-3 md:grid-cols-3">
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-surface-alt/50 p-4 text-sm text-on-surface">
+          <input
+            type="radio"
+            name="theme"
+            class="mt-1"
+            checked={$themeStore === 'light'}
+            onchange={() => themeStore.setTheme('light')}
+          />
+          <div>
+            <div class="font-medium text-on-bg">Light</div>
+            <div class="mt-1 text-on-surface-muted">Light background with dark text.</div>
+          </div>
+        </label>
+
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-surface-alt/50 p-4 text-sm text-on-surface">
+          <input
+            type="radio"
+            name="theme"
+            class="mt-1"
+            checked={$themeStore === 'dark'}
+            onchange={() => themeStore.setTheme('dark')}
+          />
+          <div>
+            <div class="font-medium text-on-bg">Dark</div>
+            <div class="mt-1 text-on-surface-muted">Dark background with light text.</div>
+          </div>
+        </label>
+
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-surface-alt/50 p-4 text-sm text-on-surface">
+          <input
+            type="radio"
+            name="theme"
+            class="mt-1"
+            checked={$themeStore === 'system'}
+            onchange={() => themeStore.setTheme('system')}
+          />
+          <div>
+            <div class="font-medium text-on-bg">System</div>
+            <div class="mt-1 text-on-surface-muted">Follow your operating system setting.</div>
+          </div>
+        </label>
       </div>
     </section>
 
     <section class="space-y-3">
       <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
         <div>
-          <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-400">Expanded Commands</h3>
-          <p class="mt-1 text-sm text-gray-400">Core commands (`propose`, `explore`, `apply`, `archive`) are always shown when their page context applies.</p>
+          <h3 class="text-sm font-semibold uppercase tracking-wide text-on-surface-muted">Expanded Commands</h3>
+          <p class="mt-1 text-sm text-on-surface-muted">Core commands (`propose`, `explore`, `apply`, `archive`) are always shown when their page context applies.</p>
         </div>
 
-        <div class="text-right text-sm text-gray-400">
+        <div class="text-right text-sm text-on-surface-muted">
           {#if $commandPreferencesStore.availabilityLoading}
             <div>Checking local OpenSpec workflows...</div>
           {:else if availabilityReady}
-            <div>Local profile: <span class="font-medium text-gray-200">{$commandPreferencesStore.availability.profile || 'unknown'}</span></div>
+            <div>Local profile: <span class="font-medium text-on-surface">{$commandPreferencesStore.availability.profile || 'unknown'}</span></div>
           {:else}
-            <div class="text-amber-300">Workflow availability unavailable</div>
+            <div class="text-warning">Workflow availability unavailable</div>
           {/if}
         </div>
       </div>
 
       {#if !availabilityReady}
-        <div class="rounded-lg border border-amber-800/70 bg-amber-950/30 px-4 py-3 text-sm text-amber-200">
+        <div class="rounded-lg border border-warning-border bg-warning-bg px-4 py-3 text-sm text-warning">
           Expanded command availability could not be loaded from the local OpenSpec CLI, so these controls are disabled.
           {#if $commandPreferencesStore.availability.error}
-            <div class="mt-1 text-xs text-amber-300/90">{$commandPreferencesStore.availability.error}</div>
+            <div class="mt-1 text-xs text-warning">{$commandPreferencesStore.availability.error}</div>
           {/if}
         </div>
       {/if}
 
-      <div class="divide-y divide-gray-700 overflow-hidden rounded-lg border border-gray-700 bg-gray-900/50">
+      <div class="divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface-alt/50">
         {#each EXPANDED_COMMANDS as command}
           {@const isAvailable = isExpandedCommandAvailable(command, $commandPreferencesStore.availability)}
           <label class="flex items-center justify-between gap-4 px-4 py-3 text-sm">
             <div>
-              <div class="font-medium text-gray-100">{EXPANDED_COMMAND_LABELS[command]}</div>
-              <div class="mt-1 text-xs text-gray-400">
+              <div class="font-medium text-on-bg">{EXPANDED_COMMAND_LABELS[command]}</div>
+              <div class="mt-1 text-xs text-on-surface-muted">
                 {#if availabilityReady}
                   {#if isAvailable}
                     Available from the local OpenSpec workflows.
@@ -130,7 +187,7 @@
     <div class="flex justify-end">
       <button
         type="button"
-        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+        class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover"
         onclick={onClose}
       >
         Done

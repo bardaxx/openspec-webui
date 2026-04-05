@@ -1,28 +1,228 @@
 @import "tailwindcss";
 
 @theme {
-  /* Theme tokens will be added in the theme-system change */
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-on-bg: var(--on-bg);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-muted: var(--on-surface-muted);
+  --color-on-brand: var(--on-brand);
+  --color-border: var(--border);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-input-bg: var(--input-bg);
+  --color-input-border: var(--input-border);
+  --color-overlay: var(--overlay);
+  --color-code: var(--code);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-info-border: var(--info-border);
+  --color-info-solid: var(--info-solid);
+  --color-info-solid-hover: var(--info-solid-hover);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-success-border: var(--success-border);
+  --color-success-solid: var(--success-solid);
+  --color-success-solid-hover: var(--success-solid-hover);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+  --color-warning-solid: var(--warning-solid);
+  --color-warning-solid-hover: var(--warning-solid-hover);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-border: var(--danger-border);
+  --color-danger-solid: var(--danger-solid);
+  --color-danger-solid-hover: var(--danger-solid-hover);
+  --color-accent: var(--accent);
+  --color-accent-bg: var(--accent-bg);
+  --color-accent-border: var(--accent-border);
+  --color-html: var(--html);
+  --color-html-bg: var(--html-bg);
+  --color-html-border: var(--html-border);
 }
 
-/* Custom styles for markdown rendering */
+/* ── Light theme (default) ── */
+:root {
+  --bg: #ffffff;
+  --surface: #f9fafb;
+  --surface-alt: #f3f4f6;
+  --on-bg: #111827;
+  --on-surface: #1f2937;
+  --on-surface-muted: #6b7280;
+  --on-brand: #ffffff;
+  --border: #e5e7eb;
+  --brand: #2563eb;
+  --brand-hover: #3b82f6;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --overlay: rgb(15 23 42 / 0.6);
+  --code: #0891b2;
+  --info: #1d4ed8;
+  --info-bg: #dbeafe;
+  --info-border: #93c5fd;
+  --info-solid: #2563eb;
+  --info-solid-hover: #1d4ed8;
+  --success: #047857;
+  --success-bg: #d1fae5;
+  --success-border: #6ee7b7;
+  --success-solid: #059669;
+  --success-solid-hover: #047857;
+  --warning: #b45309;
+  --warning-bg: #fef3c7;
+  --warning-border: #fcd34d;
+  --warning-solid: #d97706;
+  --warning-solid-hover: #b45309;
+  --danger: #b91c1c;
+  --danger-bg: #fee2e2;
+  --danger-border: #fca5a5;
+  --danger-solid: #dc2626;
+  --danger-solid-hover: #b91c1c;
+  --accent: #7c3aed;
+  --accent-bg: #ede9fe;
+  --accent-border: #c4b5fd;
+  --html: #ea580c;
+  --html-bg: #ffedd5;
+  --html-border: #fdba74;
+}
+
+/* ── Dark theme ── */
+[data-theme="dark"] {
+  --bg: #111827;
+  --surface: #1f2937;
+  --surface-alt: #030712;
+  --on-bg: #f3f4f6;
+  --on-surface: #e5e7eb;
+  --on-surface-muted: #9ca3af;
+  --on-brand: #ffffff;
+  --border: #374151;
+  --brand: #60a5fa;
+  --brand-hover: #93c5fd;
+  --input-bg: #374151;
+  --input-border: #4b5563;
+  --overlay: rgb(3 7 18 / 0.75);
+  --code: #67e8f9;
+  --info: #bfdbfe;
+  --info-bg: #172554;
+  --info-border: #2563eb;
+  --info-solid: #3b82f6;
+  --info-solid-hover: #60a5fa;
+  --success: #86efac;
+  --success-bg: #064e3b;
+  --success-border: #059669;
+  --success-solid: #059669;
+  --success-solid-hover: #10b981;
+  --warning: #fcd34d;
+  --warning-bg: #451a03;
+  --warning-border: #d97706;
+  --warning-solid: #d97706;
+  --warning-solid-hover: #f59e0b;
+  --danger: #fca5a5;
+  --danger-bg: #450a0a;
+  --danger-border: #dc2626;
+  --danger-solid: #dc2626;
+  --danger-solid-hover: #ef4444;
+  --accent: #ddd6fe;
+  --accent-bg: #2e1065;
+  --accent-border: #7c3aed;
+  --html: #fdba74;
+  --html-bg: #431407;
+  --html-border: #ea580c;
+}
+
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* ── System mode – follow OS preference ── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #111827;
+    --surface: #1f2937;
+    --surface-alt: #030712;
+    --on-bg: #f3f4f6;
+    --on-surface: #e5e7eb;
+    --on-surface-muted: #9ca3af;
+    --on-brand: #ffffff;
+    --border: #374151;
+    --brand: #60a5fa;
+    --brand-hover: #93c5fd;
+    --input-bg: #374151;
+    --input-border: #4b5563;
+    --overlay: rgb(3 7 18 / 0.75);
+    --code: #67e8f9;
+    --info: #bfdbfe;
+    --info-bg: #172554;
+    --info-border: #2563eb;
+    --info-solid: #3b82f6;
+    --info-solid-hover: #60a5fa;
+    --success: #86efac;
+    --success-bg: #064e3b;
+    --success-border: #059669;
+    --success-solid: #059669;
+    --success-solid-hover: #10b981;
+    --warning: #fcd34d;
+    --warning-bg: #451a03;
+    --warning-border: #d97706;
+    --warning-solid: #d97706;
+    --warning-solid-hover: #f59e0b;
+    --danger: #fca5a5;
+    --danger-bg: #450a0a;
+    --danger-border: #dc2626;
+    --danger-solid: #dc2626;
+    --danger-solid-hover: #ef4444;
+    --accent: #ddd6fe;
+    --accent-bg: #2e1065;
+    --accent-border: #7c3aed;
+    --html: #fdba74;
+    --html-bg: #431407;
+    --html-border: #ea580c;
+    color-scheme: dark;
+  }
+}
+
+html {
+  background-color: var(--bg);
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--on-bg);
+}
+
+#app {
+  min-height: 100vh;
+}
+
+/* ────────────────────────────
+   Markdown rendering styles
+   ──────────────────────────── */
+
 .markdown-body {
-  @apply text-gray-300 leading-relaxed;
+  @apply text-on-surface leading-relaxed;
 }
 
 .markdown-body h1 {
-  @apply text-3xl font-bold mt-8 mb-4 text-gray-100 border-b border-gray-700 pb-2;
+  @apply text-3xl font-bold mt-8 mb-4 text-on-bg border-b border-border pb-2;
 }
 
 .markdown-body h2 {
-  @apply text-2xl font-semibold mt-8 mb-4 text-gray-100;
+  @apply text-2xl font-semibold mt-8 mb-4 text-on-bg;
 }
 
 .markdown-body h3 {
-  @apply text-xl font-semibold mt-6 mb-3 text-gray-200;
+  @apply text-xl font-semibold mt-6 mb-3 text-on-surface;
 }
 
 .markdown-body h4 {
-  @apply text-lg font-medium mt-5 mb-2 text-gray-200;
+  @apply text-lg font-medium mt-5 mb-2 text-on-surface;
 }
 
 .markdown-body p {
@@ -67,48 +267,48 @@
 }
 
 .markdown-body input[type="checkbox"] {
-  @apply w-4 h-4 mr-3 rounded border-2 border-gray-500 bg-gray-800
+  @apply w-4 h-4 mr-3 rounded border-2 border-on-surface-muted bg-surface
          appearance-none cursor-pointer relative align-middle;
   margin-top: -2px;
 }
 
 .markdown-body input[type="checkbox"]:checked {
-  @apply bg-emerald-600 border-emerald-600;
+  @apply bg-success-solid border-success-solid;
 }
 
 .markdown-body input[type="checkbox"]:checked::after {
   content: '✓';
-  @apply absolute inset-0 flex items-center justify-center text-white text-xs font-bold;
+  @apply absolute inset-0 flex items-center justify-center text-on-brand text-xs font-bold;
 }
 
 /* Completed task text styling */
 .markdown-body li:has(> input[type="checkbox"]:checked) {
-  @apply text-gray-500;
+  @apply text-on-surface-muted;
 }
 
 /* Inline code - more subtle, professional look */
 .markdown-body code {
-  @apply bg-gray-800/80 px-2 py-1 rounded text-sm font-mono text-cyan-400
-         border border-gray-700/50;
+  @apply bg-surface/80 px-2 py-1 rounded text-sm font-mono text-code
+         border border-border/50;
 }
 
 /* Code blocks */
 .markdown-body pre {
-  @apply bg-gray-950 text-gray-100 p-4 rounded-lg overflow-x-auto my-4
-         border border-gray-700/50 shadow-lg;
+  @apply bg-surface-alt text-on-bg p-4 rounded-lg overflow-x-auto my-4
+         border border-border/50 shadow-lg;
 }
 
 .markdown-body pre code {
-  @apply bg-transparent px-0 py-0 text-gray-100 border-0;
+  @apply bg-transparent px-0 py-0 text-on-bg border-0;
 }
 
 .markdown-body blockquote {
-  @apply border-l-4 border-blue-500/50 pl-4 italic text-gray-400 my-4
-         bg-gray-800/30 py-2 pr-4 rounded-r;
+  @apply border-l-4 border-brand/50 pl-4 italic text-on-surface-muted my-4
+         bg-surface/30 py-2 pr-4 rounded-r;
 }
 
 .markdown-body a {
-  @apply text-blue-400 hover:text-blue-300 hover:underline transition-colors;
+  @apply text-brand hover:text-brand-hover hover:underline transition-colors;
 }
 
 .markdown-body table {
@@ -116,65 +316,69 @@
 }
 
 .markdown-body th, .markdown-body td {
-  @apply border border-gray-700 px-4 py-2.5 text-left;
+  @apply border border-border px-4 py-2.5 text-left;
 }
 
 .markdown-body th {
-  @apply bg-gray-800 font-semibold text-gray-200;
+  @apply bg-surface font-semibold text-on-surface;
 }
 
 .markdown-body tr:nth-child(even) td {
-  @apply bg-gray-800/30;
+  @apply bg-surface/30;
 }
 
 /* Horizontal rule */
 .markdown-body hr {
-  @apply border-gray-700 my-8;
+  @apply border-border my-8;
 }
 
 /* Strong and emphasis */
 .markdown-body strong {
-  @apply text-gray-100 font-semibold;
+  @apply text-on-bg font-semibold;
 }
 
 .markdown-body em {
-  @apply text-gray-300;
+  @apply text-on-surface;
 }
 
-/* Diff highlighting */
+/* ────────────────────────────
+   Diff highlighting
+   ──────────────────────────── */
 .diff-added {
-  @apply bg-green-900/40 border-l-4 border-green-500 pl-3 rounded-r;
+  @apply bg-success-bg border-l-4 border-success pl-3 rounded-r;
 }
 
 .diff-modified {
-  @apply bg-yellow-900/40 border-l-4 border-yellow-500 pl-3 rounded-r;
+  @apply bg-warning-bg border-l-4 border-warning pl-3 rounded-r;
 }
 
 .diff-removed {
-  @apply bg-red-900/40 border-l-4 border-red-500 pl-3 rounded-r;
+  @apply bg-danger-bg border-l-4 border-danger pl-3 rounded-r;
 }
 
-/* Suggestion mode styles */
+/* ────────────────────────────
+   Suggestion mode styles
+   ──────────────────────────── */
 .suggestion-mode .suggestion-block {
   @apply cursor-pointer rounded transition-all duration-150;
 }
 
 .suggestion-mode .suggestion-block:hover {
-  @apply bg-blue-900/30;
+  @apply bg-info-bg;
 }
 
 .suggestion-mode .suggestion-block.selected {
-  @apply ring-2 ring-blue-500 bg-blue-900/40;
+  @apply ring-2 ring-info bg-info-bg;
 }
 
 .suggestion-mode .suggestion-block.has-suggestion {
-  @apply border-l-4 border-yellow-500 pl-3 bg-yellow-900/20;
+  @apply border-l-4 border-warning pl-3 bg-warning-bg;
 }
 
 .suggestion-mode .suggestion-block.has-suggestion:hover {
-  @apply bg-yellow-900/30;
+  @apply bg-warning-bg;
 }
 
 .suggestion-mode .suggestion-block.has-suggestion.selected {
-  @apply ring-2 ring-yellow-500 bg-yellow-900/40;
+  @apply ring-2 ring-warning bg-warning-bg;
 }
