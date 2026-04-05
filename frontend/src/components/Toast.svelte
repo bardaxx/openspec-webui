@@ -4,7 +4,7 @@
 
   const colors = {
     info: 'bg-blue-500',
-    success: 'bg-green-500',
+    success: 'bg-green-900',
     error: 'bg-red-500',
   };
 </script>

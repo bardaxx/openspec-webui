@@ -1,11 +1,12 @@
 ## MODIFIED Requirements
 
 ### Requirement: List active and archived changes
-The system SHALL list active changes on the Home page alphabetically, SHALL list archived changes on the dedicated Changes page (`/changes`) newest-first by leading archive date when available, and SHALL expose per-change summary data including task progress, spec delta count, design presence, file counts, and archive status. Active changes SHALL be rendered by the shared `ActiveChangesList` component on the Home page only. The Changes page SHALL display only archived changes and SHALL be titled "Archived Changes".
+The system SHALL list active changes on the Home page alphabetically with a count badge in the section header, SHALL list archived changes on the dedicated Changes page (`/changes`) newest-first by leading archive date when available, and SHALL expose per-change summary data including task progress, spec delta count, design presence, file counts, and archive status. Active changes SHALL be rendered by the shared `ActiveChangesList` component on the Home page only. The Changes page SHALL display only archived changes and SHALL be titled "Archived Changes".
 
 #### Scenario: Show active change summaries
 - **WHEN** the workspace contains active changes
 - **THEN** the Home page lists them alphabetically using the `ActiveChangesList` component
+- **AND** the Active Changes section header shows a count badge
 - **AND** each summary includes an icon, name, spec delta count, and task progress
 - **AND** the UI marks changes with design content using a design badge
 

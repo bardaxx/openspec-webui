@@ -1,16 +1,15 @@
 ## 1. Navigation
 
-- [x] 1.1 `Navigation.svelte` の Dashboard リンクを削除し、Home / Changes / Specs の3項目にする
+- [x] 1.1 `Navigation.svelte` の Dashboard リンクを削除し、Specs / Changes の2項目にする
 - [x] 1.2 Changes ナビゲーションのバッジを archived changes 数に変更
+- [x] 1.3 ナビゲーションアクティブ状態のリアクティビティバグを修正（`isActive()` 関数を削除し、テンプレート内で `$currentRoute.startsWith()` を直接使用）
 
 ## 2. Home Page (Dashboard → Home)
 
 - [x] 2.1 `Dashboard.svelte` のページタイトルを "Dashboard" → "Home" に変更
-- [x] 2.2 Stats Cards を3列（Active Changes / Archived Changes / Total Specs）に変更し、順序を入れ替え
-- [x] 2.3 Archived Changes カードを `/changes` へのリンクにする
-- [x] 2.4 Total Specs カードを `/specs` へのリンクにする
-- [x] 2.5 Stats Cards をコンパクトな1行フォーマット（数値 + ラベル）に変更
-- [x] 2.6 Overall Progress を Active Changes カード内のインラインインジケーターに統合
+- [x] 2.2 Stats Cards セクション全体を削除
+- [x] 2.3 Active Changes セクションヘッダーに件数バッジを追加
+- [x] 2.4 未使用になった import（`stats`, `navigateTo`, `TaskProgress`）を削除
 
 ## 3. Changes Page (Archived 専用化)
 
@@ -22,7 +21,7 @@
 ## 4. Back Links
 
 - [x] 4.1 `ChangeViewer.svelte` の戻るリンクを、active change なら `/`、archived change なら `/changes` に条件分岐
-- [x] 4.2 `SpecViewer.svelte` の戻るリンクが `/specs` であることを確認（調整があれば修正）
+- [x] 4.2 `SpecViewer.svelte` の戻るリンクが `/specs` であることを確認（変更不要）
 
 ## 5. Cleanup
 
