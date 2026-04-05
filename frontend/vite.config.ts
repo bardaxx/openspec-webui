@@ -1,11 +1,12 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
+import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 
 const debugSourcemap = process.env.OPENSPEC_WEBUI_SOURCEMAP === '1';
 
 export default defineConfig({
-  plugins: [svelte()],
+  plugins: [tailwindcss(), svelte()],
   root: path.resolve(__dirname, '.'),
   base: '/',
   build: {
