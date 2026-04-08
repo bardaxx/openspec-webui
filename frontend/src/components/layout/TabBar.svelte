@@ -4,6 +4,10 @@
   import * as Tabs from '$lib/components/ui/tabs';
   import { tabStore } from '../../stores/tabs.svelte.ts';
 
+  function isHomeTab(tab: { id: string; path: string; type: string }) {
+    return tab.type === 'dashboard' && tab.path === '/';
+  }
+
   function closeTab(event: MouseEvent, tabId: string) {
     event.stopPropagation();
     tabStore.close(tabId);
@@ -35,18 +39,28 @@
               <span class="truncate">{tab.name}</span>
             </Tabs.Trigger>
 
+            {#if isHomeTab(tab)}
+              <span
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground"
+                aria-label="Pinned Home tab"
+                title="Pinned Home tab"
+              >
+                <Pin class="h-4 w-4" />
+              </span>
+            {:else}
               <button
                 type="button"
                 class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                 aria-label={tab.pinned ? 'Unpin tab' : 'Pin tab'}
                 onclick={(event) => togglePin(event, tab.id, tab.pinned ?? false)}
               >
-              {#if tab.pinned}
-                <PinOff class="h-4 w-4" />
-              {:else}
-                <Pin class="h-4 w-4" />
-              {/if}
-            </button>
+                {#if tab.pinned}
+                  <PinOff class="h-4 w-4" />
+                {:else}
+                  <Pin class="h-4 w-4" />
+                {/if}
+              </button>
+            {/if}
 
             {#if !tab.pinned}
               <button

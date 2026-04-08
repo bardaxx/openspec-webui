@@ -6,11 +6,17 @@ export type LayoutOverlay = 'search' | 'settings' | 'project-selector' | null;
 const STORAGE_KEY = 'openspec-layout';
 const DEFAULT_EXPLORER_WIDTH = 280;
 const MIN_EXPLORER_WIDTH = 180;
-const MAX_EXPLORER_WIDTH = 400;
+const MAX_EXPLORER_WIDTH = 600;
 
 const PRESET_SECTION_MAP: Record<ActivityPreset, ExplorerSection> = {
   home: 'active-changes',
   changes: 'archive',
+  specs: 'specs',
+};
+
+const SECTION_PRESET_MAP: Record<ExplorerSection, ActivityPreset> = {
+  'active-changes': 'home',
+  archive: 'changes',
   specs: 'specs',
 };
 
@@ -148,6 +154,7 @@ function createLayoutStore() {
   }
 
   function focusSection(section: ExplorerSection) {
+    state.activityPreset = SECTION_PRESET_MAP[section];
     state.focusedSection = section;
     state.sectionCollapsed = {
       ...state.sectionCollapsed,
@@ -242,6 +249,11 @@ function createLayoutStore() {
       }
 
       persist();
+    },
+
+    syncActivityPreset(preset: ActivityPreset) {
+      state.activityPreset = preset;
+      state.focusedSection = PRESET_SECTION_MAP[preset];
     },
 
     focusSection,

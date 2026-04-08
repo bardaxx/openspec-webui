@@ -218,6 +218,18 @@ function getStateExpression() {
     const explorer = [...document.querySelectorAll('aside')].find((node) => node.textContent?.includes('Workspace'));
     const tabNames = [...document.querySelectorAll('[role="tab"]')].map((node) => node.textContent?.trim()).filter(Boolean);
     const activeTab = document.querySelector('[role="tab"][aria-selected="true"]')?.textContent?.trim() ?? null;
+    const tabs = [...document.querySelectorAll('[role="tab"]')].map((node) => {
+      const name = node.textContent?.trim() ?? null;
+      const group = node.closest('div.flex.items-stretch');
+
+      return {
+        name,
+        pinnedHome: Boolean(group?.querySelector('[aria-label="Pinned Home tab"]')),
+        closeVisible: Boolean(group?.querySelector('button[aria-label="Close tab"]')),
+        pinToggleVisible: Boolean(group?.querySelector('button[aria-label="Pin tab"], button[aria-label="Unpin tab"]')),
+      };
+    });
+    const homeTab = tabs.find((tab) => tab.name === 'Home') ?? null;
 
     const sectionState = (label) => {
       if (!explorer) {
@@ -233,6 +245,10 @@ function getStateExpression() {
       path: location.pathname,
       tabNames,
       activeTab,
+      homeTabCount: tabs.filter((tab) => tab.name === 'Home').length,
+      homeTabPinned: homeTab?.pinnedHome ?? false,
+      homeTabCloseVisible: homeTab?.closeVisible ?? false,
+      homeTabPinToggleVisible: homeTab?.pinToggleVisible ?? false,
       explorerVisible: Boolean(explorer),
       activeChangesState: sectionState('Active Changes'),
       archiveState: sectionState('Archive'),
@@ -370,17 +386,20 @@ async function main() {
     let state = await getState(cdp);
     assert(state.path === '/', 'Home route should load by default');
     assert(state.activeTab === 'Home', 'Home tab should be active by default');
+    assert(state.homeTabCount === 1, 'Home tab should be present exactly once');
+    assert(state.homeTabPinned && !state.homeTabCloseVisible, 'Home tab should be pinned and not closable');
+    assert(!state.homeTabPinToggleVisible, 'Home tab should not expose pin or unpin actions');
     assert(state.activeChangesState === 'open', 'Active Changes section should be open by default');
     assert(state.archiveState === 'closed' && state.specsState === 'closed', 'Archive and Specs should be collapsed on Home');
     assert(state.explorerPanelStyle?.includes('320px'), 'Explorer should honor remembered width');
     results.push('home-default');
 
-    await clickSelector(cdp, '[aria-label="Collapse explorer"]');
-    state = await getState(cdp);
-    assert(!state.explorerVisible && state.expandExplorerVisible, 'Explorer should collapse fully');
     await clickSelector(cdp, '[aria-label="Home"]');
     state = await getState(cdp);
-    assert(state.explorerVisible && state.explorerPanelStyle?.includes('320px'), 'Home should restore explorer width');
+    assert(!state.explorerVisible && !state.expandExplorerVisible, 'Explorer should collapse fully without a standalone expand button');
+    await clickSelector(cdp, '[aria-label="Home"]');
+    state = await getState(cdp);
+    assert(state.explorerVisible && state.activeTab === 'Home' && state.explorerPanelStyle?.includes('320px'), 'Home should restore explorer width when re-clicked');
     results.push('explorer-collapse-restore');
 
     await clickSelector(cdp, '[title="Copy /opsx-propose"]');
@@ -388,9 +407,30 @@ async function main() {
     assert(state.copied === '/opsx-propose', 'Workspace command shortcut should copy command text');
     results.push('command-shortcut-copy');
 
-    await clickExplorerItem(cdp, 'Active Changes');
+    const initialTabNames = [...state.tabNames];
+    await clickSelector(cdp, '[aria-label="Changes"]');
     state = await getState(cdp);
-    assert(state.path === '/changes/obsidian-layout-redesign', 'Active change should open in a tab');
+    assert(state.activeTab === 'Home' && JSON.stringify(state.tabNames) === JSON.stringify(initialTabNames), 'Changes should not open or focus tabs');
+    assert(state.archiveState === 'open' && state.activeChangesState === 'closed' && state.specsState === 'closed', 'Changes preset should focus archive without changing tabs');
+    await clickSelector(cdp, '[aria-label="Changes"]');
+    state = await getState(cdp);
+    assert(!state.explorerVisible && !state.expandExplorerVisible, 'Re-clicking the active Changes button should collapse the explorer');
+    await clickSelector(cdp, '[aria-label="Changes"]');
+    state = await getState(cdp);
+    assert(state.explorerVisible && state.archiveState === 'open', 'Clicking the active Changes button while collapsed should restore the explorer');
+    assert(state.activeTab === 'Home' && JSON.stringify(state.tabNames) === JSON.stringify(initialTabNames), 'Restoring Changes should still avoid tab changes');
+    await clickSelector(cdp, '[aria-label="Specs"]');
+    state = await getState(cdp);
+    assert(state.activeTab === 'Home' && JSON.stringify(state.tabNames) === JSON.stringify(initialTabNames), 'Specs should not open or focus tabs');
+    assert(state.specsState === 'open' && state.activeChangesState === 'closed' && state.archiveState === 'closed', 'Specs preset should focus specs section without changing tabs');
+    results.push('activity-bar-presets');
+
+    await clickSelector(cdp, '[aria-label="Home"]');
+
+    const activeChangeName = await clickExplorerItem(cdp, 'Active Changes');
+    state = await getState(cdp);
+    assert(state.path === `/changes/${encodeURIComponent(activeChangeName)}`, 'Active change should open in a tab');
+    assert(state.tabNames.includes(activeChangeName), 'Opened active change should appear in tab list');
     results.push('change-browse');
 
     await clickByText(cdp, 'button', 'Suggest');
@@ -410,15 +450,20 @@ async function main() {
     assert(state.tabNames.includes(specName), 'Opened spec should appear in tab list');
     results.push('spec-browse');
 
-    await clickByText(cdp, '[role="tab"]', 'Home');
+    const tabNamesBeforeHomeFocus = [...state.tabNames];
+    await clickSelector(cdp, '[aria-label="Home"]');
     state = await getState(cdp);
-    assert(state.path === '/', 'Switching tabs should sync URL to Home');
+    assert(state.path === '/' && state.activeTab === 'Home', 'Home activity button should focus the existing Home tab');
+    assert(state.homeTabCount === 1 && JSON.stringify(state.tabNames) === JSON.stringify(tabNamesBeforeHomeFocus), 'Home activity button should reuse the existing Home tab');
+    assert(state.activeChangesState === 'open' && state.archiveState === 'closed' && state.specsState === 'closed', 'Home activity button should restore the Home explorer preset');
+    results.push('home-focus-existing-tab');
+
     await clickByText(cdp, '[role="tab"]', specName);
     state = await getState(cdp);
     assert(state.path === `/specs/${encodeURIComponent(specName)}`, 'Clicking existing spec tab should focus it');
     await clickActiveTabAction(cdp, 'Pin tab');
     state = await getState(cdp);
-    assert(state.tabNames[0] === specName, 'Pinned tab should move into the left pinned group');
+    assert(state.tabNames[0] === 'Home' && state.tabNames[1] === specName, 'Pinned tab should move into the left pinned group after Home');
     await clickActiveTabAction(cdp, 'Unpin tab');
     await clickActiveTabAction(cdp, 'Close tab');
     state = await getState(cdp);
@@ -429,6 +474,7 @@ async function main() {
     await installPageHarness(cdp);
     state = await getState(cdp);
     assert(state.path === `/specs/${encodeURIComponent(specName)}` && state.tabNames.includes(specName), 'Direct URL access should open corresponding tab');
+    assert(state.tabNames.includes('Home') && state.homeTabPinned && !state.homeTabCloseVisible && !state.homeTabPinToggleVisible, 'Direct URL access should keep the pinned Home tab present');
     await cdp.navigate(APP_URL);
     await installPageHarness(cdp);
     results.push('direct-url-tab-open');
@@ -436,17 +482,19 @@ async function main() {
     await clickSelector(cdp, '[aria-label="Search"]');
     state = await getState(cdp);
     assert(state.searchDialogVisible, 'Search dialog should open from Activity Bar');
-    await typeIntoSearch(cdp, 'obsidian');
+    const searchQuery = 'persistent vertical control strip';
+    const searchResultName = 'activity-bar';
+    await typeIntoSearch(cdp, searchQuery);
     await waitFor(
       cdp,
-      pageExpression(() => [...document.querySelectorAll('button')].some((node) => node.textContent?.includes('obsidian-layout-redesign'))),
-      'search results for active change',
+      pageExpression(() => [...document.querySelectorAll('button')].some((node) => node.textContent?.includes('__RESULT_NAME__'))).replace('__RESULT_NAME__', searchResultName.replaceAll('\\', '\\\\').replaceAll("'", "\\'")),
+      'search results for stable spec',
       6000,
       250,
     );
-    await clickByText(cdp, '[role="dialog"] button', 'obsidian-layout-redesign');
+    await clickByText(cdp, '[role="dialog"] button', searchResultName);
     state = await getState(cdp);
-    assert(state.path === '/changes/obsidian-layout-redesign' && !state.searchDialogVisible, 'Selecting a search result should open a tab and close search');
+    assert(state.path === `/specs/${encodeURIComponent(searchResultName)}` && !state.searchDialogVisible, 'Selecting a search result should open a tab and close search');
     results.push('search-open-result');
 
     await clickSelector(cdp, '[aria-label="Settings"]');

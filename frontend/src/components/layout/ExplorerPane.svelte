@@ -91,7 +91,10 @@
         <div class="border-b border-border/70 bg-secondary/40 px-3 py-2">
           <div class="flex items-center justify-between gap-2">
             <Collapsible.Trigger class="flex flex-1 items-center justify-between rounded-md px-1 py-1 text-left">
-              <span class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Active Changes</span>
+              <span class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                <SquarePen class="h-3.5 w-3.5" />
+                Active Changes
+              </span>
               <span class="flex items-center gap-2">
                 <span class="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground">{activeChanges.value.length}</span>
                 {#if sectionOpen('active-changes')}
@@ -121,10 +124,6 @@
                   class={`flex w-full items-center gap-3 px-3 py-3 text-left transition-colors ${itemClass(`/changes/${encodeURIComponent(change.name)}`)}`}
                   onclick={() => openTab(`/changes/${encodeURIComponent(change.name)}`, 'active-changes')}
                 >
-                  <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-info-bg text-info">
-                    <SquarePen class="h-4 w-4" />
-                  </div>
-
                   <div class="min-w-0 flex-1">
                     <div class="truncate text-sm font-medium">{change.name}</div>
                     <div class="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
@@ -157,7 +156,10 @@
       >
         <div class="border-b border-border/70 bg-secondary/40 px-3 py-2">
           <Collapsible.Trigger class="flex w-full items-center justify-between rounded-md px-1 py-1 text-left">
-            <span class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Archive</span>
+            <span class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              <Archive class="h-3.5 w-3.5" />
+              Archive
+            </span>
             <span class="flex items-center gap-2">
               <span class="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground">{archivedChanges.value.length}</span>
               {#if sectionOpen('archive')}
@@ -180,10 +182,6 @@
                   class={`flex w-full items-center gap-3 px-3 py-3 text-left transition-colors ${itemClass(`/changes/${encodeURIComponent(change.name)}`)}`}
                   onclick={() => openTab(`/changes/${encodeURIComponent(change.name)}`, 'archive')}
                 >
-                  <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                    <Archive class="h-4 w-4" />
-                  </div>
-
                   <div class="min-w-0 flex-1">
                     <div class="truncate text-sm font-medium">{change.name}</div>
                     <div class="mt-1 text-xs text-muted-foreground">
@@ -211,7 +209,10 @@
       >
         <div class="border-b border-border/70 bg-secondary/40 px-3 py-2">
           <Collapsible.Trigger class="flex w-full items-center justify-between rounded-md px-1 py-1 text-left">
-            <span class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Specs</span>
+            <span class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              <FileText class="h-3.5 w-3.5" />
+              Specs
+            </span>
             <span class="flex items-center gap-2">
               <span class="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground">{specs.value.length}</span>
               {#if sectionOpen('specs')}
@@ -234,10 +235,6 @@
                   class={`flex w-full items-center gap-3 px-3 py-3 text-left transition-colors ${itemClass(`/specs/${encodeURIComponent(spec.name)}`)}`}
                   onclick={() => openTab(`/specs/${encodeURIComponent(spec.name)}`, 'specs')}
                 >
-                  <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-success-bg text-success">
-                    <FileText class="h-4 w-4" />
-                  </div>
-
                   <div class="min-w-0 flex-1">
                     <div class="truncate text-sm font-medium">{spec.name}</div>
                     <div class="mt-1 text-xs text-muted-foreground">

@@ -29,15 +29,15 @@ The system SHALL render a draggable divider between the Explorer Pane and the Ma
 - **THEN** the divider shows a visual highlight or cursor change indicating it is draggable
 
 ### Requirement: Pane size constraints
-The Explorer Pane SHALL have a minimum width of 180px and a maximum width of 400px. The Main Viewer SHALL have a minimum width of 300px.
+The Explorer Pane SHALL have a minimum width of 180px and a maximum width of 600px. The Main Viewer SHALL have a minimum width of 300px.
 
 #### Scenario: Prevent Explorer Pane from becoming too narrow
 - **WHEN** the operator drags the divider to attempt making the Explorer Pane narrower than 180px
 - **THEN** the divider stops at 180px
 
 #### Scenario: Prevent Explorer Pane from becoming too wide
-- **WHEN** the operator drags the divider to attempt making the Explorer Pane wider than 400px
-- **THEN** the divider stops at 400px
+- **WHEN** the operator drags the divider to attempt making the Explorer Pane wider than 600px
+- **THEN** the divider stops at 600px
 
 ### Requirement: Narrow-width fallback keeps the Activity Bar visible
 When the viewport width is below the desktop layout breakpoint, the system SHALL collapse the Explorer Pane from the persistent layout, keep the Activity Bar visible, and allow Explorer content to be opened temporarily from the `Home`, `Changes`, or `Specs` controls in the Activity Bar.

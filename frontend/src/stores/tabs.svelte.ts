@@ -15,8 +15,12 @@ const HOME_TAB: Tab = {
   type: 'dashboard',
   name: 'Home',
   path: '/',
-  pinned: false,
+  pinned: true,
 };
+
+function isHomeTab(tab: Tab) {
+  return tab.id === HOME_TAB.id || tab.path === HOME_TAB.path;
+}
 
 function normalizePath(path: string) {
   const trimmed = (path || '/').trim();
@@ -124,9 +128,12 @@ function getLookupKeys(tabIdOrPath: string) {
 
 function createTabsStore() {
   const initialTab = createTabForPath(getCurrentBrowserPath());
+  const initialTabs = isHomeTab(initialTab)
+    ? [{ ...HOME_TAB }]
+    : normalizeTabOrder([{ ...HOME_TAB }, initialTab]);
 
   const state = $state({
-    tabs: [initialTab],
+    tabs: initialTabs,
     activeTabId: initialTab.id,
   });
 
@@ -289,6 +296,11 @@ function createTabsStore() {
       const index = getTabIndex(tabIdOrPath);
       if (index < 0) {
         return null;
+      }
+
+      const currentTab = state.tabs[index];
+      if (!currentTab || isHomeTab(currentTab)) {
+        return currentTab ?? null;
       }
 
       state.tabs = normalizeTabOrder(

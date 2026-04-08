@@ -5,12 +5,13 @@ Define the Explorer Pane that organizes active changes, archives, and specs besi
 
 ## Requirements
 ### Requirement: Explorer Pane renders collapsible sections
-The system SHALL render an Explorer Pane between the Activity Bar and the Main Viewer. The Explorer Pane SHALL contain three collapsible sections in this order: ACTIVE CHANGES, ARCHIVE, and SPECS. Each section SHALL display a header with a count badge and a list of items, and all section headers SHALL remain visible together so the operator can scan the full list structure.
+The system SHALL render an Explorer Pane between the Activity Bar and the Main Viewer. The Explorer Pane SHALL contain three collapsible sections in this order: ACTIVE CHANGES, ARCHIVE, and SPECS. Each section header SHALL display an icon, a title, and a count badge. Each section SHALL display a list of items without individual item icons, and all section headers SHALL remain visible together so the operator can scan the full list structure.
 
 #### Scenario: Explorer Pane shows three sections on load
 - **WHEN** the application loads with data
 - **THEN** the Explorer Pane shows three collapsible sections in order: ACTIVE CHANGES, ARCHIVE, SPECS
-- **AND** each section header shows a count badge with the number of items
+- **AND** each section header shows an icon, a title, and a count badge with the number of items
+- **AND** list items display name and metadata without individual icons
 
 #### Scenario: Empty section displays placeholder
 - **WHEN** a section has no items
@@ -68,21 +69,28 @@ The system SHALL open a new tab (or focus an existing one) in the Main Viewer wh
 - **AND** no duplicate tab is created
 
 ### Requirement: Explorer Pane is resizable
-The system SHALL allow the operator to resize the Explorer Pane width by dragging the right border. The Explorer Pane SHALL have a minimum width of 180px and a maximum width of 400px.
+The system SHALL allow the operator to resize the Explorer Pane width by dragging the right border. The Explorer Pane SHALL have a minimum width of 180px and a maximum width of 600px.
 
 #### Scenario: Resize Explorer Pane
 - **WHEN** the operator drags the right border of the Explorer Pane
 - **THEN** the pane width changes following the cursor
-- **AND** the width stays within the 180px-400px range
+- **AND** the width stays within the 180px-600px range
 
 ### Requirement: Explorer Pane is collapsible
-The system SHALL allow the operator to collapse the entire Explorer Pane. When collapsed, the Activity Bar icon for the current section SHALL still be highlighted and the Main Viewer SHALL expand to fill the space.
+The system SHALL allow the operator to collapse the entire Explorer Pane by clicking the currently active Activity Bar section icon. When collapsed, the Activity Bar icon for the current section SHALL still be highlighted and the Main Viewer SHALL expand to fill the space. The system SHALL NOT render an independent expand button when the Explorer Pane is collapsed.
 
-#### Scenario: Collapse entire Explorer Pane
-- **WHEN** the operator toggles the Explorer Pane collapse control
+#### Scenario: Collapse entire Explorer Pane via Activity Bar toggle
+- **WHEN** the operator clicks the currently active icon in the Activity Bar while the Explorer Pane is expanded
 - **THEN** the Explorer Pane collapses to zero width
 - **AND** the Main Viewer expands to fill the space
+- **AND** the active Activity Bar icon remains highlighted
 
-#### Scenario: Expand collapsed Explorer Pane
-- **WHEN** the operator toggles the Explorer Pane collapse control again
+#### Scenario: Expand collapsed Explorer Pane via Activity Bar
+- **WHEN** the operator clicks any Activity Bar section icon while the Explorer Pane is collapsed
 - **THEN** the Explorer Pane expands back to its previous width
+- **AND** the corresponding section is expanded and focused
+
+#### Scenario: No independent expand button when collapsed
+- **WHEN** the Explorer Pane is collapsed
+- **THEN** no expand button is rendered in the Main Viewer area
+- **AND** the Main Viewer fills the available space without any explorer-related controls

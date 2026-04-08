@@ -13,17 +13,7 @@
     }
   }
 
-  let activeSection = $derived.by(() => {
-    if (layoutStore.overlay === 'search') {
-      return 'search';
-    }
-
-    if (layoutStore.overlay === 'settings') {
-      return 'settings';
-    }
-
-    const path = tabStore.activeTab.path;
-
+  function sectionFromPath(path: string): ActivityPreset {
     if (path === '/specs' || path.startsWith('/specs/')) {
       return 'specs';
     }
@@ -38,17 +28,50 @@
     }
 
     return 'home';
-  });
+  }
 
-  function openPreset(preset: ActivityPreset, path: string) {
-    layoutStore.closeOverlay();
-    layoutStore.setActivityPreset(preset);
+  let lastSyncedContext = $state('');
 
-    if (layoutStore.responsiveMode !== 'narrow') {
-      layoutStore.setExplorerCollapsed(false);
+  $effect(() => {
+    const path = tabStore.activeTab.path;
+    const archivedNames = archivedChanges.value.map((change) => change.name).join('\u0000');
+    const syncContext = `${path}::${archivedNames}`;
+
+    if (syncContext === lastSyncedContext) {
+      return;
     }
 
-    tabStore.open(path);
+    lastSyncedContext = syncContext;
+    layoutStore.syncActivityPreset(sectionFromPath(path));
+  });
+
+  let activeSection = $derived.by(() => {
+    if (layoutStore.overlay === 'search') {
+      return 'search';
+    }
+
+    if (layoutStore.overlay === 'settings') {
+      return 'settings';
+    }
+
+    return layoutStore.activityPreset;
+  });
+
+  function openPreset(preset: ActivityPreset) {
+    const isCurrentSection = activeSection === preset;
+
+    layoutStore.closeOverlay();
+
+    if (isCurrentSection && layoutStore.responsiveMode !== 'narrow' && !layoutStore.explorerCollapsed) {
+      layoutStore.toggleExplorerCollapsed();
+      return;
+    }
+
+    layoutStore.setActivityPreset(preset);
+
+    if (preset === 'home') {
+      tabStore.focus('/');
+    }
   }
 
   function buttonClass(section: string) {
@@ -81,7 +104,7 @@
       <Tooltip.Trigger
         class={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${buttonClass('home')}`}
         aria-label="Home"
-        onclick={() => openPreset('home', '/')}
+        onclick={() => openPreset('home')}
       >
         <House class="h-5 w-5" />
       </Tooltip.Trigger>
@@ -92,7 +115,7 @@
       <Tooltip.Trigger
         class={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${buttonClass('changes')}`}
         aria-label="Changes"
-        onclick={() => openPreset('changes', '/changes')}
+        onclick={() => openPreset('changes')}
       >
         <Archive class="h-5 w-5" />
       </Tooltip.Trigger>
@@ -103,7 +126,7 @@
       <Tooltip.Trigger
         class={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${buttonClass('specs')}`}
         aria-label="Specs"
-        onclick={() => openPreset('specs', '/specs')}
+        onclick={() => openPreset('specs')}
       >
         <FileText class="h-5 w-5" />
       </Tooltip.Trigger>

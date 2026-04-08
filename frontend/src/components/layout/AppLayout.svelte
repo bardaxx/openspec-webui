@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { ChevronRight } from '@lucide/svelte';
   import * as Dialog from '$lib/components/ui/dialog';
   import * as Resizable from '$lib/components/ui/resizable';
   import * as Sheet from '$lib/components/ui/sheet';
@@ -14,10 +13,10 @@
 
   function getExplorerMaxWidth() {
     if (typeof window === 'undefined') {
-      return 400;
+      return 600;
     }
 
-    return Math.max(180, Math.min(400, window.innerWidth - 48 - 1 - 300));
+    return Math.max(180, Math.min(600, window.innerWidth - 48 - 1 - 300));
   }
 
   function handleDragStart() {
@@ -56,7 +55,7 @@
             <Resizable.Panel
               defaultSize={`${layoutStore.explorerWidth}px`}
               minSize="180px"
-              maxSize="400px"
+              maxSize="600px"
               class="flex-none shrink-0 border-r border-border"
             >
               <ExplorerPane />
@@ -70,19 +69,7 @@
           </Resizable.PanelGroup>
         {:else}
           <div class="min-h-0 min-w-0 flex-1 overflow-hidden">
-            <div class="flex h-full min-h-0 min-w-0 overflow-hidden">
-              <button
-                type="button"
-                class="m-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                aria-label="Expand explorer"
-                onclick={() => layoutStore.setExplorerCollapsed(false)}
-              >
-                <ChevronRight class="h-4 w-4" />
-              </button>
-              <div class="min-h-0 min-w-0 flex-1 overflow-hidden">
-                <MainViewer />
-              </div>
-            </div>
+            <MainViewer />
           </div>
         {/if}
       </div>
