@@ -9,7 +9,7 @@
   import { layoutStore } from '../stores/layout.svelte.ts';
   import { tabStore } from '../stores/tabs.svelte.ts';
   import MarkdownRenderer from './MarkdownRenderer.svelte';
-  import TaskProgress from './TaskProgress.svelte';
+  import { Progress } from '$lib/components/ui/progress';
   import CommandShortcutBar from './CommandShortcutBar.svelte';
 
   let workspaceCommands = $derived(getWorkspaceCommands(activeChanges.value, commandPreferencesStore));
@@ -66,7 +66,7 @@
                 </div>
               </div>
               <div class="w-32">
-                <TaskProgress progress={change.taskProgress} size="sm" />
+                <Progress value={change.taskProgress.percentage} />
               </div>
             </div>
           </button>

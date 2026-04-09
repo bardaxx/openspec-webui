@@ -2,12 +2,11 @@
   import {
     initializeData,
     setupWebSocket,
-    toasts,
   } from './stores/index.svelte.ts';
   import { commandPreferencesStore } from './stores/commandPreferences.svelte.ts';
   import { themeStore } from './stores/theme.svelte.ts';
   import AppLayout from './components/layout/AppLayout.svelte';
-  import Toast from './components/Toast.svelte';
+  import { Toaster } from '$lib/components/ui/sonner';
 
   $effect(() => {
     themeStore.initialize();
@@ -25,11 +24,5 @@
 
 <div class="h-screen overflow-hidden bg-background text-foreground">
   <AppLayout />
-
-  <!-- Toast notifications -->
-  <div class="fixed bottom-4 right-4 space-y-2">
-    {#each toasts.value as toast (toast.id)}
-      <Toast message={toast.message} type={toast.type} />
-    {/each}
-  </div>
+  <Toaster position="bottom-right" duration={3000} />
 </div>

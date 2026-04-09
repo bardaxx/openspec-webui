@@ -59,7 +59,8 @@
     "commander": "^13.0.0",
     "fastify": "^5.2.1",
     "marked": "^15.0.6",
-    "open": "^10.1.0"
+    "open": "^10.1.0",
+    "svelte-sonner": "^1.1.0"
   },
   "devDependencies": {
     "@lucide/svelte": "^1.7.0",

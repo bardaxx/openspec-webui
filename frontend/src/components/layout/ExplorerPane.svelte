@@ -11,7 +11,7 @@
   import { layoutStore, type ExplorerSection } from '../../stores/layout.svelte.ts';
   import { tabStore } from '../../stores/tabs.svelte.ts';
   import CommandShortcutBar from '../CommandShortcutBar.svelte';
-  import TaskProgress from '../TaskProgress.svelte';
+  import { Progress } from '$lib/components/ui/progress';
 
   interface Props {
     temporary?: boolean;
@@ -119,7 +119,7 @@
                   <div class="mt-1 flex items-center justify-between text-xs text-muted-foreground">
                     <span>{change.specDeltaCount} delta{change.specDeltaCount === 1 ? '' : 's'} · {change.taskProgress.done}/{change.taskProgress.total} tasks</span>
                     <div class="w-20 shrink-0">
-                      <TaskProgress progress={change.taskProgress} size="sm" showFraction={false} />
+                      <Progress value={change.taskProgress.percentage} />
                     </div>
                   </div>
                 </div>
@@ -158,7 +158,7 @@
                   <div class="mt-1 flex items-center justify-between text-xs text-muted-foreground">
                     <span>{change.specDeltaCount} delta{change.specDeltaCount === 1 ? '' : 's'} · {change.taskProgress.done}/{change.taskProgress.total} tasks</span>
                     <div class="w-20 shrink-0">
-                      <TaskProgress progress={change.taskProgress} size="sm" showFraction={false} />
+                      <Progress value={change.taskProgress.percentage} />
                     </div>
                   </div>
                 </div>

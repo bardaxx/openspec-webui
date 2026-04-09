@@ -8,7 +8,7 @@
   import { truncateText } from '$lib/utils';
   import { suggestionStore, type Suggestion } from '../stores/suggestions.svelte.ts';
   import { generatePrompt } from '../lib/promptGenerator';
-  import { addToast } from '../stores/index.svelte.ts';
+  import { toast } from 'svelte-sonner';
   import type { Change } from '../lib/api';
 
   interface Props {
@@ -49,10 +49,10 @@
   async function handleCopyPrompt() {
     try {
       await navigator.clipboard.writeText(generatedPrompt);
-      addToast('Instructions copied to clipboard!', 'success');
+      toast.success('Instructions copied to clipboard!');
       showPromptModal = false;
     } catch {
-      addToast('Failed to copy prompt', 'error');
+      toast.error('Failed to copy prompt');
     }
   }
 

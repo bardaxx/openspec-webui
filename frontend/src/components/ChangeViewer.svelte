@@ -8,13 +8,14 @@
   import { LoadingState } from '$lib/components/ui/loading-state';
   import { UnderlineTabs } from '$lib/components/ui/underline-tabs';
   import { getChange, getChangeFileUrl, type Change } from '../lib/api';
-  import { changesRefreshTrigger, addToast } from '../stores/index.svelte.ts';
+  import { changesRefreshTrigger } from '../stores/index.svelte.ts';
+  import { toast } from 'svelte-sonner';
   import { suggestionStore } from '../stores/suggestions.svelte.ts';
   import { commandPreferencesStore } from '../stores/commandPreferences.svelte.ts';
   import { getChangeCommands } from '../lib/commandShortcuts';
   import MarkdownRenderer from './MarkdownRenderer.svelte';
   import HtmlRenderer from './HtmlRenderer.svelte';
-  import TaskProgress from './TaskProgress.svelte';
+  import { Progress } from '$lib/components/ui/progress';
   import SuggestionPopover from './SuggestionPopover.svelte';
   import CommandShortcutBar from './CommandShortcutBar.svelte';
 
@@ -116,7 +117,7 @@
       const message = resolvedCount === 1
         ? '1 suggestion resolved'
         : `${resolvedCount} suggestions resolved`;
-      addToast(message, 'success');
+      toast.success(message);
     }
   }
 
@@ -200,7 +201,7 @@
             {change.taskProgress.done} of {change.taskProgress.total} tasks complete
           </span>
           <div class="w-48">
-            <TaskProgress progress={change.taskProgress} size="sm" />
+            <Progress value={change.taskProgress.percentage} />
           </div>
         </div>
       {/if}

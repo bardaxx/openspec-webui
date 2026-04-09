@@ -3,7 +3,7 @@
   import { CommandChip } from '$lib/components/ui/command-chip';
   import type { WorkflowCommand } from '../lib/commandTypes';
   import { buildCommand } from '../lib/commandShortcuts';
-  import { addToast } from '../stores/index.svelte.ts';
+  import { toast } from 'svelte-sonner';
   import { commandPreferencesStore } from '../stores/commandPreferences.svelte.ts';
 
   interface Props {
@@ -22,9 +22,9 @@
 
     try {
       await navigator.clipboard.writeText(text);
-      addToast('Copied to clipboard!', 'success');
+      toast.success('Copied to clipboard!');
     } catch {
-      addToast('Failed to copy', 'error');
+      toast.error('Failed to copy');
     }
   }
 </script>

@@ -3,14 +3,7 @@ import type { Project, Stats, SpecSummary, ChangeSummary } from '../lib/api';
 import { getProject, getStats, getSpecs, getChanges } from '../lib/api';
 import { wsClient, type WSMessage } from '../lib/websocket';
 import { tabStore } from './tabs.svelte.ts';
-
-type ToastType = 'info' | 'success' | 'error';
-
-export interface ToastItem {
-  id: number;
-  message: string;
-  type: ToastType;
-}
+import { toast } from 'svelte-sonner';
 
 function createBox<T>(read: () => T, write: (value: T) => void) {
   return {
@@ -32,7 +25,6 @@ const state = $state({
   activeChanges: [] as ChangeSummary[],
   archivedChanges: [] as ChangeSummary[],
   searchQuery: '',
-  toasts: [] as ToastItem[],
   specsRefreshTrigger: 0,
   changesRefreshTrigger: 0,
 });
@@ -100,13 +92,6 @@ export const searchQuery = createBox(
   }
 );
 
-export const toasts = createBox(
-  () => state.toasts,
-  (value) => {
-    state.toasts = value;
-  }
-);
-
 export const specsRefreshTrigger = createBox(
   () => state.specsRefreshTrigger,
   (value) => {
@@ -120,17 +105,6 @@ export const changesRefreshTrigger = createBox(
     state.changesRefreshTrigger = value;
   }
 );
-
-let toastId = 0;
-
-export function addToast(message: string, type: ToastType = 'info') {
-  const id = ++toastId;
-  state.toasts = [...state.toasts, { id, message, type }];
-
-  setTimeout(() => {
-    state.toasts = state.toasts.filter((toast) => toast.id !== id);
-  }, 3000);
-}
 
 export async function initializeData() {
   state.isLoading = true;
@@ -190,7 +164,7 @@ export function setupWebSocket() {
     state.stats = await getStats();
 
     if (entity !== 'all') {
-      addToast(`Updated: ${message.entityId || entity}`, 'info');
+      toast(`Updated: ${message.entityId || entity}`);
     }
 
     await tick();
