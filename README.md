@@ -118,7 +118,7 @@ openspec-webui --no-open
 ## What it does today
 
 - Browse `project.md`, `specs/`, active changes, and archived changes
-- Render Markdown and HTML artifacts
+- Render Markdown artifacts
 - Track checkbox task progress
 - Search across supported OpenSpec content
 - Watch files and refresh the UI when content changes
@@ -134,7 +134,7 @@ openspec-webui --no-open
 - `changes/` with `proposal.md`, `tasks.md`, `design.md`
 - `changes/archive/`
 
-This UI also surfaces extra files under a change and groups them into tabs.
+This UI also surfaces extra Markdown files under a change and groups them into tabs.
 
 ## License
 

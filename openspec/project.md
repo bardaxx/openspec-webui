@@ -5,8 +5,8 @@ Local-first browser UI for exploring, reviewing, and iterating on OpenSpec-compa
 ## Product Intent
 
 - Browse `project.md`, current specs, active changes, and archived changes from one local interface.
-- Surface task progress, spec deltas, rendered artifacts, and supplemental change files without leaving the browser UI.
-- Support search, live refresh, theming, and review handoff workflows for local OpenSpec work.
+- Surface task progress, spec deltas, Markdown change artifacts, and supplemental change files without leaving the browser UI.
+- Support search, live refresh, theming, and command shortcut workflows for local OpenSpec work.
 
 ## Technology Stack
 

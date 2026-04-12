@@ -34,7 +34,7 @@ export interface ChangeFile {
   name: string;
   path: string;
   absolutePath: string;
-  type: 'markdown' | 'html';
+  type: 'markdown';
   folder: string;
   content?: string;
 }
@@ -58,7 +58,6 @@ export interface ChangeSummary {
   hasDesign: boolean;
   fileCount: number;
   groupCount: number;
-  hasHtmlFiles: boolean;
 }
 
 export interface Task {
@@ -164,8 +163,4 @@ export async function search(query: string): Promise<SearchResult[]> {
 export async function getCommandAvailability(): Promise<CommandAvailability> {
   const data = await fetchApi<{ availability: CommandAvailability }>('/commands/availability');
   return data.availability;
-}
-
-export function getChangeFileUrl(changeName: string, filePath: string): string {
-  return `${API_BASE}/changes/${encodeURIComponent(changeName)}/files/${filePath}`;
 }

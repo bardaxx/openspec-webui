@@ -1,5 +1,4 @@
 import type { FastifyInstance } from 'fastify';
-import { readFile } from 'fs/promises';
 import type { OpenSpecData } from '../../parser/index.js';
 import { parseSpec, parseChangeByName, searchOpenSpec } from '../../parser/index.js';
 import {
@@ -89,44 +88,6 @@ export async function registerApiRoutes(
     return { change: result.data };
   });
 
-  // Serve raw file content (HTML or markdown) for iframe/direct access
-  fastify.get<{ Params: { name: string; '*': string } }>(
-    '/api/changes/:name/files/*',
-    async (request, reply) => {
-      const { name } = request.params;
-      const filePath = request.params['*'];
-
-      // Security: Validate path doesn't escape change directory
-      if (filePath.includes('..') || filePath.startsWith('/')) {
-        return reply.status(400).send({ error: 'Invalid file path' });
-      }
-
-      const result = await parseChangeByName(getOpenSpecPath(), name);
-      if (!result.data) {
-        return reply.status(404).send({ error: 'Change not found' });
-      }
-
-      const change = result.data;
-      const file = change.files.find((f) => f.path === filePath);
-
-      if (!file) {
-        return reply.status(404).send({ error: 'File not found' });
-      }
-
-      try {
-        const content = await readFile(file.absolutePath, 'utf-8');
-        const contentType = file.type === 'html' ? 'text/html' : 'text/markdown';
-
-        return reply
-          .header('Content-Type', contentType)
-          .header('X-Content-Type-Options', 'nosniff')
-          .send(content);
-      } catch (error) {
-        return reply.status(500).send({ error: 'Failed to read file' });
-      }
-    }
-  );
-
   // Get stats
   fastify.get('/api/stats', async (request, reply) => {
     const data = getData();
@@ -176,6 +137,5 @@ function summarizeChange(change: OpenSpecData['changes']['active'][0]) {
     hasDesign: change.design !== null,
     fileCount: change.files.length,
     groupCount: change.fileGroups.length,
-    hasHtmlFiles: change.files.some((f) => f.type === 'html'),
   };
 }

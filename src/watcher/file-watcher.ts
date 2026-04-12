@@ -31,8 +31,8 @@ export function createFileWatcher(
   });
 
   const handleFileEvent = (eventType: 'add' | 'change' | 'unlink') => (filePath: string) => {
-    // Only watch .md and .html files
-    if (!filePath.endsWith('.md') && !filePath.endsWith('.html')) {
+    // Only watch markdown files
+    if (!filePath.endsWith('.md')) {
       return;
     }
 
@@ -55,7 +55,7 @@ export function createFileWatcher(
     } else if (parts[0] === 'project.md' || parts[0] === 'AGENTS.md') {
       affectedEntity = 'project';
     } else {
-      // Unknown file, treat as project
+      // Unsupported markdown file, treat as project
       affectedEntity = 'project';
     }
 

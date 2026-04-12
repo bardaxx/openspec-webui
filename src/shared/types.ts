@@ -32,9 +32,9 @@ export interface ChangeFile {
   name: string;              // Display name (filename without extension)
   path: string;              // Relative path from change root
   absolutePath: string;      // Full filesystem path
-  type: 'markdown' | 'html';
+  type: 'markdown';
   folder: string;            // Folder name ("root" for top-level)
-  content?: string;          // Content (markdown only; HTML served via API)
+  content?: string;          // Markdown content
 }
 
 export interface FileGroup {

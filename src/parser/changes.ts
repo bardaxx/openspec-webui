@@ -4,7 +4,7 @@ import type { Change, ChangeFile, FileGroup, SpecDelta, DeltaOperation, ParseRes
 import { parseTasks } from './tasks.js';
 
 /**
- * Recursively discover all .md and .html files in a change directory
+ * Recursively discover all .md files in a change directory
  * Excludes the specs/ subdirectory (handled separately as spec deltas)
  */
 async function discoverChangeFiles(
@@ -29,16 +29,15 @@ async function discoverChangeFiles(
         files.push(...subFiles);
       } else if (entry.isFile()) {
         const ext = entry.name.toLowerCase();
-        if (ext.endsWith('.md') || ext.endsWith('.html')) {
-          const isHtml = ext.endsWith('.html');
+        if (ext.endsWith('.md')) {
           const folder = relativePath || 'root';
-          const nameWithoutExt = entry.name.replace(/\.(md|html)$/i, '');
+          const nameWithoutExt = entry.name.replace(/\.md$/i, '');
 
           files.push({
             name: nameWithoutExt,
             path: entryRelPath,
             absolutePath: join(currentPath, entry.name),
-            type: isHtml ? 'html' : 'markdown',
+            type: 'markdown',
             folder,
           });
         }
@@ -52,7 +51,7 @@ async function discoverChangeFiles(
 }
 
 /**
- * Recursively collect markdown/html file paths under a directory.
+ * Recursively collect markdown file paths under a directory.
  */
 async function discoverContentFilePaths(
   basePath: string,
@@ -72,7 +71,7 @@ async function discoverContentFilePaths(
         paths.push(...subPaths);
       } else if (entry.isFile()) {
         const lowerName = entry.name.toLowerCase();
-        if (lowerName.endsWith('.md') || lowerName.endsWith('.html')) {
+        if (lowerName.endsWith('.md')) {
           paths.push(join(currentPath, entry.name));
         }
       }
@@ -269,17 +268,15 @@ async function parseChange(
     }
   }
 
-  // Discover all .md and .html files recursively
+  // Discover all .md files recursively
   const files = await discoverChangeFiles(changePath);
 
   // Load content for markdown files
   for (const file of files) {
-    if (file.type === 'markdown') {
-      try {
-        file.content = await readFile(file.absolutePath, 'utf-8');
-      } catch (error) {
-        warnings.push(`${name}: Failed to read ${file.path}`);
-      }
+    try {
+      file.content = await readFile(file.absolutePath, 'utf-8');
+    } catch (error) {
+      warnings.push(`${name}: Failed to read ${file.path}`);
     }
   }
 

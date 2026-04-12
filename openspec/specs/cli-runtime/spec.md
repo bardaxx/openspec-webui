@@ -42,7 +42,7 @@ The system SHALL open the browser to the running UI by default, SHALL skip auto-
 - **THEN** the system launches the current UI URL in the browser again
 
 ### Requirement: Serve the web application shell
-The system SHALL expose the JSON API routes, the websocket endpoint, and the browser UI from the same local server, and SHALL return the SPA entry document for non-API and non-websocket paths when a built frontend is available. The frontend build pipeline SHALL use Tailwind CSS v4 via the `@tailwindcss/vite` Vite plugin, eliminating PostCSS dependencies. Frontend CSS SHALL use `@import "tailwindcss"` and `@theme` directives instead of `@tailwind` directives and a separate JavaScript config file.
+The system SHALL expose the JSON API routes, the websocket endpoint, and the browser UI from the same local server, and SHALL return the SPA entry document for non-API and non-websocket paths when a built frontend is available. The frontend build pipeline SHALL use Tailwind CSS v4 via the `@tailwindcss/vite` Vite plugin, eliminating PostCSS dependencies. Frontend CSS SHALL use `@import "tailwindcss"`, `@plugin "@tailwindcss/typography"`, and `@theme` directives instead of `@tailwind` directives and a separate JavaScript config file.
 
 #### Scenario: Load a deep-linked UI route
 - **WHEN** a browser requests a non-API UI path such as `/specs/<name>`
@@ -54,15 +54,16 @@ The system SHALL expose the JSON API routes, the websocket endpoint, and the bro
 - **THEN** the server still starts
 - **AND** logs a warning that the frontend build is missing
 
-#### Scenario: Frontend builds with Tailwind v4
+#### Scenario: Frontend builds with Tailwind v4 and typography plugin
 - **WHEN** the frontend build is executed via Vite
 - **THEN** Tailwind CSS v4 processes styles via the `@tailwindcss/vite` plugin
+- **AND** `@tailwindcss/typography` styles are loaded via CSS `@plugin`
 - **AND** no PostCSS configuration is required
 
 #### Scenario: Existing @apply directives remain functional
-- **WHEN** the CSS contains `@apply` directives (e.g., `.markdown-body` styles)
+- **WHEN** the CSS contains `@apply` directives (e.g., markdown overrides and diff styles)
 - **THEN** Tailwind v4 SHALL resolve and apply all utility classes correctly
-- **AND** the visual output matches the pre-migration appearance
+- **AND** the visual output matches the intended themed appearance
 
 ### Requirement: Manage theme state via Svelte store
 The system SHALL provide a `themeStore` Svelte writable store that holds the current theme mode (`light`, `dark`, or `system`), resolves the effective theme, applies it to the `<html>` element's `data-theme` attribute, listens to `prefers-color-scheme` changes when in System mode, and persists the selection to `localStorage`.
@@ -76,3 +77,4 @@ The system SHALL provide a `themeStore` Svelte writable store that holds the cur
 - **WHEN** the user changes the theme mode via the store
 - **THEN** the new mode is saved to localStorage
 - **AND** the `<html>` element's `data-theme` attribute is updated
+

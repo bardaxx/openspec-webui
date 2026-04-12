@@ -255,8 +255,6 @@ function getStateExpression() {
       specsState: sectionState('Specs'),
       explorerPanelStyle,
       copied: window.__copied?.at(-1) ?? null,
-      suggestionMode: Boolean(document.querySelector('.suggestion-mode')),
-      suggestionPanelVisible: Boolean([...document.querySelectorAll('h2')].find((node) => node.textContent?.trim() === 'Suggestions')),
       themeAttr: document.documentElement.getAttribute('data-theme'),
       storedTheme: localStorage.getItem('openspec-theme'),
       bodyBackground: getComputedStyle(document.body).backgroundColor,
@@ -432,14 +430,6 @@ async function main() {
     assert(state.path === `/changes/${encodeURIComponent(activeChangeName)}`, 'Active change should open in a tab');
     assert(state.tabNames.includes(activeChangeName), 'Opened active change should appear in tab list');
     results.push('change-browse');
-
-    await clickByText(cdp, 'button', 'Suggest');
-    state = await getState(cdp);
-    assert(state.suggestionMode && state.suggestionPanelVisible, 'Suggestion mode should show right sidebar');
-    await clickSelector(cdp, '[title="Exit suggestion mode"]');
-    state = await getState(cdp);
-    assert(!state.suggestionMode && !state.suggestionPanelVisible, 'Suggestion sidebar should close');
-    results.push('suggestion-sidebar');
 
     await clickSelector(cdp, '[aria-label="Specs"]');
     state = await getState(cdp);

@@ -4,10 +4,10 @@
 TBD - created by archiving change capture-baseline-specs. Update Purpose after archive.
 ## Requirements
 ### Requirement: Watch relevant OpenSpec files and directories
-The system SHALL watch the loaded OpenSpec directory for markdown and HTML file changes, SHALL ignore dotfiles and `node_modules`, and SHALL classify relevant updates as affecting `project`, `specs`, or `changes`.
+The system SHALL watch the loaded OpenSpec directory for markdown file changes, SHALL ignore dotfiles and `node_modules`, and SHALL classify relevant updates as affecting `project`, `specs`, or `changes`.
 
 #### Scenario: Ignore unsupported file changes
-- **WHEN** a file event occurs for a non-markdown and non-HTML file
+- **WHEN** a file event occurs for a non-markdown file
 - **THEN** the watcher ignores the event
 
 #### Scenario: Classify a spec file change
@@ -52,3 +52,4 @@ The browser client SHALL refetch the affected entity collections over HTTP after
 - **WHEN** the App component mounts with an `$effect` that sets up the WebSocket subscription
 - **THEN** the subscription is established
 - **AND** when the component destroys, the `$effect` cleanup function unsubscribes and disconnects the WebSocket
+

@@ -1,10 +1,9 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   --app-shell-max-width: 80rem;
   --app-shell-padding: 1rem;
-  --suggestion-panel-width: 24rem;
-  --suggestion-panel-gap: 1rem;
 }
 
 @theme inline {
@@ -56,9 +55,6 @@
   --color-accent-border: var(--accent-border);
   --color-badge: var(--badge);
   --color-badge-bg: var(--badge-bg);
-  --color-html: var(--html);
-  --color-html-bg: var(--html-bg);
-  --color-html-border: var(--html-border);
 }
 
 /* ── Light theme (default) ── */
@@ -111,9 +107,6 @@
   --accent-border: oklch(0.81 0.09 294);
   --badge: var(--secondary-foreground);
   --badge-bg: var(--secondary);
-  --html: oklch(0.68 0.16 45);
-  --html-bg: oklch(0.95 0.05 55);
-  --html-border: oklch(0.84 0.09 50);
 }
 
 /* ── Dark theme ── */
@@ -166,9 +159,6 @@
   --accent-border: oklch(0.56 0.12 294);
   --badge: var(--secondary-foreground);
   --badge-bg: var(--secondary);
-  --html: oklch(0.8 0.12 45);
-  --html-bg: oklch(0.32 0.06 40);
-  --html-border: oklch(0.58 0.14 42);
 }
 
 :root,
@@ -231,9 +221,6 @@
     --accent-border: oklch(0.56 0.12 294);
     --badge: var(--secondary-foreground);
     --badge-bg: var(--secondary);
-    --html: oklch(0.8 0.12 45);
-    --html-bg: oklch(0.32 0.06 40);
-    --html-border: oklch(0.58 0.14 42);
     color-scheme: dark;
   }
 }
@@ -248,6 +235,7 @@ body {
   color: var(--foreground);
 }
 
+
 #app {
   min-height: 100vh;
 }
@@ -256,62 +244,116 @@ body {
    Markdown rendering styles
    ──────────────────────────── */
 .markdown-body {
-  @apply text-card-foreground leading-relaxed;
+  color: var(--card-foreground);
+  --tw-prose-body: var(--card-foreground);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-lead: var(--muted-foreground);
+  --tw-prose-links: var(--primary);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-counters: var(--muted-foreground);
+  --tw-prose-bullets: var(--muted-foreground);
+  --tw-prose-hr: var(--border);
+  --tw-prose-quotes: var(--muted-foreground);
+  --tw-prose-quote-borders: var(--border);
+  --tw-prose-captions: var(--muted-foreground);
+  --tw-prose-kbd: var(--foreground);
+  --tw-prose-kbd-shadows: 0 0 0 1px var(--border);
+  --tw-prose-code: var(--code);
+  --tw-prose-pre-code: var(--foreground);
+  --tw-prose-pre-bg: var(--secondary);
+  --tw-prose-th-borders: var(--border);
+  --tw-prose-td-borders: var(--border);
 }
 
-.markdown-body h1 {
-  @apply mt-8 mb-4 border-b border-border pb-2 text-3xl font-bold text-foreground;
+
+.markdown-body > :first-child {
+  margin-top: 0;
 }
 
-.markdown-body h2 {
-  @apply mt-8 mb-4 text-2xl font-semibold text-foreground;
+.markdown-body :where(h1, h2, h3, h4, h5, h6):not(:where(.not-prose, .not-prose *)) {
+  @apply scroll-m-20 tracking-tight;
 }
 
-.markdown-body h3 {
-  @apply mt-6 mb-3 text-xl font-semibold text-card-foreground;
+.markdown-body :where(h1):not(:where(.not-prose, .not-prose *)) {
+  @apply mb-4 text-3xl font-extrabold text-foreground;
 }
 
-.markdown-body h4 {
-  @apply mt-5 mb-2 text-lg font-medium text-card-foreground;
+.markdown-body :where(h2):not(:where(.not-prose, .not-prose *)) {
+  @apply mt-8 border-b border-border pb-2 text-2xl font-semibold text-foreground;
 }
 
-.markdown-body p {
-  @apply my-3;
+.markdown-body :where(h3):not(:where(.not-prose, .not-prose *)) {
+  @apply mt-6 text-xl font-semibold text-foreground;
 }
 
-.markdown-body ul, .markdown-body ol {
-  @apply my-3 pl-6;
+.markdown-body :where(h4):not(:where(.not-prose, .not-prose *)) {
+  @apply mt-5 text-lg font-semibold text-foreground;
 }
 
-.markdown-body ul {
-  @apply list-disc;
+.markdown-body :where(h5):not(:where(.not-prose, .not-prose *)) {
+  @apply mt-4 text-base font-semibold text-foreground;
 }
 
-.markdown-body ol {
-  @apply list-decimal;
+.markdown-body :where(h6):not(:where(.not-prose, .not-prose *)) {
+  @apply mt-3 text-base font-semibold text-muted-foreground;
 }
 
-.markdown-body li {
-  @apply my-1.5 leading-relaxed;
+.markdown-body :where(p, li):not(:where(.not-prose, .not-prose *)) {
+  @apply leading-7;
 }
 
-/* Nested lists - better visual hierarchy */
-.markdown-body ul ul,
-.markdown-body ol ul,
-.markdown-body ul ol,
-.markdown-body ol ol {
-  @apply my-2 ml-2;
+.markdown-body :where(a):not(:where(.not-prose, .not-prose *)) {
+  @apply font-medium underline underline-offset-4 transition-opacity;
 }
 
-.markdown-body ul ul {
-  list-style-type: circle;
+.markdown-body :where(a):not(:where(.not-prose, .not-prose *)):hover {
+  opacity: 0.85;
 }
 
-.markdown-body ul ul ul {
-  list-style-type: square;
+.markdown-body :where(code):not(:where(pre code, .not-prose, .not-prose *)) {
+  @apply rounded-md bg-muted px-1.5 py-0.5 font-mono font-semibold text-code;
 }
 
-/* Task list styling */
+.markdown-body :where(code):not(:where(pre code, .not-prose, .not-prose *))::before,
+.markdown-body :where(code):not(:where(pre code, .not-prose, .not-prose *))::after {
+  content: none;
+}
+
+.markdown-body :where(pre):not(:where(.not-prose, .not-prose *)) {
+  @apply my-6 overflow-x-auto rounded-xl border border-border bg-muted/50 p-4 text-sm text-foreground shadow-sm;
+}
+
+.markdown-body :where(pre code):not(:where(.not-prose, .not-prose *)) {
+  @apply bg-transparent px-0 py-0;
+  border: 0;
+  color: inherit;
+  font-size: inherit;
+  font-weight: 400;
+}
+
+.markdown-body :where(blockquote):not(:where(.not-prose, .not-prose *)) {
+  @apply my-6 border-l-2 border-border pl-6 italic text-muted-foreground;
+}
+
+.markdown-body :where(table):not(:where(.not-prose, .not-prose *)) {
+  @apply my-6 w-full text-sm;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.markdown-body :where(th, td):not(:where(.not-prose, .not-prose *)) {
+  @apply border-b border-border px-4 py-2.5 text-left align-middle;
+}
+
+.markdown-body :where(th):not(:where(.not-prose, .not-prose *)) {
+  @apply bg-muted/50 font-medium text-foreground;
+}
+
+.markdown-body tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Completed task styling */
 .markdown-body li:has(> input[type="checkbox"]) {
   @apply list-none -ml-6 pl-0;
 }
@@ -330,101 +372,25 @@ body {
   @apply absolute inset-0 flex items-center justify-center text-xs font-bold text-white;
 }
 
-/* Completed task text styling */
 .markdown-body li:has(> input[type="checkbox"]:checked) {
   @apply text-muted-foreground;
 }
 
-/* Inline code - more subtle, professional look */
-.markdown-body code {
-  @apply rounded border border-border/50 bg-secondary/80 px-2 py-1 font-mono text-sm text-code;
-}
+/* Diff highlighting */
+.markdown-body h2.diff-added,
+.markdown-body h2.diff-modified,
+.markdown-body h2.diff-removed {
+  @apply rounded-lg border px-3 py-2 text-xl text-foreground;
+} 
 
-/* Code blocks */
-.markdown-body pre {
-  @apply my-4 overflow-x-auto rounded-lg border border-border/50 bg-secondary p-4 text-foreground shadow-lg;
-}
-
-.markdown-body pre code {
-  @apply border-0 bg-transparent px-0 py-0 text-foreground;
-}
-
-.markdown-body blockquote {
-  @apply my-4 rounded-br-sm border-l-4 border-primary/50 bg-secondary/30 py-2 pr-4 pl-4 italic text-muted-foreground;
-}
-
-.markdown-body a {
-  @apply text-primary transition-colors hover:text-primary hover:underline;
-}
-
-.markdown-body table {
-  @apply w-full border-collapse my-4 text-sm;
-}
-
-.markdown-body th, .markdown-body td {
-  @apply border border-border px-4 py-2.5 text-left;
-}
-
-.markdown-body th {
-  @apply bg-card font-semibold text-card-foreground;
-}
-
-.markdown-body tr:nth-child(even) td {
-  @apply bg-card/30;
-}
-
-/* Horizontal rule */
-.markdown-body hr {
-  @apply border-border my-8;
-}
-
-/* Strong and emphasis */
-.markdown-body strong {
-  @apply font-semibold text-foreground;
-}
-
-.markdown-body em {
-  @apply text-card-foreground;
-}
-
-/* ────────────────────────────
-   Diff highlighting
-   ──────────────────────────── */
 .diff-added {
-  @apply rounded-br-sm border-l-4 border-success bg-success-bg pl-3 text-card-foreground;
+  @apply border-success-border bg-success-bg;
 }
 
 .diff-modified {
-  @apply rounded-br-sm border-l-4 border-warning bg-warning-bg pl-3 text-card-foreground;
+  @apply border-warning-border bg-warning-bg;
 }
 
 .diff-removed {
-  @apply rounded-br-sm border-l-4 border-danger bg-danger-bg pl-3 text-card-foreground;
-}
-
-/* ────────────────────────────
-   Suggestion mode styles
-   ──────────────────────────── */
-.suggestion-mode .suggestion-block {
-  @apply cursor-pointer rounded transition-all duration-150;
-}
-
-.suggestion-mode .suggestion-block:hover {
-  @apply bg-info-bg;
-}
-
-.suggestion-mode .suggestion-block.selected {
-  @apply ring-2 ring-info bg-info-bg;
-}
-
-.suggestion-mode .suggestion-block.has-suggestion {
-  @apply border-l-4 border-warning pl-3 bg-warning-bg;
-}
-
-.suggestion-mode .suggestion-block.has-suggestion:hover {
-  @apply bg-warning-bg;
-}
-
-.suggestion-mode .suggestion-block.has-suggestion.selected {
-  @apply ring-2 ring-warning bg-warning-bg;
-}
+  @apply border-danger-border bg-danger-bg;
+} 

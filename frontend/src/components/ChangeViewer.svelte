@@ -2,30 +2,24 @@
   import { untrack } from 'svelte';
   import { Archive, Calendar, CheckSquare, FileText, SquarePen } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
-  import { Button } from '$lib/components/ui/button';
   import { ErrorBanner } from '$lib/components/ui/error-banner';
   import { IconBox } from '$lib/components/ui/icon-box';
   import { LoadingState } from '$lib/components/ui/loading-state';
   import { UnderlineTabs } from '$lib/components/ui/underline-tabs';
-  import { getChange, getChangeFileUrl, type Change } from '../lib/api';
+  import { getChange, type Change } from '../lib/api';
   import { changesRefreshTrigger } from '../stores/index.svelte.ts';
-  import { toast } from 'svelte-sonner';
-  import { suggestionStore } from '../stores/suggestions.svelte.ts';
   import { commandPreferencesStore } from '../stores/commandPreferences.svelte.ts';
   import { getChangeCommands } from '../lib/commandShortcuts';
   import MarkdownRenderer from './MarkdownRenderer.svelte';
-  import HtmlRenderer from './HtmlRenderer.svelte';
   import { Progress } from '$lib/components/ui/progress';
-  import SuggestionPopover from './SuggestionPopover.svelte';
   import CommandShortcutBar from './CommandShortcutBar.svelte';
   import { formatChangeName, formatDate } from '../lib/utils';
 
   interface Props {
     changeName: string;
-    onChangeLoaded?: (change: Change | null) => void;
   }
 
-  let { changeName, onChangeLoaded = () => {} }: Props = $props();
+  let { changeName }: Props = $props();
 
   let change = $state<Change | null>(null);
   let loading = $state(true);
@@ -38,7 +32,6 @@
   let activeFile = $derived(activeGroup?.files[activeFileIndex] ?? null);
   let showDeltasTab = $derived((change?.specDeltas.length ?? 0) > 0);
   let isDeltasActive = $derived(activeGroupIndex === (change?.fileGroups.length ?? 0));
-  let suggestionModeActive = $derived(suggestionStore.isActive);
   let changeCommands = $derived(change ? getChangeCommands(change, commandPreferencesStore) : []);
   let primaryTabs = $derived(
     change
@@ -71,7 +64,6 @@
 
     try {
       change = await getChange(changeName);
-      onChangeLoaded(change);
 
       if (preserveState && change) {
         const maxGroupIndex = change.fileGroups.length + (change.specDeltas.length > 0 ? 1 : 0) - 1;
@@ -80,45 +72,14 @@
         const currentGroup = change.fileGroups[activeGroupIndex];
         const maxFileIndex = currentGroup ? currentGroup.files.length - 1 : 0;
         activeFileIndex = Math.min(savedFileIndex, Math.max(0, maxFileIndex));
-
-        if (suggestionStore.isActive) {
-          reconcileSuggestionsWithContent(change);
-        }
       } else {
         activeGroupIndex = 0;
         activeFileIndex = 0;
       }
     } catch (e) {
       error = e instanceof Error ? e.message : 'Failed to load change';
-      onChangeLoaded(null);
     } finally {
       loading = false;
-    }
-  }
-
-  function reconcileSuggestionsWithContent(changeData: Change) {
-    const contentParts: string[] = [];
-
-    for (const group of changeData.fileGroups) {
-      for (const file of group.files) {
-        if (file.type === 'markdown' && file.content) {
-          contentParts.push(file.content);
-        }
-      }
-    }
-
-    for (const delta of changeData.specDeltas) {
-      contentParts.push(delta.content);
-    }
-
-    const combinedContent = contentParts.join('\n');
-    const resolvedCount = suggestionStore.reconcileSuggestions(combinedContent);
-
-    if (resolvedCount > 0) {
-      const message = resolvedCount === 1
-        ? '1 suggestion resolved'
-        : `${resolvedCount} suggestions resolved`;
-      toast.success(message);
     }
   }
 
@@ -146,14 +107,6 @@
     }
   }
 
-  function toggleSuggestionMode() {
-    if (suggestionModeActive) {
-      suggestionStore.exitSuggestionMode();
-    } else {
-      suggestionStore.enterSuggestionMode(changeName);
-    }
-  }
-
   $effect(() => {
     const refreshTrigger = changesRefreshTrigger.value;
 
@@ -170,15 +123,6 @@
     void untrack(() => loadChange(preserveState));
   });
 
-  $effect(() => {
-    return () => {
-      onChangeLoaded(null);
-
-      if (suggestionStore.isActive) {
-        suggestionStore.exitSuggestionMode();
-      }
-    };
-  });
 </script>
 
 <div class="space-y-6">
@@ -220,15 +164,6 @@
           <CommandShortcutBar commands={changeCommands} changeName={change?.name ?? null} />
         </div>
       {/if}
-
-      {#if !change?.isArchived}
-        <div class="flex justify-end">
-          <Button variant={suggestionModeActive ? 'default' : 'secondary'} onclick={toggleSuggestionMode}>
-            <SquarePen class="h-5 w-5" />
-            <span>{suggestionModeActive ? 'Exit' : 'Suggest'}</span>
-          </Button>
-        </div>
-      {/if}
     </div>
   </div>
 
@@ -251,9 +186,6 @@
               onclick={() => (activeFileIndex = i)}
             >
             {file.name}
-            {#if file.type === 'html'}
-              <span class="ml-1 text-xs text-html">HTML</span>
-            {/if}
           </button>
         {/each}
       </div>
@@ -265,32 +197,24 @@
         <!-- Spec Deltas -->
         <div class="space-y-8">
           {#each change.specDeltas as delta}
-            <div>
-              <h3 class="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
-                <Badge variant="success" class="px-2 py-1 text-sm">{delta.capability}</Badge>
-              </h3>
-              <MarkdownRenderer content={delta.content} highlightDiff={true} suggestionModeEnabled={suggestionModeActive} />
+            <div class="h-full rounded-xl border border-border/70 bg-background/70 p-0 text-left shadow-sm">
+              <div class="px-5 py-4 text-left">
+                <h3 class="flex items-center gap-2 text-2xl font-bold text-foreground">
+                  <IconBox icon={FileText} variant="success" />
+                  {delta.capability}
+                </h3>
+              </div>
+              <div class="border-t border-border/60 px-5 py-4">
+                <MarkdownRenderer content={delta.content} highlightDiff={true} />
+              </div>
             </div>
           {/each}
         </div>
       {:else if activeFile}
-        {#if activeFile.type === 'markdown' && activeFile.content}
-          <MarkdownRenderer
-            content={activeFile.content}
-            suggestionModeEnabled={suggestionModeActive}
-          />
-        {:else if activeFile.type === 'html'}
-          <HtmlRenderer
-            src={getChangeFileUrl(changeName, activeFile.path)}
-            title={activeFile.name}
-          />
+        {#if activeFile.content}
+          <MarkdownRenderer content={activeFile.content} />
         {/if}
       {/if}
     </div>
-
-    <!-- Suggestion Mode Components -->
-    {#if suggestionModeActive}
-      <SuggestionPopover />
-    {/if}
   {/if}
 </div>

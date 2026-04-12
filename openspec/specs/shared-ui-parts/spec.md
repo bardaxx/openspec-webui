@@ -2,7 +2,6 @@
 
 ## Purpose
 Define reusable shared UI primitives that standardize state presentation, command affordances, section headers, and tab navigation across the application.
-
 ## Requirements
 ### Requirement: ErrorBanner component
 The system SHALL provide an `ErrorBanner` component in `$lib/components/ui/error-banner/` that renders a styled error container. The component SHALL accept an `error` message string prop and an optional `onRetry` callback prop. When `onRetry` is provided, the component SHALL render a "Retry" button.
@@ -44,8 +43,8 @@ The system SHALL provide an `EmptyState` component in `$lib/components/ui/empty-
 The system SHALL provide an `IconBox` component in `$lib/components/ui/icon-box/` that renders a colored icon inside a rounded background box. The component SHALL accept `size` (`"sm"` | `"md"` | `"lg"`), `variant` (`"info"` | `"success"` | `"muted"` | `"warning"` | `"danger"`), and `icon` (Svelte component) props.
 
 #### Scenario: Render info icon box
-- **WHEN** an IconBox is rendered with `size="md"` and `variant="info"` and `icon={SquarePen}`
-- **THEN** it renders a rounded box with info background color containing the SquarePen icon
+- **WHEN** an IconBox is rendered with `size="md"` and `variant="info"` and `icon={FileText}`
+- **THEN** it renders a rounded box with info background color containing the FileText icon
 
 #### Scenario: Render small success icon box
 - **WHEN** an IconBox is rendered with `size="sm"` and `variant="success"` and `icon={FileText}`
@@ -137,3 +136,4 @@ The system SHALL NOT provide a custom `TaskProgress` component. All call sites S
 #### Scenario: Compact progress bar in ExplorerPane
 - **WHEN** the ExplorerPane renders a change's progress
 - **THEN** it uses `<Progress value={progress.percentage} class="h-2" />` for a compact variant
+

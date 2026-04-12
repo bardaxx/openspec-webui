@@ -46,7 +46,7 @@ The system SHALL render copy-command buttons inline within the ACTIVE CHANGES se
 - **THEN** the ACTIVE CHANGES section header in that drawer shows the same `CommandChip` controls as the persistent Explorer Pane
 
 ### Requirement: Show change-scoped command buttons in ChangeViewer
-The system SHALL render change-scoped copy-command buttons inline within the ChangeViewer header using `CommandChip` components. The system SHALL also render change-scoped copy-command buttons within each Dashboard Active Changes list item using `CommandChip` components via `CommandShortcutBar`. The system SHALL show `apply` when the change still has incomplete tasks, SHALL show `archive` when the change has no incomplete tasks, SHALL show `continue` and `ff` for incomplete changes only when those commands are both available and enabled, and SHALL show `verify` and `sync` for complete changes only when those commands are both available and enabled. When the ChangeViewer header also contains a standard action button such as the Suggest / Exit toggle, the command chips SHALL remain a separate compact cluster rather than adopting the same size and styling as the standard action button. In Dashboard list items, the command chips SHALL be visually separated from the primary open-change action, SHALL be preceded by a `Next Step` cue label, and activating a command chip SHALL NOT trigger navigation into the change.
+The system SHALL render change-scoped copy-command buttons inline within the ChangeViewer header using `CommandChip` components. The system SHALL also render change-scoped copy-command buttons within each Dashboard Active Changes list item using `CommandChip` components via `CommandShortcutBar`. The system SHALL show `apply` when the change still has incomplete tasks, SHALL show `archive` when the change has no incomplete tasks, SHALL show `continue` and `ff` for incomplete changes only when those commands are both available and enabled, and SHALL show `verify` and `sync` for complete changes only when those commands are both available and enabled. In Dashboard list items, the command chips SHALL be visually separated from the primary open-change action, SHALL be preceded by a `Next Step` cue label, and activating a command chip SHALL NOT trigger navigation into the change.
 
 #### Scenario: Show commands for an incomplete active change in Dashboard
 - **WHEN** the Dashboard surface renders an active change with incomplete tasks
@@ -78,16 +78,12 @@ The system SHALL render change-scoped copy-command buttons inline within the Cha
 - **THEN** the UI shows a `CommandChip` for `archive` inline in the header
 - **AND** shows `verify` and `sync` only if those commands are available and enabled
 
-#### Scenario: Separate command chips from standard actions
-- **WHEN** the ChangeViewer header renders both command shortcuts and the Suggest / Exit action
-- **THEN** the command shortcuts are shown as a compact `CommandChip` cluster
-- **AND** the Suggest / Exit action remains a standard `<Button>` control
+#### Scenario: ChangeViewer header does not render suggestion actions
+- **WHEN** the ChangeViewer header is rendered after suggestion feature removal
+- **THEN** the header shows the command shortcut cluster without any Suggest / Exit button beside it
 
 #### Scenario: Copy a change-scoped command with the change name only
 - **WHEN** the operator activates a change-scoped command button
 - **THEN** the system copies the command plus the current change name
 - **AND** does not append a task label
 
-#### Scenario: Hide change-scoped commands for archived changes
-- **WHEN** the operator opens an archived change
-- **THEN** the UI does not show change-scoped copy-command buttons
