@@ -1,11 +1,13 @@
 <script lang="ts">
-  import { FileText, Calendar} from '@lucide/svelte';
+  import { FileText, Calendar, Search } from '@lucide/svelte';
   import { ErrorBanner } from '$lib/components/ui/error-banner';
   import { IconBox } from '$lib/components/ui/icon-box';
   import { LoadingState } from '$lib/components/ui/loading-state';
   import { UnderlineTabs } from '$lib/components/ui/underline-tabs';
+  import { Button } from '$lib/components/ui/button';
   import { getSpec, type Spec } from '../lib/api';
   import { specsRefreshTrigger } from '../stores/index.svelte.ts';
+  import { layoutStore } from '../stores/layout.svelte.ts';
   import MarkdownRenderer from './MarkdownRenderer.svelte';
   import { formatDate } from '../lib/utils';
   interface Props {
@@ -47,6 +49,10 @@
     }
   }
 
+  function searchRelatedChanges() {
+    layoutStore.openOverlay('search', { initialQuery: specName });
+  }
+
   $effect(() => {
     const refreshTrigger = specsRefreshTrigger.value;
 
@@ -71,10 +77,19 @@
 <div class="space-y-6">
   <!-- Header -->
   <div class="flex items-center gap-4">
-    <div>
+    <div class="min-w-0 flex-1">
       <h1 class="flex items-center gap-2 text-2xl font-bold text-foreground">
         <IconBox icon={FileText} variant="success" />
         {specName}
+        <Button
+          variant="ghost"
+          size="icon"
+          class="size-7 shrink-0 text-muted-foreground hover:text-foreground"
+          aria-label="Search changes related to this spec"
+          onclick={searchRelatedChanges}
+        >
+          <Search class="h-4 w-4" />
+        </Button>
       </h1>
       <p class="text-muted-foreground">
         {#if spec?.lastModified}

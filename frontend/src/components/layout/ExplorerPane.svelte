@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { Archive, Calendar, CheckSquare, FileText, Folder, FolderPen, SquarePen } from '@lucide/svelte';
+  import { Archive, Calendar, CheckSquare, Clipboard, FileText, Folder, FolderPen, Search, SquarePen } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
   import { Button } from '$lib/components/ui/button';
   import { EmptyState } from '$lib/components/ui/empty-state';
   import { ExplorerSection as SharedExplorerSection } from '$lib/components/ui/explorer-section';
+  import * as ContextMenu from '$lib/components/ui/context-menu';
   import * as ScrollArea from '$lib/components/ui/scroll-area';
   import { getWorkspaceCommands } from '../../lib/commandShortcuts';
   import { activeChanges, archivedChanges, project, specs } from '../../stores/index.svelte.ts';
@@ -14,6 +15,7 @@
   import { Progress } from '$lib/components/ui/progress';
   import { formatChangeName } from '../../lib/utils';
   import * as utils from '../../lib/utils';
+  import { toast } from 'svelte-sonner';
 
   interface Props {
     temporary?: boolean;
@@ -58,6 +60,20 @@
 
   function openProjectSelector() {
     layoutStore.openOverlay('project-selector');
+  }
+
+  async function copyToClipboard(text: string, label: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`${label} copied`);
+    } catch {
+      toast.error('Failed to copy');
+    }
+  }
+
+  function searchForSpec(specName: string) {
+    layoutStore.openOverlay('search', { initialQuery: specName });
+    onItemSelected();
   }
 </script>
 
@@ -109,27 +125,35 @@
             <EmptyState message="No active changes" icon={SquarePen} class="px-3 py-6" />
           {:else}
             {#each activeChanges.value as change}
-              <button
-                type="button"
-                class={`flex w-full items-start gap-3 px-3 py-3 text-left transition-colors ${itemClass(`/changes/${encodeURIComponent(change.name)}`)}`}
-                onclick={() => openTab(`/changes/${encodeURIComponent(change.name)}`, 'active-changes')}
-              >
-                <div class="min-w-0 flex-1">
-                  <div class="truncate text-sm font-medium" title={change.name}>{change.name}</div>
-                  <div class="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-                    <div class="flex items-center gap-2">
-                      {#if (change as TimestampedChange).lastModified}
-                        <span class="flex items-center gap-0.5"><Calendar class="h-3 w-3" />{formatExplorerDate((change as TimestampedChange).lastModified)}</span>
-                      {/if}
-                      <span class="flex items-center gap-0.5"><FileText class="h-3 w-3" />{change.specDeltaCount}</span>
-                      <span class="flex items-center gap-0.5"><CheckSquare class="h-3 w-3" />{change.taskProgress.done}/{change.taskProgress.total}</span>
-                    </div>
-                    <div class="w-14 shrink-0">
-                      <Progress value={change.taskProgress.percentage} />
+              <ContextMenu.Root>
+                <button
+                  type="button"
+                  class={`flex w-full items-start gap-3 px-3 py-3 text-left transition-colors ${itemClass(`/changes/${encodeURIComponent(change.name)}`)}`}
+                  onclick={() => openTab(`/changes/${encodeURIComponent(change.name)}`, 'active-changes')}
+                >
+                  <div class="min-w-0 flex-1">
+                    <div class="truncate text-sm font-medium" title={change.name}>{change.name}</div>
+                    <div class="mt-1 flex items-center justify-between text-xs text-muted-foreground">
+                      <div class="flex items-center gap-2">
+                        {#if (change as TimestampedChange).lastModified}
+                          <span class="flex items-center gap-0.5"><Calendar class="h-3 w-3" />{formatExplorerDate((change as TimestampedChange).lastModified)}</span>
+                        {/if}
+                        <span class="flex items-center gap-0.5"><FileText class="h-3 w-3" />{change.specDeltaCount}</span>
+                        <span class="flex items-center gap-0.5"><CheckSquare class="h-3 w-3" />{change.taskProgress.done}/{change.taskProgress.total}</span>
+                      </div>
+                      <div class="w-14 shrink-0">
+                        <Progress value={change.taskProgress.percentage} />
+                      </div>
                     </div>
                   </div>
-                </div>
-              </button>
+                </button>
+                <ContextMenu.Content>
+                  <ContextMenu.Item onSelect={() => copyToClipboard(change.name, 'Change name')}>
+                    <Clipboard class="h-4 w-4" />
+                    Copy Name
+                  </ContextMenu.Item>
+                </ContextMenu.Content>
+              </ContextMenu.Root>
             {/each}
           {/if}
         </div>
@@ -154,22 +178,30 @@
             <EmptyState message="No archived changes" icon={Archive} class="px-3 py-6" />
           {:else}
             {#each archivedChanges.value as change}
-              <button
-                type="button"
-                class={`flex w-full items-start gap-3 px-3 py-3 text-left transition-colors ${itemClass(`/changes/${encodeURIComponent(change.name)}`)}`}
-                onclick={() => openTab(`/changes/${encodeURIComponent(change.name)}`, 'archive')}
-              >
-                <div class="min-w-0 flex-1">
-                  <div class="truncate text-sm font-medium" title={change.name}>{formatChangeName(change.name)}</div>
-                  <div class="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                    {#if change.archivedDate}
-                      <span class="flex items-center gap-0.5"><Calendar class="h-3 w-3" />{change.archivedDate}</span>
-                    {/if}
-                    <span class="flex items-center gap-0.5"><FileText class="h-3 w-3" />{change.specDeltaCount}</span>
-                    <span class="flex items-center gap-0.5"><CheckSquare class="h-3 w-3" />{change.taskProgress.done}/{change.taskProgress.total}</span>
+              <ContextMenu.Root>
+                <button
+                  type="button"
+                  class={`flex w-full items-start gap-3 px-3 py-3 text-left transition-colors ${itemClass(`/changes/${encodeURIComponent(change.name)}`)}`}
+                  onclick={() => openTab(`/changes/${encodeURIComponent(change.name)}`, 'archive')}
+                >
+                  <div class="min-w-0 flex-1">
+                    <div class="truncate text-sm font-medium" title={change.name}>{formatChangeName(change.name)}</div>
+                    <div class="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                      {#if change.archivedDate}
+                        <span class="flex items-center gap-0.5"><Calendar class="h-3 w-3" />{change.archivedDate}</span>
+                      {/if}
+                      <span class="flex items-center gap-0.5"><FileText class="h-3 w-3" />{change.specDeltaCount}</span>
+                      <span class="flex items-center gap-0.5"><CheckSquare class="h-3 w-3" />{change.taskProgress.done}/{change.taskProgress.total}</span>
+                    </div>
                   </div>
-                </div>
-              </button>
+                </button>
+                <ContextMenu.Content>
+                  <ContextMenu.Item onSelect={() => copyToClipboard(change.name, 'Change name')}>
+                    <Clipboard class="h-4 w-4" />
+                    Copy Name
+                  </ContextMenu.Item>
+                </ContextMenu.Content>
+              </ContextMenu.Root>
             {/each}
           {/if}
         </div>
@@ -194,24 +226,36 @@
             <EmptyState message="No specs found" icon={FileText} class="px-3 py-6" />
           {:else}
             {#each specs.value as spec}
-              <button
-                type="button"
-                class={`flex w-full items-center gap-3 px-3 py-3 text-left transition-colors ${itemClass(`/specs/${encodeURIComponent(spec.name)}`)}`}
-                onclick={() => openTab(`/specs/${encodeURIComponent(spec.name)}`, 'specs')}
-              >
-                <div class="min-w-0 flex-1">
-                  <div class="truncate text-sm font-medium">{spec.name}</div>
-                  <div class="mt-1 flex items-center gap-0.5 text-xs text-muted-foreground">
-                    {#if (spec as TimestampedSpec).lastModified}
-                      <Calendar class="h-3 w-3" />{formatExplorerDate((spec as TimestampedSpec).lastModified)}
-                    {/if}
+              <ContextMenu.Root>
+                <button
+                  type="button"
+                  class={`flex w-full items-center gap-3 px-3 py-3 text-left transition-colors ${itemClass(`/specs/${encodeURIComponent(spec.name)}`)}`}
+                  onclick={() => openTab(`/specs/${encodeURIComponent(spec.name)}`, 'specs')}
+                >
+                  <div class="min-w-0 flex-1">
+                    <div class="truncate text-sm font-medium">{spec.name}</div>
+                    <div class="mt-1 flex items-center gap-0.5 text-xs text-muted-foreground">
+                      {#if (spec as TimestampedSpec).lastModified}
+                        <Calendar class="h-3 w-3" />{formatExplorerDate((spec as TimestampedSpec).lastModified)}
+                      {/if}
+                    </div>
                   </div>
-                </div>
 
-                {#if spec.hasDesign}
-                  <Badge variant="outline" class="text-[10px] font-medium">Design</Badge>
-                {/if}
-              </button>
+                  {#if spec.hasDesign}
+                    <Badge variant="outline" class="text-[10px] font-medium">Design</Badge>
+                  {/if}
+                </button>
+                <ContextMenu.Content>
+                  <ContextMenu.Item onSelect={() => copyToClipboard(spec.name, 'Spec name')}>
+                    <Clipboard class="h-4 w-4" />
+                    Copy Name
+                  </ContextMenu.Item>
+                  <ContextMenu.Item onSelect={() => searchForSpec(spec.name)}>
+                    <Search class="h-4 w-4" />
+                    Search Related Changes
+                  </ContextMenu.Item>
+                </ContextMenu.Content>
+              </ContextMenu.Root>
             {/each}
           {/if}
         </div>

@@ -7,6 +7,7 @@
   import { search, type SearchResult } from '../../lib/api';
   import { searchQuery } from '../../stores/index.svelte.ts';
   import { tabStore } from '../../stores/tabs.svelte.ts';
+  import { layoutStore } from '../../stores/layout.svelte.ts';
 
   interface Props {
     open?: boolean;
@@ -67,10 +68,22 @@
     return 'secondary';
   }
 
+  async function performSearch(query: string) {
+    if (query.length >= 2) {
+      searchResults = await search(query);
+    }
+  }
+
   $effect(() => {
     if (!open) {
       clearSearch();
       return;
+    }
+
+    const initialQuery = layoutStore.searchInitialQuery;
+    if (initialQuery) {
+      searchQuery.value = initialQuery;
+      void performSearch(initialQuery);
     }
 
     void tick().then(() => inputRef?.focus());

@@ -133,6 +133,7 @@ function createLayoutStore() {
     responsiveMode: initialResponsiveMode,
     narrowDrawerOpen: false,
     overlay: null as LayoutOverlay,
+    searchInitialQuery: '',
   });
 
   let initialized = false;
@@ -208,6 +209,10 @@ function createLayoutStore() {
 
     get overlay() {
       return state.overlay;
+    },
+
+    get searchInitialQuery() {
+      return state.searchInitialQuery;
     },
 
     initialize,
@@ -286,12 +291,14 @@ function createLayoutStore() {
       this.setNarrowDrawerOpen(!state.narrowDrawerOpen);
     },
 
-    openOverlay(overlay: Exclude<LayoutOverlay, null>) {
+    openOverlay(overlay: Exclude<LayoutOverlay, null>, options?: { initialQuery?: string }) {
       state.overlay = overlay;
+      state.searchInitialQuery = options?.initialQuery ?? '';
     },
 
     closeOverlay() {
       state.overlay = null;
+      state.searchInitialQuery = '';
     },
 
     toggleOverlay(overlay: Exclude<LayoutOverlay, null>) {
