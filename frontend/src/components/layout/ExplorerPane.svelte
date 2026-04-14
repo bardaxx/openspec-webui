@@ -11,6 +11,7 @@
   import { commandPreferencesStore } from '../../stores/commandPreferences.svelte.ts';
   import { layoutStore, type ExplorerSection } from '../../stores/layout.svelte.ts';
   import { tabStore } from '../../stores/tabs.svelte.ts';
+  import { uiPreferencesStore } from '../../stores/uiPreferences.svelte.ts';
   import CommandShortcutBar from '../CommandShortcutBar.svelte';
   import { Progress } from '$lib/components/ui/progress';
   import { formatChangeName } from '../../lib/utils';
@@ -48,8 +49,27 @@
 
   function openTab(path: string, section: ExplorerSection) {
     layoutStore.focusSection(section);
-    tabStore.open(path);
+    tabStore.openConfirmed(path);
     onItemSelected();
+  }
+
+  function openItemPreview(path: string, section: ExplorerSection) {
+    layoutStore.focusSection(section);
+    tabStore.openPreview(path);
+    onItemSelected();
+  }
+
+  function openItemConfirmed(path: string, section: ExplorerSection) {
+    openTab(path, section);
+  }
+
+  function handleItemClick(event: MouseEvent, path: string, section: ExplorerSection) {
+    if (!uiPreferencesStore.previewTabsEnabled || event.ctrlKey) {
+      openItemConfirmed(path, section);
+      return;
+    }
+
+    openItemPreview(path, section);
   }
 
   function itemClass(path: string) {
@@ -75,6 +95,7 @@
     layoutStore.openOverlay('search', { initialQuery: specName });
     onItemSelected();
   }
+
 </script>
 
 <aside class="flex h-full min-h-0 flex-col bg-card">
@@ -129,7 +150,7 @@
                 <button
                   type="button"
                   class={`flex w-full items-start gap-3 px-3 py-3 text-left transition-colors ${itemClass(`/changes/${encodeURIComponent(change.name)}`)}`}
-                  onclick={() => openTab(`/changes/${encodeURIComponent(change.name)}`, 'active-changes')}
+                  onclick={(event) => handleItemClick(event, `/changes/${encodeURIComponent(change.name)}`, 'active-changes')}
                 >
                   <div class="min-w-0 flex-1">
                     <div class="truncate text-sm font-medium" title={change.name}>{change.name}</div>
@@ -148,6 +169,10 @@
                   </div>
                 </button>
                 <ContextMenu.Content>
+                  <ContextMenu.Item onSelect={() => openItemConfirmed(`/changes/${encodeURIComponent(change.name)}`, 'active-changes')}>
+                    <FileText class="h-4 w-4" />
+                    Open in New Tab
+                  </ContextMenu.Item>
                   <ContextMenu.Item onSelect={() => copyToClipboard(change.name, 'Change name')}>
                     <Clipboard class="h-4 w-4" />
                     Copy Name
@@ -182,7 +207,7 @@
                 <button
                   type="button"
                   class={`flex w-full items-start gap-3 px-3 py-3 text-left transition-colors ${itemClass(`/changes/${encodeURIComponent(change.name)}`)}`}
-                  onclick={() => openTab(`/changes/${encodeURIComponent(change.name)}`, 'archive')}
+                  onclick={(event) => handleItemClick(event, `/changes/${encodeURIComponent(change.name)}`, 'archive')}
                 >
                   <div class="min-w-0 flex-1">
                     <div class="truncate text-sm font-medium" title={change.name}>{formatChangeName(change.name)}</div>
@@ -196,6 +221,10 @@
                   </div>
                 </button>
                 <ContextMenu.Content>
+                  <ContextMenu.Item onSelect={() => openItemConfirmed(`/changes/${encodeURIComponent(change.name)}`, 'archive')}>
+                    <FileText class="h-4 w-4" />
+                    Open in New Tab
+                  </ContextMenu.Item>
                   <ContextMenu.Item onSelect={() => copyToClipboard(change.name, 'Change name')}>
                     <Clipboard class="h-4 w-4" />
                     Copy Name
@@ -230,7 +259,7 @@
                 <button
                   type="button"
                   class={`flex w-full items-center gap-3 px-3 py-3 text-left transition-colors ${itemClass(`/specs/${encodeURIComponent(spec.name)}`)}`}
-                  onclick={() => openTab(`/specs/${encodeURIComponent(spec.name)}`, 'specs')}
+                  onclick={(event) => handleItemClick(event, `/specs/${encodeURIComponent(spec.name)}`, 'specs')}
                 >
                   <div class="min-w-0 flex-1">
                     <div class="truncate text-sm font-medium">{spec.name}</div>
@@ -246,6 +275,10 @@
                   {/if}
                 </button>
                 <ContextMenu.Content>
+                  <ContextMenu.Item onSelect={() => openItemConfirmed(`/specs/${encodeURIComponent(spec.name)}`, 'specs')}>
+                    <FileText class="h-4 w-4" />
+                    Open in New Tab
+                  </ContextMenu.Item>
                   <ContextMenu.Item onSelect={() => copyToClipboard(spec.name, 'Spec name')}>
                     <Clipboard class="h-4 w-4" />
                     Copy Name

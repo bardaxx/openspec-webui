@@ -7,7 +7,9 @@
   import { EXPANDED_COMMANDS, EXPANDED_COMMAND_LABELS } from '../lib/commandTypes';
   import { buildCommand, isExpandedCommandAvailable } from '../lib/commandShortcuts';
   import { commandPreferencesStore } from '../stores/commandPreferences.svelte.ts';
+  import { tabStore } from '../stores/tabs.svelte.ts';
   import { themeStore, type Theme } from '../stores/theme.svelte.ts';
+  import { uiPreferencesStore } from '../stores/uiPreferences.svelte.ts';
 
   interface Props {
     open?: boolean;
@@ -48,6 +50,15 @@
 
   function setTheme(theme: Theme) {
     themeStore.setTheme(theme);
+  }
+
+  function togglePreviewTabs(event: Event) {
+    const target = event.currentTarget as HTMLInputElement;
+    uiPreferencesStore.setPreviewTabsEnabled(target.checked);
+
+    if (!target.checked) {
+      tabStore.confirmAllPreviewTabs();
+    }
   }
 
   function toggleCommand(command: ExpandedCommand, event: Event) {
@@ -148,6 +159,25 @@
                 </div>
               </label>
             </div>
+
+            <div class="pt-4">
+              <h3 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Explorer</h3>
+              <p class="mt-1 text-sm text-muted-foreground">Control whether single-click in the Explorer opens a reusable preview tab or a normal confirmed tab.</p>
+            </div>
+
+            <label class="flex items-start justify-between gap-4 rounded-lg border border-border bg-secondary/50 p-4 text-sm text-card-foreground">
+              <div>
+                <div class="font-medium text-foreground">Enable preview tabs</div>
+                <div class="mt-1 text-muted-foreground">On by default. When enabled, single-click reuses one preview tab. Use Ctrl+Click or the item context menu to open a regular tab.</div>
+              </div>
+
+              <input
+                type="checkbox"
+                checked={uiPreferencesStore.previewTabsEnabled}
+                aria-label="Enable preview tabs"
+                onchange={togglePreviewTabs}
+              />
+            </label>
           </section>
         {:else if activeSection === 'ai-tool'}
           <section class="space-y-3">

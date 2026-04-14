@@ -118,10 +118,13 @@
         {@const isActive = tabStore.activeTabId === tab.id}
         {@const isHome = isHomeTab(tab)}
         {@const isPinned = tab.pinned ?? false}
+        {@const isPreview = tab.preview === true}
+        {@const visibleLabel = tab.type === 'change' ? formatChangeName(tab.name) : tab.name}
 
         <ContextMenu.Root>
           <button
             bind:this={tabRefs[index]}
+            type="button"
             class="group relative flex h-9 min-w-15 shrink-0 items-center gap-1 rounded-t-md border border-b-0 border-transparent px-2 text-sm transition-all duration-150
               {isActive
                 ? 'max-w-96 border-border bg-background text-foreground -mb-px'
@@ -129,8 +132,12 @@
               {draggedIndex === index ? 'opacity-50' : ''}"
             role="tab"
             aria-selected={isActive}
+            aria-label={isPreview ? `${visibleLabel} Preview tab` : `${visibleLabel} tab`}
+            title={isPreview ? `${visibleLabel} • Preview` : visibleLabel}
+            data-preview={isPreview ? 'true' : 'false'}
             draggable={isHome ? false : true}
             onclick={() => tabStore.focus(tab.id)}
+            ondblclick={() => tabStore.confirmTab(tab.id)}
             ondragstart={(e) => handleDragStart(e, index)}
             ondragover={handleDragOver}
             ondrop={(e) => handleDrop(e, index)}
@@ -140,7 +147,7 @@
             <iconDef.icon class="h-4 w-4 shrink-0 {iconDef.color}" />
 
             <!-- Tab name (formatted: date prefix removed for changes) -->
-            <span class="truncate">{tab.type === 'change' ? formatChangeName(tab.name) : tab.name}</span>
+            <span class:italic={isPreview} class="truncate">{visibleLabel}</span>
 
             <!-- Right slot: Pin icon (pinned, clickable to unpin) or Close button -->
             {#if isPinned}

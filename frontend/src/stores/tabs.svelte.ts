@@ -6,6 +6,7 @@ export interface Tab {
   name: string;
   path: string;
   pinned?: boolean;
+  preview?: boolean;
 }
 
 type HistoryMode = 'push' | 'replace' | 'none';
@@ -109,7 +110,7 @@ function getLookupKeys(tabIdOrPath: string) {
   return normalizedPath === canonicalPath ? [canonicalPath] : [normalizedPath, canonicalPath];
 }
 
-function createTabsStore() {
+export function createTabsStore() {
   const initialTab = createTabForPath(getCurrentBrowserPath());
   const initialTabs = isHomeTab(initialTab)
     ? [{ ...HOME_TAB }]
@@ -181,6 +182,7 @@ function createTabsStore() {
         ...existingTab,
         ...normalizedTab,
         pinned: normalizedTab.pinned ?? existingTab.pinned ?? false,
+        preview: normalizedTab.preview ?? false,
       } : tab);
       activateTab(existingIndex, resolvedHistory);
       return state.tabs[existingIndex];
@@ -213,6 +215,58 @@ function createTabsStore() {
       return upsertTab(pathOrTab, 'push');
     },
 
+    openConfirmed(pathOrTab: string | Tab) {
+      return upsertTab(pathOrTab, 'push');
+    },
+
+    openPreview(pathOrTab: string | Tab) {
+      const requestedPath = typeof pathOrTab === 'string' ? normalizePath(pathOrTab) : normalizePath(pathOrTab.path);
+      const normalizedTab = typeof pathOrTab === 'string'
+        ? createTabForPath(requestedPath)
+        : {
+            ...pathOrTab,
+            path: normalizePath(pathOrTab.path),
+          };
+      const previewTab: Tab = {
+        ...normalizedTab,
+        pinned: false,
+        preview: true,
+      };
+      const resolvedHistory = previewTab.path === requestedPath ? 'replace' : 'replace';
+
+      const confirmedIndex = state.tabs.findIndex((tab) => tab.path === previewTab.path && tab.preview !== true);
+      if (confirmedIndex >= 0) {
+        activateTab(confirmedIndex, resolvedHistory);
+        return state.tabs[confirmedIndex];
+      }
+
+      const existingPreviewIndex = state.tabs.findIndex((tab) => tab.path === previewTab.path && tab.preview === true && !tab.pinned);
+      if (existingPreviewIndex >= 0) {
+        activateTab(existingPreviewIndex, resolvedHistory);
+        return state.tabs[existingPreviewIndex];
+      }
+
+      const reusablePreviewIndex = state.tabs.findIndex((tab) => tab.preview === true && !tab.pinned);
+      if (reusablePreviewIndex >= 0) {
+        const existingPreviewTab = state.tabs[reusablePreviewIndex];
+        state.tabs = state.tabs.map((tab, index) => index === reusablePreviewIndex
+          ? {
+              ...existingPreviewTab,
+              ...previewTab,
+              pinned: false,
+              preview: true,
+            }
+          : tab);
+        activateTab(reusablePreviewIndex, resolvedHistory);
+        return state.tabs[reusablePreviewIndex];
+      }
+
+      state.tabs = normalizeTabOrder([...state.tabs, previewTab]);
+      const nextIndex = state.tabs.findIndex((tab) => tab.path === previewTab.path && tab.preview === true);
+      activateTab(nextIndex, resolvedHistory);
+      return state.tabs[nextIndex];
+    },
+
     handlePath(path: string, options?: { history?: HistoryMode }) {
       return upsertTab(path, options?.history ?? 'push');
     },
@@ -220,6 +274,38 @@ function createTabsStore() {
     focus(tabIdOrPath: string) {
       const index = getTabIndex(tabIdOrPath);
       return index >= 0 ? activateTab(index, 'push') : null;
+    },
+
+    confirmTab(tabIdOrPath: string) {
+      const index = getTabIndex(tabIdOrPath);
+      if (index < 0) {
+        return null;
+      }
+
+      const currentTab = state.tabs[index];
+      if (!currentTab?.preview) {
+        return currentTab ?? null;
+      }
+
+      state.tabs = state.tabs.map((tab, tabIndex) => tabIndex === index
+        ? {
+            ...tab,
+            preview: false,
+          }
+        : tab);
+
+      return getTab(tabIdOrPath);
+    },
+
+    confirmAllPreviewTabs() {
+      state.tabs = state.tabs.map((tab) => tab.preview
+        ? {
+            ...tab,
+            preview: false,
+          }
+        : tab);
+
+      return state.tabs;
     },
 
     close(tabIdOrPath: string) {
@@ -295,7 +381,7 @@ function createTabsStore() {
       }
 
       state.tabs = normalizeTabOrder(
-        state.tabs.map((tab, tabIndex) => tabIndex === index ? { ...tab, pinned: true } : tab)
+        state.tabs.map((tab, tabIndex) => tabIndex === index ? { ...tab, pinned: true, preview: false } : tab)
       );
 
       return getTab(tabIdOrPath);

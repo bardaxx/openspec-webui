@@ -168,6 +168,159 @@ async function clickExplorerItem(cdp, sectionLabel, index = 0) {
   return name;
 }
 
+async function ctrlClickExplorerItem(cdp, sectionLabel, index = 0) {
+  const expression = pageExpression(() => {
+    const explorer = [...document.querySelectorAll('aside')].find((node) => node.textContent?.includes('Current Project'));
+    if (!explorer) {
+      return null;
+    }
+
+    const sections = [...explorer.querySelectorAll('[data-state]')];
+    const section = sections.find((node) => node.querySelector('button')?.textContent?.includes('__LABEL__'));
+    if (!section) {
+      return null;
+    }
+
+    const body = section.querySelector('.divide-y');
+    if (!body) {
+      return null;
+    }
+
+    const items = [...body.querySelectorAll('button')];
+    const target = items[__INDEX__];
+    if (!(target instanceof HTMLElement)) {
+      return null;
+    }
+
+    const text = target.querySelector('.font-medium, .truncate')?.textContent?.trim() ?? target.textContent?.trim() ?? null;
+    target.dispatchEvent(new MouseEvent('click', { bubbles: true, ctrlKey: true }));
+    return text;
+  })
+    .replace('__LABEL__', escapeForPage(sectionLabel))
+    .replace('__INDEX__', String(index));
+
+  const name = await cdp.evaluate(expression);
+  if (!name) {
+    throw new Error(`Could not ctrl-click explorer item from section ${sectionLabel}`);
+  }
+
+  await sleep(300);
+  return name;
+}
+
+async function openExplorerItemContextMenu(cdp, sectionLabel, index = 0) {
+  const expression = pageExpression(() => {
+    const explorer = [...document.querySelectorAll('aside')].find((node) => node.textContent?.includes('Current Project'));
+    if (!explorer) {
+      return null;
+    }
+
+    const sections = [...explorer.querySelectorAll('[data-state]')];
+    const section = sections.find((node) => node.querySelector('button')?.textContent?.includes('__LABEL__'));
+    if (!section) {
+      return null;
+    }
+
+    const body = section.querySelector('.divide-y');
+    if (!body) {
+      return null;
+    }
+
+    const items = [...body.querySelectorAll('button')];
+    const target = items[__INDEX__];
+    if (!(target instanceof HTMLElement)) {
+      return null;
+    }
+
+    const rect = target.getBoundingClientRect();
+    target.dispatchEvent(new MouseEvent('contextmenu', {
+      bubbles: true,
+      clientX: rect.left + 8,
+      clientY: rect.top + 8,
+    }));
+
+    return target.querySelector('.font-medium, .truncate')?.textContent?.trim() ?? target.textContent?.trim() ?? null;
+  })
+    .replace('__LABEL__', escapeForPage(sectionLabel))
+    .replace('__INDEX__', String(index));
+
+  const name = await cdp.evaluate(expression);
+  if (!name) {
+    throw new Error(`Could not open explorer item context menu from section ${sectionLabel}`);
+  }
+
+  await sleep(250);
+  return name;
+}
+
+async function clickContextMenuItem(cdp, label) {
+  const selected = await cdp.evaluate(pageExpression(() => {
+    const items = [...document.querySelectorAll('[role="menuitem"]')];
+    const target = items.find((node) => node.textContent?.includes('__LABEL__'));
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+
+    target.click();
+    return true;
+  }).replace('__LABEL__', escapeForPage(label)));
+
+  if (!selected) {
+    throw new Error(`Could not select context menu item: ${label}`);
+  }
+
+  await sleep(300);
+}
+
+async function doubleClickTab(cdp, tabName) {
+  const clicked = await cdp.evaluate(pageExpression(() => {
+    const tabs = [...document.querySelectorAll('[role="tab"]')];
+    const target = tabs.find((node) => node.querySelector('span')?.textContent?.trim() === '__TAB_NAME__');
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+
+    target.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    return true;
+  }).replace('__TAB_NAME__', escapeForPage(tabName)));
+
+  if (!clicked) {
+    throw new Error(`Could not double-click tab: ${tabName}`);
+  }
+
+  await sleep(250);
+}
+
+async function setPreviewTabsEnabled(cdp, enabled) {
+  const changed = await cdp.evaluate(pageExpression(() => {
+    const input = document.querySelector('input[aria-label="Enable preview tabs"]');
+    if (!(input instanceof HTMLInputElement)) {
+      return null;
+    }
+
+    const desired = __ENABLED__;
+    if (input.checked !== desired) {
+      input.click();
+      return true;
+    }
+
+    return false;
+  }).replace('__ENABLED__', enabled ? 'true' : 'false'));
+
+  if (changed === null) {
+    throw new Error('Could not find preview tabs toggle');
+  }
+
+  await sleep(300);
+}
+
+async function getPreviewTabsToggleState(cdp) {
+  return cdp.evaluate(pageExpression(() => {
+    const input = document.querySelector('input[aria-label="Enable preview tabs"]');
+    return input instanceof HTMLInputElement ? input.checked : null;
+  }));
+}
+
 async function getExplorerItemDetails(cdp, sectionLabel, index = 0) {
   const expression = pageExpression(() => {
     const normalizeText = (value) => value?.replace(/\s+/g, ' ').trim() ?? '';
@@ -236,13 +389,18 @@ function getStateExpression() {
   return pageExpression(() => {
     const tabList = document.querySelector('[role="tablist"]');
     const tabs = [...document.querySelectorAll('[role="tab"]')].map((node) => {
-      const text = node.querySelector('span')?.textContent?.trim() ?? node.textContent?.trim() ?? null;
+      const label = node.querySelector('span');
+      const text = label?.textContent?.trim() ?? node.textContent?.trim() ?? null;
 
       return {
         text,
         selected: node.getAttribute('aria-selected') === 'true',
         closeVisible: Boolean(node.querySelector('button[aria-label="Close tab"]')),
         pinVisible: Boolean(node.querySelector('button[aria-label="Pin tab"], button[aria-label="Unpin tab"], button[aria-label="Pinned Dashboard tab"]')),
+        isPreview: node.getAttribute('data-preview') === 'true',
+        previewItalic: label?.classList.contains('italic') ?? false,
+        ariaLabel: node.getAttribute('aria-label') ?? '',
+        title: node.getAttribute('title') ?? '',
       };
     });
 
@@ -256,6 +414,7 @@ function getStateExpression() {
         : null,
       activeTab: tabs.find((tab) => tab.selected)?.text ?? null,
       homeTab: tabs.find((tab) => tab.text === 'Dashboard') ?? null,
+      tabs,
       tabNames: tabs.map((tab) => tab.text).filter(Boolean),
     };
   });
@@ -287,6 +446,10 @@ function assertCompactDate(value, message) {
   assert(/^\d{4}-\d{2}-\d{2}$/.test(value), message);
 }
 
+function getTabByName(state, name) {
+  return state.tabs.find((tab) => tab.text === name) ?? null;
+}
+
 async function main() {
   const wsUrl = await getPageWebSocketUrl();
   const cdp = new CDPClient(wsUrl);
@@ -296,6 +459,7 @@ async function main() {
     await cdp.navigate(APP_URL);
 
     await cdp.evaluate(pageExpression(() => {
+      localStorage.removeItem('openspec-ui-preferences');
       localStorage.setItem('openspec-layout', JSON.stringify({
         explorerCollapsed: false,
         rememberedExplorerWidth: 320,
@@ -322,6 +486,84 @@ async function main() {
     assert(state.homeTab?.closeVisible === false, 'Dashboard tab should not show a close button');
     assert(state.tabListClass.includes('pl-2'), 'Tab list should keep pl-2 for left-edge alignment');
     assert(typeof state.firstTabInset === 'number' && state.firstTabInset >= 6 && state.firstTabInset <= 10, `Expected first tab inset near 8px, received ${state.firstTabInset}`);
+
+    await clickSelector(cdp, '[aria-label="Settings"]');
+    await waitFor(cdp, pageExpression(() => document.querySelector('input[aria-label="Enable preview tabs"]') instanceof HTMLInputElement), 'preview tabs toggle');
+    assert(await getPreviewTabsToggleState(cdp) === true, 'Preview tabs should default to enabled');
+    await clickSelector(cdp, '[aria-label="Settings"]');
+
+    await clickSelector(cdp, '[aria-label="Specs"]');
+    const previewSpecName = await clickExplorerItem(cdp, 'Specs', 0);
+    state = await getState(cdp);
+    const previewSpecTab = getTabByName(state, previewSpecName);
+    assert(state.tabNames.length === 2, `Preview open should reuse a single extra tab slot, received ${state.tabNames.length} tabs`);
+    assert(previewSpecTab?.isPreview === true, 'Single-clicked spec should open as a preview tab');
+    assert(previewSpecTab?.previewItalic === true, 'Preview tab should render italic text');
+    assert(previewSpecTab?.ariaLabel.includes('Preview') || previewSpecTab?.title.includes('Preview'), 'Preview tab should expose Preview in aria-label or tooltip');
+
+    await clickSelector(cdp, '[aria-label="Dashboard"]');
+    const previewChangeName = await clickExplorerItem(cdp, 'Active Changes', 0);
+    state = await getState(cdp);
+    const previewChangeTab = getTabByName(state, previewChangeName);
+    assert(state.tabNames.length === 2, `Second single-click should reuse the same preview tab, received ${state.tabNames.length} tabs`);
+    assert(previewChangeTab?.isPreview === true, 'Preview slot should be reused for the next single-clicked item');
+
+    await doubleClickTab(cdp, previewChangeName);
+    state = await getState(cdp);
+    const tabbarConfirmedChangeTab = getTabByName(state, previewChangeName);
+    assert(tabbarConfirmedChangeTab?.isPreview === false, 'TabBar double-click should confirm an existing preview tab');
+    assert(tabbarConfirmedChangeTab?.previewItalic === false, 'TabBar-confirmed tab should not stay italic');
+
+    await clickSelector(cdp, '[aria-label="Dashboard"]');
+    const previewChangeNameAgain = await clickExplorerItem(cdp, 'Active Changes', 0);
+    state = await getState(cdp);
+    const previewChangeTabAgain = getTabByName(state, previewChangeNameAgain);
+    assert(previewChangeTabAgain?.isPreview === true, 'Single-click should still create a preview tab after TabBar confirmation');
+
+    await clickSelector(cdp, '[aria-label="Dashboard"]');
+    await ctrlClickExplorerItem(cdp, 'Active Changes', 0);
+    state = await getState(cdp);
+    const confirmedChangeTab = getTabByName(state, previewChangeNameAgain);
+    assert(confirmedChangeTab?.isPreview === false, 'Ctrl+Click should confirm an existing preview tab');
+    assert(confirmedChangeTab?.previewItalic === false, 'Confirmed tab should not stay italic');
+
+    await clickSelector(cdp, '[aria-label="Dashboard"]');
+    const contextMenuSpecName = await openExplorerItemContextMenu(cdp, 'Specs', 0);
+    await clickContextMenuItem(cdp, 'Open in New Tab');
+    state = await getState(cdp);
+    const contextMenuSpecTab = getTabByName(state, contextMenuSpecName);
+    assert(contextMenuSpecTab?.isPreview === false, 'Explorer context menu should open a confirmed tab');
+
+    await clickSelector(cdp, '[aria-label="Settings"]');
+    await setPreviewTabsEnabled(cdp, false);
+    assert(await getPreviewTabsToggleState(cdp) === false, 'Preview tabs toggle should allow disabling the mode');
+    await clickSelector(cdp, '[aria-label="Settings"]');
+
+    await clickSelector(cdp, '[aria-label="Dashboard"]');
+    await cdp.reload();
+    await waitFor(
+      cdp,
+      pageExpression(() => Boolean(document.querySelector('[role="tablist"]') && document.querySelector('[aria-label="Settings"]'))),
+      'tab bar after disabling preview tabs',
+    );
+
+    await clickSelector(cdp, '[aria-label="Settings"]');
+    await waitFor(cdp, pageExpression(() => document.querySelector('input[aria-label="Enable preview tabs"]') instanceof HTMLInputElement), 'preview tabs toggle after reload');
+    assert(await getPreviewTabsToggleState(cdp) === false, 'Preview tabs disabled state should persist after reload');
+    await clickSelector(cdp, '[aria-label="Settings"]');
+
+    await clickSelector(cdp, '[aria-label="Specs"]');
+    const confirmedSpecName = await clickExplorerItem(cdp, 'Specs', 0);
+    state = await getState(cdp);
+    const confirmedSpecTab = getTabByName(state, confirmedSpecName);
+    assert(confirmedSpecTab?.isPreview === false, 'Single-click should open a confirmed tab when preview mode is disabled');
+
+    await clickSelector(cdp, '[aria-label="Dashboard"]');
+    const secondConfirmedChangeName = await clickExplorerItem(cdp, 'Active Changes', 0);
+    state = await getState(cdp);
+    const secondConfirmedChangeTab = getTabByName(state, secondConfirmedChangeName);
+    assert(state.tabNames.length === 3, `Disabled preview mode should keep adding confirmed tabs, received ${state.tabNames.length} tabs`);
+    assert(secondConfirmedChangeTab?.isPreview === false, 'Disabled preview mode should not create preview tabs');
 
     const activeRow = await getExplorerItemDetails(cdp, 'Active Changes', 0);
     assert(activeRow.visibleLabel.length > 0, 'Expected an active change row');
@@ -373,6 +615,10 @@ async function main() {
       checks: [
         'home-tab-pinned',
         'tabbar-left-edge-inset',
+        'preview-tabs-default-enabled',
+        'preview-tabs-reuse-and-confirmed-open',
+        'preview-tabs-tabbar-double-click-confirm',
+        'preview-tabs-settings-persist-off',
         'active-change-compact-metadata',
         'archived-change-label-format',
         'archived-change-compact-metadata',

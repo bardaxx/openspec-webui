@@ -5,6 +5,7 @@
   } from './stores/index.svelte.ts';
   import { commandPreferencesStore } from './stores/commandPreferences.svelte.ts';
   import { themeStore } from './stores/theme.svelte.ts';
+  import { uiPreferencesStore } from './stores/uiPreferences.svelte.ts';
   import AppLayout from './components/layout/AppLayout.svelte';
   import { Toaster } from '$lib/components/ui/sonner';
 
@@ -13,6 +14,7 @@
     let unsubscribe = () => {};
 
     themeStore.initialize();
+    uiPreferencesStore.initialize();
     void commandPreferencesStore.initialize();
 
     void (async () => {
