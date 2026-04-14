@@ -1,5 +1,4 @@
 import type { ExpandedCommand } from './commandTypes';
-
 const API_BASE = '/api';
 
 export type ApiErrorCode =
@@ -293,6 +292,7 @@ export async function activateProject(id: string): Promise<ProjectSelectionRespo
   });
 }
 
+
 export async function getSpecs(): Promise<SpecSummary[]> {
   const data = await fetchApi<{ specs: SpecSummary[] }>('/specs');
   return data.specs;
@@ -325,4 +325,22 @@ export async function search(query: string): Promise<SearchResult[]> {
 export async function getCommandAvailability(): Promise<CommandAvailability> {
   const data = await fetchApi<{ availability: CommandAvailability }>('/commands/availability');
   return data.availability;
+}
+
+export interface BrowseDirEntry {
+  name: string;
+  path: string;
+  hasOpenSpec: boolean;
+}
+
+export interface BrowseResult {
+  path: string;
+  parent: string | null;
+  dirs: BrowseDirEntry[];
+  error?: string;
+}
+
+export async function browseDirectory(dirPath?: string): Promise<BrowseResult> {
+  const query = dirPath ? `?path=${encodeURIComponent(dirPath)}` : '';
+  return fetchApi<BrowseResult>(`/fs/browse${query}`);
 }

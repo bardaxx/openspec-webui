@@ -1,5 +1,4 @@
 <script lang="ts">
-  import * as Dialog from '$lib/components/ui/dialog';
   import * as Resizable from '$lib/components/ui/resizable';
   import * as Sheet from '$lib/components/ui/sheet';
   import { layoutStore } from '../../stores/layout.svelte.ts';
@@ -10,6 +9,7 @@
   import MainViewer from './MainViewer.svelte';
   import SearchDialog from './SearchDialog.svelte';
   import ProjectSelector from './ProjectSelector.svelte';
+  import AddProjectDialog from './AddProjectDialog.svelte';
   import EmptyProjectState from '../EmptyProjectState.svelte';
 
   let dragStartWidth = $state(layoutStore.rememberedExplorerWidth);
@@ -49,8 +49,8 @@
     </div>
 
     <Sheet.Root open={layoutStore.narrowDrawerOpen} onOpenChange={(open) => layoutStore.setNarrowDrawerOpen(open)}>
-      <Sheet.Overlay />
-      <Sheet.Content side="left" aria-label="Explorer" class="z-50 w-[min(20rem,calc(100vw-3rem))] max-w-none border-r border-border p-0">
+      <Sheet.Overlay class="left-12" />
+      <Sheet.Content side="left" aria-label="Explorer" class="z-50 left-12 w-[min(20rem,calc(100vw-3rem-3rem))] max-w-none border-r border-border p-0">
         <ExplorerPane temporary={true} onItemSelected={() => layoutStore.setNarrowDrawerOpen(false)} onRequestClose={() => layoutStore.setNarrowDrawerOpen(false)} />
       </Sheet.Content>
     </Sheet.Root>
@@ -85,11 +85,6 @@
 
   <SearchDialog open={layoutStore.overlay === 'search'} onClose={closeOverlay} />
   <SettingsModal open={layoutStore.overlay === 'settings'} onClose={closeOverlay} />
-
-  <Dialog.Root open={layoutStore.overlay === 'project-selector'} onOpenChange={(open) => !open && closeOverlay()}>
-    <Dialog.Overlay />
-    <Dialog.Content class="max-w-md">
-      <ProjectSelector />
-    </Dialog.Content>
-  </Dialog.Root>
+  <ProjectSelector open={layoutStore.overlay === 'project-selector'} onClose={closeOverlay} />
+  <AddProjectDialog open={layoutStore.overlay === 'add-project'} onClose={closeOverlay} />
 </div>

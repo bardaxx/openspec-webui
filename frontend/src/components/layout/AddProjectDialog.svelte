@@ -1,0 +1,253 @@
+<script lang="ts">
+  import { Folder, FolderOpen, FolderPlus, Loader2, AlertCircle, ChevronDown, ChevronUp, ChevronRight } from '@lucide/svelte';
+  import { Button } from '$lib/components/ui/button';
+  import * as Collapsible from '$lib/components/ui/collapsible';
+  import * as Dialog from '$lib/components/ui/dialog';
+  import { DialogHeader as SharedDialogHeader } from '$lib/components/ui/dialog-header';
+  import { projectStore } from '../../stores/projects.svelte.ts';
+  import { layoutStore } from '../../stores/layout.svelte.ts';
+  import { browseDirectory, type BrowseResult } from '../../lib/api.ts';
+
+  interface Props {
+    open: boolean;
+    onClose: () => void;
+  }
+
+  let { open, onClose }: Props = $props();
+
+  let manualPath = $state('');
+  let manualEntryOpen = $state(false);
+  let loading = $derived(projectStore.loading);
+  let error = $derived(projectStore.error);
+
+  // Directory browser state
+  let browseResult = $state<BrowseResult | null>(null);
+  let browseLoading = $state(false);
+  let browseError = $state('');
+  // Breadcrumb trail for navigation history
+  let history = $state<string[]>([]);
+
+  async function loadBrowse(dirPath?: string) {
+    browseLoading = true;
+    browseError = '';
+    try {
+      browseResult = await browseDirectory(dirPath);
+    } catch {
+      browseError = 'Failed to browse directory';
+      browseResult = null;
+    } finally {
+      browseLoading = false;
+    }
+  }
+
+  function navigateTo(dirPath: string) {
+    history.push(browseResult?.path ?? '');
+    loadBrowse(dirPath);
+  }
+
+  function goUp() {
+    if (browseResult?.parent) {
+      history.push(browseResult.path);
+      loadBrowse(browseResult.parent);
+    }
+  }
+
+  function goBack() {
+    if (history.length > 0) {
+      const prev = history.pop()!;
+      loadBrowse(prev);
+    }
+  }
+
+  async function handleSelectAndAdd() {
+    if (!browseResult?.path || loading) return;
+
+    try {
+      await projectStore.addProject(browseResult.path);
+      onClose();
+    } catch {
+      // Error handled by store
+    }
+  }
+
+  async function handleManualAdd(e: Event) {
+    e.preventDefault();
+    if (!manualPath.trim() || loading) return;
+
+    try {
+      await projectStore.addProject(manualPath.trim());
+      manualPath = '';
+      onClose();
+    } catch {
+      // Error handled by store
+    }
+  }
+
+  // Load initial browse when dialog opens
+  $effect(() => {
+    if (open) {
+      history = [];
+      manualEntryOpen = false;
+      manualPath = '';
+      loadBrowse();
+    }
+  });
+</script>
+
+<Dialog.Root open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
+  <Dialog.Overlay />
+  <Dialog.Content class="max-w-2xl gap-0 p-0">
+    <SharedDialogHeader
+      icon={FolderPlus}
+      title="Add Project"
+      description="Browse for a directory containing an openspec/ folder."
+      onClose={onClose}
+    />
+
+    <div class="flex flex-col gap-4 px-6 py-4">
+      <!-- Path bar with navigation -->
+      <div class="flex items-center gap-1 rounded-lg border border-border bg-muted/30 px-2 py-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          class="size-7 shrink-0"
+          onclick={goBack}
+          disabled={history.length === 0 || browseLoading}
+          title="Go back"
+        >
+          <ChevronRight class="h-4 w-4 rotate-180" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          class="size-7 shrink-0"
+          onclick={goUp}
+          disabled={!browseResult?.parent || browseLoading}
+          title="Go to parent"
+        >
+          <ChevronUp class="h-4 w-4" />
+        </Button>
+        <input
+          type="text"
+          value={browseResult?.path ?? ''}
+          placeholder="/"
+          class="min-w-0 flex-1 bg-transparent px-2 text-sm font-mono text-foreground outline-none placeholder:text-muted-foreground"
+          onkeydown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              navigateTo((e.target as HTMLInputElement).value);
+            }
+          }}
+          onchange={(e) => {
+            navigateTo((e.target as HTMLInputElement).value);
+          }}
+        />
+        {#if browseLoading}
+          <Loader2 class="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
+        {/if}
+      </div>
+
+      <!-- Directory listing -->
+      <div class="min-h-[280px] rounded-lg border border-border">
+        {#if browseError}
+          <div class="flex items-center gap-2 px-4 py-8 text-sm text-destructive">
+            <AlertCircle class="h-4 w-4 shrink-0" />
+            {browseError}
+          </div>
+        {:else if browseResult && browseResult.dirs.length === 0}
+          <div class="px-4 py-8 text-center text-sm text-muted-foreground">
+            No subdirectories found
+          </div>
+        {:else if browseResult}
+          <div class="max-h-[400px] overflow-y-auto">
+            {#each browseResult.dirs as dir}
+              <button
+                type="button"
+                class="flex w-full items-center gap-3 border-b border-border/30 px-4 py-2.5 text-left transition-colors last:border-0 hover:bg-muted/50"
+                onclick={() => navigateTo(dir.path)}
+                title={dir.path}
+              >
+                {#if dir.hasOpenSpec}
+                  <FolderOpen class="h-5 w-5 shrink-0 text-primary" />
+                {:else}
+                  <Folder class="h-5 w-5 shrink-0 text-muted-foreground" />
+                {/if}
+                <span class="truncate text-sm">{dir.name}</span>
+                {#if dir.hasOpenSpec}
+                  <span class="ml-auto shrink-0 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                    openspec
+                  </span>
+                {/if}
+                <ChevronRight class="ml-1 h-4 w-4 shrink-0 text-muted-foreground/50" />
+              </button>
+            {/each}
+          </div>
+        {:else}
+          <div class="px-4 py-8 text-center text-sm text-muted-foreground">
+            Loading...
+          </div>
+        {/if}
+      </div>
+
+      <!-- Select current directory -->
+      <div class="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-4 py-3">
+        <Folder class="h-5 w-5 shrink-0 text-muted-foreground" />
+        <code class="min-w-0 flex-1 truncate text-sm text-foreground">{browseResult?.path ?? ''}</code>
+        <Button
+          disabled={!browseResult?.path || loading}
+          onclick={handleSelectAndAdd}
+        >
+          {#if loading}
+            <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+          {:else}
+            <FolderPlus class="mr-2 h-4 w-4" />
+          {/if}
+          Add This Directory
+        </Button>
+      </div>
+
+      <!-- Manual path fallback -->
+      <Collapsible.Root
+        open={manualEntryOpen}
+        onOpenChange={(nextOpen) => {
+          manualEntryOpen = nextOpen;
+        }}
+        class="rounded-lg border border-border/70 bg-muted/10"
+      >
+        <div class="px-3 py-2">
+          <Collapsible.Trigger class="w-full justify-between px-0 py-0 text-xs font-medium text-muted-foreground hover:text-foreground">
+            <span>Or enter path manually</span>
+            {#if manualEntryOpen}
+              <ChevronDown class="h-4 w-4" />
+            {:else}
+              <ChevronRight class="h-4 w-4" />
+            {/if}
+          </Collapsible.Trigger>
+        </div>
+
+        <Collapsible.Content class="border-t border-border/70 px-3 pb-3 pt-2">
+          <form class="flex gap-2" onsubmit={handleManualAdd}>
+            <input
+              bind:value={manualPath}
+              type="text"
+              placeholder="/absolute/path/to/project"
+              disabled={loading}
+              class="flex h-9 w-full flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            />
+            <Button type="submit" size="sm" disabled={!manualPath.trim() || loading}>
+              <FolderPlus class="mr-1.5 h-3.5 w-3.5" />
+              Add
+            </Button>
+          </form>
+        </Collapsible.Content>
+      </Collapsible.Root>
+
+      {#if error}
+        <div class="flex items-center gap-2 rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+          <AlertCircle class="h-4 w-4 shrink-0" />
+          <p>{error}</p>
+        </div>
+      {/if}
+    </div>
+  </Dialog.Content>
+</Dialog.Root>

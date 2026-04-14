@@ -1,7 +1,7 @@
 export type ActivityPreset = 'home' | 'archive' | 'specs';
 export type ExplorerSection = 'active-changes' | 'archive' | 'specs';
 export type ResponsiveMode = 'wide' | 'medium' | 'narrow';
-export type LayoutOverlay = 'search' | 'settings' | 'project-selector' | null;
+export type LayoutOverlay = 'search' | 'settings' | 'project-selector' | 'add-project' | null;
 
 const STORAGE_KEY = 'openspec-layout';
 const DEFAULT_EXPLORER_WIDTH = 280;

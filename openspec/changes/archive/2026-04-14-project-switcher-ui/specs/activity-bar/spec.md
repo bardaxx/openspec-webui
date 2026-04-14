@@ -1,9 +1,5 @@
-# activity-bar Specification
+## MODIFIED Requirements
 
-## Purpose
-Define the persistent Activity Bar that anchors primary navigation and quick actions in the redesigned three-pane layout.
-
-## Requirements
 ### Requirement: Activity Bar renders persistent vertical control strip
 The system SHALL render a vertical Activity Bar as the leftmost pane of the application layout, fixed at 48px width. The Activity Bar SHALL remain visible even when the Explorer Pane is collapsed. When an active project exists, the top area SHALL provide an Explorer open/close control rather than a current-project avatar tile. That control SHALL be visually separated from the navigation icons by a divider, background difference, or both. The bar SHALL display icon buttons in this order: Dashboard, Archive, Specs, Search, and Settings. The Dashboard control SHALL keep using the house icon as the visual symbol for the primary landing surface. Each navigation icon SHALL use the `@lucide/svelte` library. When no active project exists, the top area SHALL fall back to the shared `app-icon.svg` and SHALL open project selection. The `decodeName` utility function used in the Activity Bar SHALL be imported from `$lib/utils` instead of being defined locally.
 
@@ -39,18 +35,6 @@ The system SHALL render a vertical Activity Bar as the leftmost pane of the appl
 - **WHEN** the ActivityBar component needs to decode a URI component
 - **THEN** it imports `decodeName` from `$lib/utils`
 - **AND** no local `decodeName` function is defined in ActivityBar.svelte
-
-### Requirement: Activity Bar highlights active section
-The system SHALL visually highlight the icon corresponding to the currently active explorer preset or view. Dashboard SHALL represent the Dashboard tab and ACTIVE CHANGES browsing, Archive SHALL represent ARCHIVE browsing, Specs SHALL represent spec browsing, Search SHALL represent the search panel, and Settings SHALL represent the settings dialog. When the operator clicks an inactive icon, the highlight SHALL move to that icon.
-
-#### Scenario: Highlight active section on click
-- **WHEN** the operator clicks the Search icon in the Activity Bar
-- **THEN** the Search icon is visually highlighted
-- **AND** the previously highlighted icon returns to default state
-
-#### Scenario: Dashboard icon is active by default
-- **WHEN** the application loads without a specific route
-- **THEN** the Dashboard icon is highlighted in the Activity Bar
 
 ### Requirement: Activity Bar icons trigger explorer section or actions
 The system SHALL respond to Activity Bar control clicks: the top Explorer control SHALL toggle the Explorer Pane open and closed without changing the active explorer preset; the Dashboard icon SHALL focus the Dashboard tab in the Main Viewer and expand the Explorer Pane with the ACTIVE CHANGES section focused while collapsing ARCHIVE and SPECS; the Archive icon SHALL expand the Explorer Pane with the ARCHIVE section focused while collapsing ACTIVE CHANGES and SPECS; the Specs icon SHALL expand the Explorer Pane with the SPECS section focused while collapsing ACTIVE CHANGES and ARCHIVE; the Search icon SHALL show a search panel or command palette; the Settings icon SHALL open the settings dialog. When the operator clicks the icon for the currently active section while the Explorer Pane is expanded, the Explorer Pane SHALL toggle between expanded and collapsed. The highlighted Activity Bar icon SHALL follow the active explorer preset even when the current Main Viewer tab does not change. The Dashboard icon SHALL focus the existing Dashboard tab without opening a new tab. The Archive and Specs icons SHALL NOT open or focus tabs in the Main Viewer.

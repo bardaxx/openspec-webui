@@ -58,7 +58,6 @@ function createProjectsStore() {
     get activeProjectId() {
       return state.activeProjectId;
     },
-
     get loading() {
       return state.loading;
     },

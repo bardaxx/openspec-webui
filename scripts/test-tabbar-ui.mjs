@@ -130,7 +130,7 @@ async function clickSelector(cdp, selector) {
 
 async function clickExplorerItem(cdp, sectionLabel, index = 0) {
   const expression = pageExpression(() => {
-    const explorer = [...document.querySelectorAll('aside')].find((node) => node.textContent?.includes('Workspace'));
+    const explorer = [...document.querySelectorAll('aside')].find((node) => node.textContent?.includes('Current Project'));
     if (!explorer) {
       return null;
     }
@@ -171,7 +171,7 @@ async function clickExplorerItem(cdp, sectionLabel, index = 0) {
 async function getExplorerItemDetails(cdp, sectionLabel, index = 0) {
   const expression = pageExpression(() => {
     const normalizeText = (value) => value?.replace(/\s+/g, ' ').trim() ?? '';
-    const explorer = [...document.querySelectorAll('aside')].find((node) => node.textContent?.includes('Workspace'));
+    const explorer = [...document.querySelectorAll('aside')].find((node) => node.textContent?.includes('Current Project'));
     if (!explorer) {
       return null;
     }

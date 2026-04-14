@@ -11,6 +11,9 @@ import {
   createStructuredApiError,
   type ProjectRegistry,
 } from '../project-registry.js';
+import { readdirSync, statSync, existsSync } from 'fs';
+import { join, resolve, dirname } from 'path';
+import { homedir } from 'os';
 
 interface RegisterApiRoutesOptions {
   registry: Pick<
@@ -268,6 +271,40 @@ export async function registerApiRoutes(
 
     const results = searchOpenSpec(data, q);
     return { results };
+  });
+
+  // Browse filesystem directories
+  fastify.get<{ Querystring: { path?: string } }>('/api/fs/browse', async (request) => {
+    const requestedPath = request.query.path?.trim() || homedir();
+    const absolutePath = resolve(requestedPath);
+
+    if (!existsSync(absolutePath)) {
+      return { path: absolutePath, parent: null, dirs: [], error: 'Directory not found' };
+    }
+
+    try {
+      const stat = statSync(absolutePath);
+      if (!stat.isDirectory()) {
+        return { path: absolutePath, parent: null, dirs: [], error: 'Not a directory' };
+      }
+
+      const entries = readdirSync(absolutePath, { withFileTypes: true });
+      const dirs = entries
+        .filter((e) => e.isDirectory() && !e.name.startsWith('.'))
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((e) => ({
+          name: e.name,
+          path: join(absolutePath, e.name),
+          hasOpenSpec: existsSync(join(absolutePath, e.name, 'openspec')),
+        }));
+
+      const parentPath = dirname(absolutePath);
+      const isRoot = parentPath === absolutePath;
+
+      return { path: absolutePath, parent: isRoot ? null : parentPath, dirs };
+    } catch {
+      return { path: absolutePath, parent: null, dirs: [], error: 'Permission denied' };
+    }
   });
 }
 

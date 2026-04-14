@@ -1,6 +1,6 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { Archive, ArrowRight, Bookmark, BookOpen, Calendar, CheckSquare, Clipboard, FileText, History, House, SquarePen } from '@lucide/svelte';
+  import { Archive, ArrowRight, Bookmark, House, BookOpen, Calendar, CheckSquare, Clipboard, FileText, FolderPen, History, SquarePen } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
   import { Button } from '$lib/components/ui/button';
   import { EmptyState } from '$lib/components/ui/empty-state';
@@ -175,17 +175,31 @@
 </script>
 
 <svelte:head>
-  <title>Dashboard • OpenSpec WebUI</title>
+  <title>{project.value?.name ?? 'OpenSpec WebUI'} • OpenSpec WebUI</title>
 </svelte:head>
 
 <div class="space-y-6">
   <!-- Header -->
   <div>
-    <div>
+    <div class="flex items-start justify-between gap-4">
       <h1 class="flex items-center gap-2 text-2xl font-bold text-foreground">
         <IconBox icon={House} variant="info" />
-        Dashboard
+        {project.value?.name ?? 'OpenSpec WebUI'}
+        <Button
+          variant="ghost"
+          size="icon"
+          class="ml-auto size-7 shrink-0 text-muted-foreground hover:text-foreground"
+          aria-label="Open project selector"
+          onclick={() => layoutStore.openOverlay('project-selector')}
+        >
+          <FolderPen class="h-4 w-4" />
+        </Button>
       </h1>
+
+
+    </div>
+
+    <div>
       {#if project.value?.description}
         <p class="mt-1 text-muted-foreground">{project.value.description}</p>
       {/if}

@@ -9,7 +9,7 @@ The system SHALL maintain a project registry file at `${XDG_CONFIG_HOME:-~/.conf
 
 #### Scenario: First startup with no config directory
 - **WHEN** the server starts and `~/.config/openspec-webui/` does not exist
-- **THEN** the system creates the directory and an empty `projects.json` with `version: 1`, an empty `projects` array, and `activeProjectId` set to null
+- **THEN** the system creates the directory and an empty `projects.json` with the current supported `version`, an empty `projects` array, and `activeProjectId` set to null
 
 #### Scenario: Startup restores persisted state
 - **WHEN** the server starts and `projects.json` contains 2 project entries with `activeProjectId` set to the first entry's id

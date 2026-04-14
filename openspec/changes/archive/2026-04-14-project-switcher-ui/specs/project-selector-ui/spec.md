@@ -1,9 +1,5 @@
-# project-selector-ui Specification
+## MODIFIED Requirements
 
-## Purpose
-Define project selection, project creation, and empty-state behavior for the active-project UI.
-
-## Requirements
 ### Requirement: Project selector dialog
 The web UI SHALL render a ProjectSelector dialog component when `layoutStore.overlay` is set to `'project-selector'`. The dialog SHALL display a list of registered projects with their labels, an `Add New Project` action that opens a dedicated add-project dialog, and a remove action for each project. The currently active project SHALL be visually distinguished. Selecting a project SHALL switch the active project via API and close the dialog.
 
@@ -17,13 +13,6 @@ The web UI SHALL render a ProjectSelector dialog component when `layoutStore.ove
 - **WHEN** the operator clicks the `Add New Project` action in the ProjectSelector dialog
 - **THEN** the ProjectSelector dialog closes
 - **AND** the dedicated add-project dialog opens
-
-#### Scenario: Switch project via selector
-- **WHEN** the operator clicks a non-active project in the ProjectSelector
-- **THEN** a POST request is sent to `/api/projects/:id/activate`
-- **AND** the dialog closes
-- **AND** all frontend stores are reset and re-fetched
-- **AND** all open tabs are closed and the Dashboard tab is focused
 
 ### Requirement: Add-project dialog
 The web UI SHALL render a dedicated AddProjectDialog component when `layoutStore.overlay` is set to `'add-project'`. The dialog SHALL prioritize directory browsing, SHALL show which subdirectories contain an `openspec/` folder, and SHALL provide a manual absolute-path fallback. Selecting the current directory or submitting a manual path SHALL add and activate that project.
@@ -45,18 +34,12 @@ The web UI SHALL render a dedicated AddProjectDialog component when `layoutStore
 - **AND** the selected directory becomes the active project
 - **AND** the add-project dialog closes
 
-### Requirement: Empty state when no projects
-The web UI SHALL display an empty state view in the Main Viewer when no projects are registered. The empty state SHALL include a message indicating no projects are loaded and a path input to add the first project. The empty state SHALL NOT show the Explorer Pane or Dashboard content.
-
-#### Scenario: First startup with no projects
-- **WHEN** the application loads and the project registry is empty
-- **THEN** the Main Viewer shows an empty state with a message and a path input
-- **AND** the Explorer Pane is hidden
-
-#### Scenario: Remove last project
-- **WHEN** the operator removes the only registered project
-- **THEN** the Main Viewer transitions to the empty state
-- **AND** the Explorer Pane is hidden
+#### Scenario: Switch project via selector
+- **WHEN** the operator clicks a non-active project in the ProjectSelector
+- **THEN** a POST request is sent to `/api/projects/:id/activate`
+- **AND** the dialog closes
+- **AND** all frontend stores are reset and re-fetched
+- **AND** all open tabs are closed and the Dashboard tab is focused
 
 ### Requirement: Project switch loading state
 The web UI SHALL display a loading indicator during project switching. The loading indicator SHALL appear immediately when the operator selects a different project and SHALL disappear once the new project data is fully loaded.

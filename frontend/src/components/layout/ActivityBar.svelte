@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { Archive, ChevronsUpDown, FileText, House, Search, Settings } from '@lucide/svelte';
+  import { Archive, FileText, House, PanelLeftClose, PanelLeftOpen, Search, Settings } from '@lucide/svelte';
   import * as Tooltip from '$lib/components/ui/tooltip';
   import { decodeName } from '$lib/utils';
   import { archivedChanges, project } from '../../stores/index.svelte.ts';
+  import { projectStore } from '../../stores/projects.svelte.ts';
   import { layoutStore, type ActivityPreset } from '../../stores/layout.svelte.ts';
   import { tabStore } from '../../stores/tabs.svelte.ts';
 
@@ -72,27 +73,64 @@
       ? 'bg-primary text-primary-foreground shadow-sm'
       : 'text-muted-foreground hover:bg-primary/10 hover:text-primary';
   }
+
+  function toggleExplorer() {
+    layoutStore.closeOverlay();
+
+    if (!projectStore.activeProjectId) {
+      layoutStore.openOverlay('project-selector');
+      return;
+    }
+
+    if (layoutStore.responsiveMode === 'narrow') {
+      layoutStore.toggleNarrowDrawer();
+      return;
+    }
+
+    layoutStore.toggleExplorerCollapsed();
+  }
+
+  let explorerOpen = $derived(
+    projectStore.activeProjectId
+      ? layoutStore.responsiveMode === 'narrow'
+        ? layoutStore.narrowDrawerOpen
+        : !layoutStore.explorerCollapsed
+      : false
+  );
+
+  let topControlLabel = $derived(
+    !projectStore.activeProjectId
+      ? 'Open project selector'
+      : explorerOpen
+        ? 'Collapse explorer'
+        : 'Expand explorer'
+  );
 </script>
 
-<aside class="flex h-full w-12 shrink-0 flex-col items-center border-r border-border bg-secondary/70 py-2">
+<aside class="relative z-60 flex h-full w-12 shrink-0 flex-col items-center border-r border-border bg-secondary/70 py-2">
   <Tooltip.Root>
     <Tooltip.Trigger
-      class={`flex h-10 w-10 items-center justify-center rounded-lg border border-border/60 bg-card text-card-foreground shadow-sm transition-colors hover:bg-secondary/80 ${layoutStore.overlay === 'project-selector' ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''}`}
-      aria-label="Open project selector"
-      onclick={() => layoutStore.openOverlay('project-selector')}
+      class={`flex h-10 w-10 items-center justify-center rounded-lg bg-transparent transition-colors ${projectStore.activeProjectId && explorerOpen ? 'text-foreground' : 'text-muted-foreground'} hover:text-foreground ${layoutStore.overlay === 'project-selector' ? 'text-primary' : ''}`}
+      aria-label={topControlLabel}
+      onclick={toggleExplorer}
     >
-      <img src="/app-icon.svg" alt="" aria-hidden="true" class="h-6 w-6 rounded-sm" />
+      {#if projectStore.activeProjectId}
+        {#if explorerOpen}
+          <PanelLeftClose class="h-5 w-5" />
+        {:else}
+          <PanelLeftOpen class="h-5 w-5" />
+        {/if}
+      {:else}
+        <img src="/app-icon.svg" alt="" aria-hidden="true" class="h-6 w-6 rounded-sm" />
+      {/if}
       <span class="sr-only">{project.value?.name ?? 'OpenSpec WebUI'}</span>
     </Tooltip.Trigger>
     <Tooltip.Content side="right">
-      <div class="flex items-center gap-2">
-        <span>{project.value?.name ?? 'Switch Project'}</span>
-        <ChevronsUpDown class="h-3.5 w-3.5" />
-      </div>
+      <span>{topControlLabel}</span>
     </Tooltip.Content>
   </Tooltip.Root>
 
-  <div class="mt-4 flex flex-col gap-2">
+  <div class="mt-3 flex flex-col gap-2">
     <Tooltip.Root>
       <Tooltip.Trigger
         class={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${buttonClass('home')}`}
@@ -126,8 +164,8 @@
       <Tooltip.Content side="right">Specs</Tooltip.Content>
     </Tooltip.Root>
   </div>
-
-  <div class="mt-auto flex flex-col gap-2">
+  
+  <div class="flex flex-col gap-2">
     <Tooltip.Root>
       <Tooltip.Trigger
         class={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${buttonClass('search')}`}
@@ -138,7 +176,9 @@
       </Tooltip.Trigger>
       <Tooltip.Content side="right">Search</Tooltip.Content>
     </Tooltip.Root>
+  </div>
 
+  <div class="mt-auto flex flex-col gap-2">
     <Tooltip.Root>
       <Tooltip.Trigger
         class={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${buttonClass('settings')}`}

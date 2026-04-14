@@ -129,6 +129,10 @@ interface CachedCommandAvailability {
   availability: CommandAvailability;
 }
 
+function cloneProjectEntry(entry: ProjectEntry): ProjectEntry {
+  return { ...entry };
+}
+
 const defaultFileSystem: FileSystemAdapter = {
   mkdir,
   readFile,
@@ -310,19 +314,19 @@ export class ProjectRegistry {
   }
 
   listProjects(): ProjectEntry[] {
-    return this.registry.projects.map((entry) => ({ ...entry }));
+    return this.registry.projects.map((entry) => cloneProjectEntry(entry));
   }
 
   getActiveProject(): ProjectEntry | null {
     if (this.activeSession) {
-      return { ...this.activeSession.project };
+      return cloneProjectEntry(this.activeSession.project);
     }
 
     const activeEntry = this.registry.activeProjectId
       ? this.registry.projects.find((entry) => entry.id === this.registry.activeProjectId) ?? null
       : null;
 
-    return activeEntry ? { ...activeEntry } : null;
+    return activeEntry ? cloneProjectEntry(activeEntry) : null;
   }
 
   getActiveProjectRoot(): string | null {
@@ -554,7 +558,9 @@ export class ProjectRegistry {
     let shouldPersist = false;
 
     try {
-      rawRegistry = await this.loadRegistryFromDisk();
+      const loaded = await this.loadRegistryFromDisk();
+      rawRegistry = loaded.registry;
+      shouldPersist ||= loaded.changed;
     } catch (error) {
       this.deps.logger.warn('Failed to load project registry, using empty state', error);
       rawRegistry = createEmptyRegistryFile();
@@ -597,7 +603,7 @@ export class ProjectRegistry {
     }
   }
 
-  private async loadRegistryFromDisk(): Promise<ProjectRegistryFile> {
+  private async loadRegistryFromDisk(): Promise<{ registry: ProjectRegistryFile; changed: boolean }> {
     try {
       const raw = await this.deps.fileSystem.readFile(this.paths.registryFilePath, 'utf8');
       const parsed = JSON.parse(raw) as unknown;
@@ -606,14 +612,14 @@ export class ProjectRegistry {
       if (isNotFoundError(error)) {
         const emptyRegistry = createEmptyRegistryFile();
         await this.persistRegistry(emptyRegistry);
-        return emptyRegistry;
+        return { registry: emptyRegistry, changed: false };
       }
 
       throw error;
     }
   }
 
-  private parseRegistryFile(value: unknown): ProjectRegistryFile {
+  private parseRegistryFile(value: unknown): { registry: ProjectRegistryFile; changed: boolean } {
     if (!value || typeof value !== 'object') {
       throw new Error('Invalid project registry format');
     }
@@ -631,14 +637,19 @@ export class ProjectRegistry {
       throw new Error('Invalid project registry activeProjectId');
     }
 
+    const parsedProjects = record.projects.map((entry) => this.parseProjectEntry(entry));
+
     return {
-      version: PROJECT_REGISTRY_VERSION,
-      activeProjectId: record.activeProjectId as string | null,
-      projects: record.projects.map((entry) => this.parseProjectEntry(entry)),
+      registry: {
+        version: PROJECT_REGISTRY_VERSION,
+        activeProjectId: record.activeProjectId as string | null,
+        projects: parsedProjects.map(({ entry }) => entry),
+      },
+      changed: parsedProjects.some(({ changed }) => changed),
     };
   }
 
-  private parseProjectEntry(value: unknown): ProjectEntry {
+  private parseProjectEntry(value: unknown): { entry: ProjectEntry; changed: boolean } {
     if (!value || typeof value !== 'object') {
       throw new Error('Invalid project registry entry');
     }
@@ -655,11 +666,14 @@ export class ProjectRegistry {
     }
 
     return {
-      id: record.id,
-      path: record.path,
-      label: record.label,
-      addedAt: record.addedAt,
-      lastOpenedAt: record.lastOpenedAt,
+      entry: {
+        id: record.id,
+        path: record.path,
+        label: record.label,
+        addedAt: record.addedAt,
+        lastOpenedAt: record.lastOpenedAt,
+      },
+      changed: 'appearance' in record,
     };
   }
 
@@ -756,11 +770,11 @@ export class ProjectRegistry {
     }
 
     if (allowNoop && this.activeSession?.project.id === id && this.registry.activeProjectId === id) {
-      return {
-        entry: { ...this.activeSession.project },
-        activeChanged: false,
-        alreadyActive: true,
-      };
+        return {
+          entry: cloneProjectEntry(this.activeSession.project),
+          activeChanged: false,
+          alreadyActive: true,
+        };
     }
 
     const previousActiveProjectId = this.registry.activeProjectId;
@@ -782,7 +796,7 @@ export class ProjectRegistry {
     await this.closeWatcherIfNeeded(previousSession, prepared.session.project.id);
 
     return {
-      entry: { ...prepared.session.project },
+      entry: cloneProjectEntry(prepared.session.project),
       activeChanged: previousActiveProjectId !== id || previousSession?.project.id !== id,
       alreadyActive: false,
     };
@@ -840,7 +854,7 @@ export class ProjectRegistry {
       version: PROJECT_REGISTRY_VERSION,
       activeProjectId: entry.id,
       projects: registry.projects.map((project) =>
-        project.id === entry.id ? { ...entry } : { ...project }
+        project.id === entry.id ? cloneProjectEntry(entry) : cloneProjectEntry(project)
       ),
     };
   }

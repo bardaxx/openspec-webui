@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Archive, Calendar, CheckSquare, ChevronLeft, ChevronsUpDown, FileText, Folder, FolderOpen, SquarePen, X } from '@lucide/svelte';
+  import { Archive, Calendar, CheckSquare, FileText, Folder, FolderPen, SquarePen } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
   import { Button } from '$lib/components/ui/button';
   import { EmptyState } from '$lib/components/ui/empty-state';
@@ -12,7 +12,8 @@
   import { tabStore } from '../../stores/tabs.svelte.ts';
   import CommandShortcutBar from '../CommandShortcutBar.svelte';
   import { Progress } from '$lib/components/ui/progress';
-  import { formatChangeName, formatDate } from '../../lib/utils';
+  import { formatChangeName } from '../../lib/utils';
+  import * as utils from '../../lib/utils';
 
   interface Props {
     temporary?: boolean;
@@ -27,6 +28,17 @@
   }: Props = $props();
 
   let workspaceCommands = $derived(getWorkspaceCommands(activeChanges.value, commandPreferencesStore));
+  const formatExplorerDate = ((utils as Record<string, unknown>).formatDate ?? (() => '')) as (
+    iso: string | null | undefined,
+  ) => string;
+
+  type TimestampedChange = {
+    lastModified?: string | null;
+  };
+
+  type TimestampedSpec = {
+    lastModified?: string | null;
+  };
 
   function sectionOpen(section: ExplorerSection) {
     return !layoutStore.sectionCollapsed[section];
@@ -43,43 +55,30 @@
       ? 'bg-primary/10 text-foreground'
       : 'text-muted-foreground hover:bg-secondary/70 hover:text-foreground';
   }
+
+  function openProjectSelector() {
+    layoutStore.openOverlay('project-selector');
+  }
 </script>
 
 <aside class="flex h-full min-h-0 flex-col bg-card">
-  <div class="flex h-12 items-center justify-between gap-3 border-b border-border px-4 py-3">
-    <div class="min-w-0">
-      <button
-        type="button"
-        class="flex max-w-full items-center gap-2 truncate text-sm font-semibold text-foreground transition-colors hover:text-primary"
-        onclick={() => layoutStore.openOverlay('project-selector')}
-      >
-        <FolderOpen class="h-4 w-4 shrink-0 text-muted-foreground" />
-        <span class="truncate">{project.value?.name ?? 'OpenSpec WebUI'}</span>
-        <ChevronsUpDown class="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-      </button>
+  <div class={`gap-3 border-b border-border px-3 py-2 ${!temporary ? 'bg-secondary/70' : ''}`}>
+    <div class="flex min-w-0 items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        <Folder class="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        <span class="truncate">Current Project</span>
     </div>
-
-    {#if temporary}
+    <div class="mt-1 flex min-w-0 items-center gap-1 rounded-md border border-border px-2 py-1 bg-background" >
+      <span class="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{project.value?.name ?? 'OpenSpec WebUI'}</span>
       <Button
         variant="ghost"
         size="icon"
-        class="size-8 text-muted-foreground"
-        aria-label="Close explorer"
-        onclick={onRequestClose}
+        class="ml-auto size-7 shrink-0 text-muted-foreground hover:text-foreground"
+        aria-label="Open project selector"
+        onclick={openProjectSelector}
       >
-        <X class="h-4 w-4" />
+        <FolderPen class="h-4 w-4" />
       </Button>
-    {:else}
-      <Button
-        variant="ghost"
-        size="icon"
-        class="size-8 text-muted-foreground"
-        aria-label="Collapse explorer"
-        onclick={() => layoutStore.setExplorerCollapsed(true)}
-      >
-        <ChevronLeft class="h-4 w-4" />
-      </Button>
-    {/if}
+    </div>
   </div>
 
   <ScrollArea.Root class="min-h-0 flex-1" viewportClass="h-full">
@@ -119,8 +118,8 @@
                   <div class="truncate text-sm font-medium" title={change.name}>{change.name}</div>
                   <div class="mt-1 flex items-center justify-between text-xs text-muted-foreground">
                     <div class="flex items-center gap-2">
-                      {#if change.lastModified}
-                        <span class="flex items-center gap-0.5"><Calendar class="h-3 w-3" />{formatDate(change.lastModified)}</span>
+                      {#if (change as TimestampedChange).lastModified}
+                        <span class="flex items-center gap-0.5"><Calendar class="h-3 w-3" />{formatExplorerDate((change as TimestampedChange).lastModified)}</span>
                       {/if}
                       <span class="flex items-center gap-0.5"><FileText class="h-3 w-3" />{change.specDeltaCount}</span>
                       <span class="flex items-center gap-0.5"><CheckSquare class="h-3 w-3" />{change.taskProgress.done}/{change.taskProgress.total}</span>
@@ -203,8 +202,8 @@
                 <div class="min-w-0 flex-1">
                   <div class="truncate text-sm font-medium">{spec.name}</div>
                   <div class="mt-1 flex items-center gap-0.5 text-xs text-muted-foreground">
-                    {#if spec.lastModified}
-                      <Calendar class="h-3 w-3" />{formatDate(spec.lastModified)}
+                    {#if (spec as TimestampedSpec).lastModified}
+                      <Calendar class="h-3 w-3" />{formatExplorerDate((spec as TimestampedSpec).lastModified)}
                     {/if}
                   </div>
                 </div>

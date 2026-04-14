@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, test } from 'node:test';
 import { chmod, cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 import { createServer } from './index.js';
@@ -351,6 +351,86 @@ test('activation rollback on parse failure keeps the previous active project con
     assert.equal(projects.body.projects.length, 1);
     assert.equal(projects.body.projects[0].path, alphaRoot);
     assert.equal(projects.body.activeProjectId, projects.body.projects[0].id);
+  } finally {
+    await runtime.close();
+  }
+});
+
+test('filesystem browse endpoint returns default listings and expected error payloads', async () => {
+  const runtime = await startServer();
+
+  try {
+    const result = await apiJson(runtime.baseUrl, '/api/fs/browse');
+    assert.equal(result.response.status, 200);
+    assert.equal(result.body.path, resolve(homedir()));
+    assert.ok(Array.isArray(result.body.dirs));
+    assert.equal(result.body.error, undefined);
+  } finally {
+    await runtime.close();
+  }
+
+  const missingPath = join(await createTempDir('openspec-webui-browse-missing-parent-'), 'missing');
+  const fileRoot = await createTempDir('openspec-webui-browse-file-');
+  const filePath = join(fileRoot, 'plain-file.txt');
+  await writeFile(filePath, 'not a directory', 'utf8');
+
+  const secondRuntime = await startServer();
+
+  try {
+    let result = await apiJson(secondRuntime.baseUrl, `/api/fs/browse?path=${encodeURIComponent(missingPath)}`);
+    assert.equal(result.response.status, 200);
+    assert.deepEqual(result.body, {
+      path: missingPath,
+      parent: null,
+      dirs: [],
+      error: 'Directory not found',
+    });
+
+    result = await apiJson(secondRuntime.baseUrl, `/api/fs/browse?path=${encodeURIComponent(filePath)}`);
+    assert.equal(result.response.status, 200);
+    assert.deepEqual(result.body, {
+      path: filePath,
+      parent: null,
+      dirs: [],
+      error: 'Not a directory',
+    });
+  } finally {
+    await secondRuntime.close();
+  }
+});
+
+test('filesystem browse endpoint excludes hidden directories and reports hasOpenSpec', async () => {
+  const browseRoot = await createTempDir('openspec-webui-browse-root-');
+  const alphaDir = join(browseRoot, 'alpha');
+  const betaDir = join(browseRoot, 'beta');
+  const hiddenDir = join(browseRoot, '.hidden');
+
+  await mkdir(join(alphaDir, 'openspec'), { recursive: true });
+  await mkdir(betaDir, { recursive: true });
+  await mkdir(hiddenDir, { recursive: true });
+  await writeFile(join(browseRoot, 'notes.txt'), 'ignore me', 'utf8');
+
+  const runtime = await startServer();
+
+  try {
+    const result = await apiJson(runtime.baseUrl, `/api/fs/browse?path=${encodeURIComponent(browseRoot)}`);
+    assert.equal(result.response.status, 200);
+    assert.deepEqual(result.body, {
+      path: browseRoot,
+      parent: resolve(browseRoot, '..'),
+      dirs: [
+        {
+          name: 'alpha',
+          path: alphaDir,
+          hasOpenSpec: true,
+        },
+        {
+          name: 'beta',
+          path: betaDir,
+          hasOpenSpec: false,
+        },
+      ],
+    });
   } finally {
     await runtime.close();
   }

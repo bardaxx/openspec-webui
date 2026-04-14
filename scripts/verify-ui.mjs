@@ -231,8 +231,13 @@ async function waitFor(cdp, predicateExpression, label, timeoutMs = 8000, interv
 
 function getStateExpression() {
   return pageExpression(() => {
-    const explorer = [...document.querySelectorAll('aside')].find((node) => node.textContent?.includes('Workspace'));
+    const explorer = [...document.querySelectorAll('aside')].find((node) => node.textContent?.includes('Current Project'));
     const projectSelectorButton = document.querySelector('[aria-label="Open project selector"]');
+    const activityBar = [...document.querySelectorAll('aside')].find((node) => {
+      const rect = node.getBoundingClientRect();
+      return rect.width > 0 && rect.width <= 60;
+    });
+    const explorerDrawer = document.querySelector('[aria-label="Explorer"]');
     const tabNames = [...document.querySelectorAll('[role="tab"]')].map((node) => node.textContent?.trim()).filter(Boolean);
     const activeTab = document.querySelector('[role="tab"][aria-selected="true"]')?.textContent?.trim() ?? null;
     const tabs = [...document.querySelectorAll('[role="tab"]')].map((node) => {
@@ -257,6 +262,18 @@ function getStateExpression() {
     };
 
     const explorerPanelStyle = document.querySelector('[data-direction="horizontal"] > div[style*="flex-basis"]')?.getAttribute('style') ?? null;
+    const activityBarRect = activityBar?.getBoundingClientRect() ?? null;
+    const explorerDrawerRect = explorerDrawer?.getBoundingClientRect() ?? null;
+    const activityBarHitVisible = Boolean(
+      activityBar &&
+      activityBarRect &&
+      activityBar.contains(
+        document.elementFromPoint(
+          activityBarRect.left + Math.min(activityBarRect.width / 2, 24),
+          activityBarRect.top + Math.min(activityBarRect.height / 2, 24),
+        )
+      )
+    );
 
     return {
       path: location.pathname,
@@ -280,8 +297,12 @@ function getStateExpression() {
       searchDialogVisible: Boolean(document.querySelector('input[placeholder="Search workspace..."]')),
       projectDocIncludesSentinel: document.body.textContent?.includes('__SENTINEL__') ?? false,
       explorerProjectName: explorer?.querySelector('button')?.textContent?.trim() ?? null,
-      selectorTooltip: document.querySelector('[role="tooltip"]')?.textContent?.trim() ?? null,
       selectorAriaLabel: projectSelectorButton?.getAttribute('aria-label') ?? null,
+      activityBarWidth: activityBarRect?.width ?? null,
+      activityBarRight: activityBarRect?.right ?? null,
+      activityBarHitVisible,
+      explorerDrawerLeft: explorerDrawerRect?.left ?? null,
+      explorerDrawerVisible: Boolean(explorerDrawer && explorerDrawerRect && explorerDrawerRect.width > 0),
     };
   }).replace('__SENTINEL__', LIVE_REFRESH_SENTINEL.replaceAll('\\', '\\\\').replaceAll("'", "\\'"));
 }
@@ -290,28 +311,9 @@ async function getState(cdp) {
   return cdp.evaluate(getStateExpression());
 }
 
-async function focusSelectorButton(cdp) {
-  const ok = await cdp.evaluate(pageExpression(() => {
-    const button = document.querySelector('[aria-label="Open project selector"]');
-    if (!(button instanceof HTMLElement)) {
-      return false;
-    }
-
-    button.dispatchEvent(new FocusEvent('focus', { bubbles: true }));
-    button.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
-    return true;
-  }));
-
-  if (!ok) {
-    throw new Error('Project selector button not found');
-  }
-
-  await sleep(200);
-}
-
 async function clickExplorerItem(cdp, sectionLabel, index = 0) {
   const expression = pageExpression(() => {
-    const explorer = [...document.querySelectorAll('aside')].find((node) => node.textContent?.includes('Workspace'));
+    const explorer = [...document.querySelectorAll('aside')].find((node) => node.textContent?.includes('Current Project'));
     if (!explorer) {
       return null;
     }
@@ -431,9 +433,6 @@ async function main() {
     assert(state.explorerPanelStyle?.includes('320px'), 'Explorer should honor remembered width');
     assert(state.explorerProjectName && state.explorerProjectName !== 'OpenSpec WebUI', 'Explorer header should reflect the active project name');
     assert(state.selectorAriaLabel === 'Open project selector', 'ActivityBar project control should expose the project selector action');
-    await focusSelectorButton(cdp);
-    state = await getState(cdp);
-    assert(state.selectorTooltip?.includes(state.explorerProjectName), 'ActivityBar tooltip should reflect the active project name');
     results.push('home-default');
 
     await clickSelector(cdp, '[aria-label="Dashboard"]');
@@ -553,6 +552,8 @@ async function main() {
     await clickSelector(cdp, '[aria-label="Dashboard"]');
     state = await getState(cdp);
     assert(state.drawerCloseVisible && state.activeChangesState === 'open', 'Dashboard should open narrow explorer drawer with Active Changes focused');
+    assert(state.explorerDrawerVisible && state.explorerDrawerLeft >= state.activityBarRight - 1, 'Narrow explorer drawer should open to the right of the Activity Bar');
+    assert(state.activityBarWidth >= 48 && state.activityBarHitVisible, 'Activity Bar should remain visible and interactive while the narrow drawer is open');
     assert(await cdp.evaluate(pageExpression(() => !!document.querySelector('[title="Copy /opsx-propose"]'))), 'Narrow Dashboard drawer should include workspace command shortcuts');
     await clickSelector(cdp, '[aria-label="Close explorer"]');
     await clickSelector(cdp, '[aria-label="Archive"]');
