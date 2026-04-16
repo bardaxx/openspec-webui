@@ -48,3 +48,14 @@ export function formatDate(iso: string | null | undefined): string {
 
   return date.toISOString().slice(0, 10);
 }
+
+export async function copyToClipboard(text: string, label: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    const { toast } = await import('svelte-sonner');
+    toast.success(`${label} copied`);
+  } catch {
+    const { toast } = await import('svelte-sonner');
+    toast.error('Failed to copy');
+  }
+}

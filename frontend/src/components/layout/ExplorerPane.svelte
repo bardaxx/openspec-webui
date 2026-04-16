@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { Archive, Calendar, CheckSquare, Clipboard, FileText, Folder, FolderPen, Search, SquarePen } from '@lucide/svelte';
+  import { Archive, Calendar, CheckSquare, FileText, Folder, FolderPen, SquarePen } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
   import { Button } from '$lib/components/ui/button';
   import { EmptyState } from '$lib/components/ui/empty-state';
   import { ExplorerSection as SharedExplorerSection } from '$lib/components/ui/explorer-section';
-  import * as ContextMenu from '$lib/components/ui/context-menu';
+  import { ItemContextMenu } from '$lib/components/ui/item-context-menu';
+  import { createItemContextMenuItems } from '$lib/itemContextMenu';
   import * as ScrollArea from '$lib/components/ui/scroll-area';
   import { getWorkspaceCommands } from '../../lib/commandShortcuts';
   import { activeChanges, archivedChanges, project, specs } from '../../stores/index.svelte.ts';
@@ -14,9 +15,7 @@
   import { uiPreferencesStore } from '../../stores/uiPreferences.svelte.ts';
   import CommandShortcutBar from '../CommandShortcutBar.svelte';
   import { Progress } from '$lib/components/ui/progress';
-  import { formatChangeName } from '../../lib/utils';
-  import * as utils from '../../lib/utils';
-  import { toast } from 'svelte-sonner';
+  import { formatChangeName, formatDate } from '../../lib/utils';
 
   interface Props {
     temporary?: boolean;
@@ -39,9 +38,7 @@
   }
 
   let workspaceCommands = $derived(getWorkspaceCommands(activeChanges.value, commandPreferencesSnapshot()));
-  const formatExplorerDate = ((utils as Record<string, unknown>).formatDate ?? (() => '')) as (
-    iso: string | null | undefined,
-  ) => string;
+  const formatExplorerDate = formatDate;
 
   type TimestampedChange = {
     lastModified?: string | null;
@@ -88,15 +85,6 @@
 
   function openProjectSelector() {
     layoutStore.openOverlay('project-selector');
-  }
-
-  async function copyToClipboard(text: string, label: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success(`${label} copied`);
-    } catch {
-      toast.error('Failed to copy');
-    }
   }
 
   function searchForSpec(specName: string) {
@@ -154,11 +142,18 @@
             <EmptyState message="No active changes" icon={SquarePen} class="px-3 py-6" />
           {:else}
             {#each activeChanges.value as change}
-              <ContextMenu.Root>
+              {@const changePath = `/changes/${encodeURIComponent(change.name)}`}
+              <ItemContextMenu
+                items={createItemContextMenuItems({
+                  kind: 'active-change',
+                  name: change.name,
+                  onOpenInNewTab: () => openItemConfirmed(changePath, 'active-changes'),
+                })}
+              >
                 <button
                   type="button"
-                  class={`flex w-full items-start gap-3 px-3 py-3 text-left transition-colors ${itemClass(`/changes/${encodeURIComponent(change.name)}`)}`}
-                  onclick={(event) => handleItemClick(event, `/changes/${encodeURIComponent(change.name)}`, 'active-changes')}
+                  class={`flex w-full items-start gap-3 px-3 py-3 text-left transition-colors ${itemClass(changePath)}`}
+                  onclick={(event) => handleItemClick(event, changePath, 'active-changes')}
                 >
                   <div class="min-w-0 flex-1">
                     <div class="truncate text-sm font-medium" title={change.name}>{change.name}</div>
@@ -176,17 +171,7 @@
                     </div>
                   </div>
                 </button>
-                <ContextMenu.Content>
-                  <ContextMenu.Item onSelect={() => openItemConfirmed(`/changes/${encodeURIComponent(change.name)}`, 'active-changes')}>
-                    <FileText class="h-4 w-4" />
-                    Open in New Tab
-                  </ContextMenu.Item>
-                  <ContextMenu.Item onSelect={() => copyToClipboard(change.name, 'Change name')}>
-                    <Clipboard class="h-4 w-4" />
-                    Copy Name
-                  </ContextMenu.Item>
-                </ContextMenu.Content>
-              </ContextMenu.Root>
+              </ItemContextMenu>
             {/each}
           {/if}
         </div>
@@ -211,11 +196,18 @@
             <EmptyState message="No archived changes" icon={Archive} class="px-3 py-6" />
           {:else}
             {#each archivedChanges.value as change}
-              <ContextMenu.Root>
+              {@const changePath = `/changes/${encodeURIComponent(change.name)}`}
+              <ItemContextMenu
+                items={createItemContextMenuItems({
+                  kind: 'archived-change',
+                  name: change.name,
+                  onOpenInNewTab: () => openItemConfirmed(changePath, 'archive'),
+                })}
+              >
                 <button
                   type="button"
-                  class={`flex w-full items-start gap-3 px-3 py-3 text-left transition-colors ${itemClass(`/changes/${encodeURIComponent(change.name)}`)}`}
-                  onclick={(event) => handleItemClick(event, `/changes/${encodeURIComponent(change.name)}`, 'archive')}
+                  class={`flex w-full items-start gap-3 px-3 py-3 text-left transition-colors ${itemClass(changePath)}`}
+                  onclick={(event) => handleItemClick(event, changePath, 'archive')}
                 >
                   <div class="min-w-0 flex-1">
                     <div class="truncate text-sm font-medium" title={change.name}>{formatChangeName(change.name)}</div>
@@ -228,17 +220,7 @@
                     </div>
                   </div>
                 </button>
-                <ContextMenu.Content>
-                  <ContextMenu.Item onSelect={() => openItemConfirmed(`/changes/${encodeURIComponent(change.name)}`, 'archive')}>
-                    <FileText class="h-4 w-4" />
-                    Open in New Tab
-                  </ContextMenu.Item>
-                  <ContextMenu.Item onSelect={() => copyToClipboard(change.name, 'Change name')}>
-                    <Clipboard class="h-4 w-4" />
-                    Copy Name
-                  </ContextMenu.Item>
-                </ContextMenu.Content>
-              </ContextMenu.Root>
+              </ItemContextMenu>
             {/each}
           {/if}
         </div>
@@ -263,11 +245,19 @@
             <EmptyState message="No specs found" icon={FileText} class="px-3 py-6" />
           {:else}
             {#each specs.value as spec}
-              <ContextMenu.Root>
+              {@const specPath = `/specs/${encodeURIComponent(spec.name)}`}
+              <ItemContextMenu
+                items={createItemContextMenuItems({
+                  kind: 'spec',
+                  name: spec.name,
+                  onOpenInNewTab: () => openItemConfirmed(specPath, 'specs'),
+                  onSearchRelatedChanges: () => searchForSpec(spec.name),
+                })}
+              >
                 <button
                   type="button"
-                  class={`flex w-full items-center gap-3 px-3 py-3 text-left transition-colors ${itemClass(`/specs/${encodeURIComponent(spec.name)}`)}`}
-                  onclick={(event) => handleItemClick(event, `/specs/${encodeURIComponent(spec.name)}`, 'specs')}
+                  class={`flex w-full items-center gap-3 px-3 py-3 text-left transition-colors ${itemClass(specPath)}`}
+                  onclick={(event) => handleItemClick(event, specPath, 'specs')}
                 >
                   <div class="min-w-0 flex-1">
                     <div class="truncate text-sm font-medium">{spec.name}</div>
@@ -282,21 +272,7 @@
                     <Badge variant="outline" class="text-[10px] font-medium">Design</Badge>
                   {/if}
                 </button>
-                <ContextMenu.Content>
-                  <ContextMenu.Item onSelect={() => openItemConfirmed(`/specs/${encodeURIComponent(spec.name)}`, 'specs')}>
-                    <FileText class="h-4 w-4" />
-                    Open in New Tab
-                  </ContextMenu.Item>
-                  <ContextMenu.Item onSelect={() => copyToClipboard(spec.name, 'Spec name')}>
-                    <Clipboard class="h-4 w-4" />
-                    Copy Name
-                  </ContextMenu.Item>
-                  <ContextMenu.Item onSelect={() => searchForSpec(spec.name)}>
-                    <Search class="h-4 w-4" />
-                    Search Related Changes
-                  </ContextMenu.Item>
-                </ContextMenu.Content>
-              </ContextMenu.Root>
+              </ItemContextMenu>
             {/each}
           {/if}
         </div>

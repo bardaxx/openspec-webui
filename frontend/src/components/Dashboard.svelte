@@ -1,10 +1,12 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { Archive, ArrowRight, Bookmark, House, BookOpen, Calendar, CheckSquare, FileText, FolderPen, History, SquarePen } from '@lucide/svelte';
+  import { Archive, ArrowRight, Bookmark, House, Calendar, CheckSquare, FileText, FolderPen, History, SquarePen } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
   import { Button } from '$lib/components/ui/button';
   import { EmptyState } from '$lib/components/ui/empty-state';
   import { IconBox } from '$lib/components/ui/icon-box';
+  import { ItemContextMenu } from '$lib/components/ui/item-context-menu';
+  import { createItemContextMenuItems, type ItemContextMenuKind } from '$lib/itemContextMenu';
   import { activeChanges, archivedChanges, project, specs, stats } from '../stores/index.svelte.ts';
   import { commandPreferencesStore } from '../stores/commandPreferences.svelte.ts';
   import { getChangeCommands, getWorkspaceCommands } from '../lib/commandShortcuts';
@@ -13,8 +15,7 @@
   import MarkdownRenderer from './MarkdownRenderer.svelte';
   import { Progress } from '$lib/components/ui/progress';
   import CommandShortcutBar from './CommandShortcutBar.svelte';
-  import { formatChangeName } from '../lib/utils';
-  import * as utils from '../lib/utils';
+  import { formatChangeName, formatDate } from '../lib/utils';
 
   type TimestampedChange = {
     name: string;
@@ -37,9 +38,19 @@
     lastModified?: string | null;
   };
 
-  const formatDashboardDate = ((utils as Record<string, unknown>).formatDate ?? (() => '')) as (
-    iso: string | null | undefined,
-  ) => string;
+  type RecentActivityItem = {
+    id: string;
+    kind: ItemContextMenuKind;
+    name: string;
+    title: string;
+    date: string | null;
+    timestamp: number;
+    badge: 'Active change' | 'Archived' | 'Spec';
+    meta: string;
+    open: () => void;
+  };
+
+  const formatDashboardDate = formatDate;
 
   function commandPreferencesSnapshot() {
     return {
@@ -85,15 +96,17 @@
     return { done, total, percentage };
   });
 
-  let recentActivity = $derived.by(() => {
+  let recentActivity = $derived.by((): RecentActivityItem[] => {
     const activeItems = activeChanges.value
       .filter((change) => timestampValue(changeUpdatedAt(change)) > 0)
       .map((change) => ({
         id: `active:${change.name}`,
+        kind: 'active-change' as const,
+        name: change.name,
         title: change.name,
         date: changeUpdatedAt(change),
         timestamp: timestampValue(changeUpdatedAt(change)),
-        badge: 'Active change',
+        badge: 'Active change' as const,
         meta: `${change.taskProgress.done}/${change.taskProgress.total} tasks • ${change.specDeltaCount} specs`,
         open: () => openActiveChange(change.name),
       }));
@@ -102,10 +115,12 @@
       .filter((change) => timestampValue(changeArchivedOrUpdatedAt(change)) > 0)
       .map((change) => ({
         id: `archived:${change.name}`,
+        kind: 'archived-change' as const,
+        name: change.name,
         title: formatChangeName(change.name),
         date: changeArchivedOrUpdatedAt(change),
         timestamp: timestampValue(changeArchivedOrUpdatedAt(change)),
-        badge: 'Archived',
+        badge: 'Archived' as const,
         meta: `${change.taskProgress.done}/${change.taskProgress.total} tasks complete`,
         open: () => openArchivedChange(change.name),
       }));
@@ -114,10 +129,12 @@
       .filter((spec) => timestampValue(specUpdatedAt(spec)) > 0)
       .map((spec) => ({
         id: `spec:${spec.name}`,
+        kind: 'spec' as const,
+        name: spec.name,
         title: spec.name,
         date: specUpdatedAt(spec),
         timestamp: timestampValue(specUpdatedAt(spec)),
-        badge: 'Spec',
+        badge: 'Spec' as const,
         meta: spec.hasDesign ? 'Spec + design' : 'Spec only',
         open: () => openSpec(spec.name),
       }));
@@ -140,6 +157,10 @@
   function openSpec(name: string) {
     layoutStore.focusSection('specs');
     tabStore.open(`/specs/${encodeURIComponent(name)}`);
+  }
+
+  function searchForSpec(specName: string) {
+    layoutStore.openOverlay('search', { initialQuery: specName });
   }
 
   function openHomeSurface() {
@@ -167,6 +188,7 @@
 
     return getChangeCommands(changeContext, commandPreferencesSnapshot());
   }
+
 </script>
 
 <svelte:head>
@@ -294,58 +316,66 @@
         <div class="space-y-3 p-4">
           {#each activeChanges.value as change}
             {@const changeCommands = changeCommandsFor(change)}
-            <div class="rounded-xl border border-border/70 bg-background/70 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-secondary/40 hover:shadow-md">
-              <button
-                type="button"
-                class="group w-full px-5 py-4 text-left"
-                onclick={() => openActiveChange(change.name)}
-              >
-                <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                  <div class="min-w-0 flex-1">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <IconBox icon={SquarePen} size="sm" variant="info" />
-                      <div class="truncate font-medium text-foreground">{change.name}</div>
-                      {#if change.hasProposal}
-                        <Badge variant="outline">Proposal</Badge>
-                      {/if}
-                      {#if change.hasDesign}
-                        <Badge variant="outline">Design</Badge>
-                      {/if}
-                    </div>
-
-                    <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
-                      {#if changeUpdatedAt(change)}
-                        <span class="flex items-center gap-1"><Calendar class="h-3.5 w-3.5" />{formatDashboardDate(changeUpdatedAt(change))}</span>
-                      {/if}
-                      <span class="flex items-center gap-1"><FileText class="h-3.5 w-3.5" />{change.specDeltaCount} spec delta{change.specDeltaCount === 1 ? '' : 's'}</span>
-                      <span class="flex items-center gap-1"><CheckSquare class="h-3.5 w-3.5" />{change.taskProgress.done}/{change.taskProgress.total} tasks</span>
-                    </div>
-                  </div>
-
-                  <div class="flex min-w-45 items-center gap-3 lg:justify-end">
-                    <div class="min-w-0 flex-1 lg:w-36 lg:flex-none">
-                      <div class="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Progress</span>
-                        <span>{change.taskProgress.percentage}%</span>
+            <ItemContextMenu
+              items={createItemContextMenuItems({
+                kind: 'active-change',
+                name: change.name,
+                onOpenInNewTab: () => openActiveChange(change.name),
+              })}
+            >
+              <div class="rounded-xl border border-border/70 bg-background/70 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-secondary/40 hover:shadow-md">
+                <button
+                  type="button"
+                  class="group w-full px-5 py-4 text-left"
+                  onclick={() => openActiveChange(change.name)}
+                >
+                  <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="min-w-0 flex-1">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <IconBox icon={SquarePen} size="sm" variant="info" />
+                        <div class="truncate font-medium text-foreground">{change.name}</div>
+                        {#if change.hasProposal}
+                          <Badge variant="outline">Proposal</Badge>
+                        {/if}
+                        {#if change.hasDesign}
+                          <Badge variant="outline">Design</Badge>
+                        {/if}
                       </div>
-                      <Progress value={change.taskProgress.percentage} />
-                    </div>
-                    <ArrowRight class="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
-                  </div>
-                </div>
-              </button>
 
-              {#if changeCommands.length > 0}
-                <div class="border-t border-border/60 px-5 py-3">
-                  <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div class="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Next Step</div>
-                    <div class="flex max-w-full sm:justify-end">
-                      <CommandShortcutBar commands={changeCommands} changeName={change.name} />
+                      <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
+                        {#if changeUpdatedAt(change)}
+                          <span class="flex items-center gap-1"><Calendar class="h-3.5 w-3.5" />{formatDashboardDate(changeUpdatedAt(change))}</span>
+                        {/if}
+                        <span class="flex items-center gap-1"><FileText class="h-3.5 w-3.5" />{change.specDeltaCount} spec delta{change.specDeltaCount === 1 ? '' : 's'}</span>
+                        <span class="flex items-center gap-1"><CheckSquare class="h-3.5 w-3.5" />{change.taskProgress.done}/{change.taskProgress.total} tasks</span>
+                      </div>
+                    </div>
+
+                    <div class="flex min-w-45 items-center gap-3 lg:justify-end">
+                      <div class="min-w-0 flex-1 lg:w-36 lg:flex-none">
+                        <div class="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+                          <span>Progress</span>
+                          <span>{change.taskProgress.percentage}%</span>
+                        </div>
+                        <Progress value={change.taskProgress.percentage} />
+                      </div>
+                      <ArrowRight class="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
                     </div>
                   </div>
-                </div>
-              {/if}
-            </div>
+                </button>
+
+                {#if changeCommands.length > 0}
+                  <div class="border-t border-border/60 px-5 py-3">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div class="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Next Step</div>
+                      <div class="flex max-w-full sm:justify-end">
+                        <CommandShortcutBar commands={changeCommands} changeName={change.name} />
+                      </div>
+                    </div>
+                  </div>
+                {/if}
+              </div>
+            </ItemContextMenu>
           {/each}
         </div>
       {/if}
@@ -362,30 +392,47 @@
         </div>
         <div class="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">
           {#each recentActivity as item}
-            <button
-              type="button"
-              class="group flex h-full flex-col rounded-xl border border-border/70 bg-background/70 p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-secondary/40 hover:shadow-md"
-              onclick={item.open}
+            <ItemContextMenu
+              items={createItemContextMenuItems(
+                item.kind === 'spec'
+                  ? {
+                      kind: 'spec',
+                      name: item.name,
+                      onOpenInNewTab: item.open,
+                      onSearchRelatedChanges: () => searchForSpec(item.name),
+                    }
+                  : {
+                      kind: item.kind,
+                      name: item.name,
+                      onOpenInNewTab: item.open,
+                    },
+              )}
             >
-              <div class="flex items-start justify-between gap-3">
-                <div class="flex min-w-0 items-start gap-3">
-                   <IconBox
-                     icon={item.badge === 'Spec' ? FileText : item.badge === 'Archived' ? Archive : SquarePen}
-                     size="sm"
-                     variant={item.badge === 'Spec' ? 'success' : item.badge === 'Archived' ? 'muted' : 'info'}
-                   />
-                  <div class="min-w-0 flex-1">
-                    <div class="truncate font-medium text-foreground" title={item.title}>{item.title}</div>
-                    <div class="mt-2 flex flex-wrap items-center gap-2">
-                      <Badge variant="outline">{item.badge}</Badge>
-                      <span class="text-xs text-muted-foreground">{formatDashboardDate(item.date)}</span>
+              <button
+                type="button"
+                class="group flex h-full flex-col rounded-xl border border-border/70 bg-background/70 p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-secondary/40 hover:shadow-md"
+                onclick={item.open}
+              >
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex min-w-0 items-start gap-3">
+                     <IconBox
+                        icon={item.badge === 'Spec' ? FileText : item.badge === 'Archived' ? Archive : SquarePen}
+                        size="sm"
+                        variant={item.badge === 'Spec' ? 'success' : item.badge === 'Archived' ? 'muted' : 'info'}
+                      />
+                    <div class="min-w-0 flex-1">
+                      <div class="truncate font-medium text-foreground" title={item.title}>{item.title}</div>
+                      <div class="mt-2 flex flex-wrap items-center gap-2">
+                        <Badge variant="outline">{item.badge}</Badge>
+                        <span class="text-xs text-muted-foreground">{formatDashboardDate(item.date)}</span>
+                      </div>
                     </div>
                   </div>
+                  <ArrowRight class="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
                 </div>
-                <ArrowRight class="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
-              </div>
-              <div class="mt-3 text-sm text-muted-foreground">{item.meta}</div>
-            </button>
+                <div class="mt-3 text-sm text-muted-foreground">{item.meta}</div>
+              </button>
+            </ItemContextMenu>
           {/each}
         </div>
       </div>

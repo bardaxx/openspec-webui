@@ -5,7 +5,7 @@ Define the Explorer Pane that organizes active changes, archives, and specs besi
 
 ## Requirements
 ### Requirement: Explorer Pane renders collapsible sections
-The system SHALL render an Explorer Pane between the Activity Bar and the Main Viewer. The Explorer Pane SHALL use the `ExplorerSection` component for each of its three sections (ACTIVE CHANGES, ARCHIVE, SPECS). Each section SHALL pass its title, item count, collapse state, focused state, and header icon as props, and SHALL render section-specific content via slots. The ACTIVE CHANGES section SHALL use the `headerExtra` slot to render `CommandShortcutBar` when workspace commands are available. Explorer list items SHALL NOT render leading per-item icons on the first line. No inline collapsible section header markup SHALL remain in `ExplorerPane.svelte` outside of the `ExplorerSection` component usage.
+The system SHALL render an Explorer Pane between the Activity Bar and the Main Viewer. The Explorer Pane SHALL use the `ExplorerSection` component for each of its three sections (ACTIVE CHANGES, ARCHIVE, SPECS). Each section SHALL pass its title, item count, collapse state, focused state, and header icon as props, and SHALL render section-specific content via slots. The ACTIVE CHANGES section SHALL use the `headerExtra` slot to render `CommandShortcutBar` when workspace commands are available. Explorer list items SHALL NOT render leading per-item icons on the first line. No inline collapsible section header markup SHALL remain in `ExplorerPane.svelte` outside of the `ExplorerSection` component usage. Each list item (active change, archived change, spec) SHALL use the `ItemContextMenu` component to provide context menu actions, replacing inline `ContextMenu.Root` usage.
 
 #### Scenario: Explorer Pane uses ExplorerSection for ACTIVE CHANGES
 - **WHEN** the Explorer Pane renders the ACTIVE CHANGES section
@@ -42,6 +42,11 @@ The system SHALL render an Explorer Pane between the Activity Bar and the Main V
 #### Scenario: No inline section header markup in ExplorerPane
 - **WHEN** `ExplorerPane.svelte` is inspected
 - **THEN** no `<Collapsible.Root>` with inline header classes (`border-b border-border/70 bg-secondary/40`) exists outside of the `ExplorerSection` component
+
+#### Scenario: Explorer list items use ItemContextMenu
+- **WHEN** `ExplorerPane.svelte` is inspected
+- **THEN** no inline `ContextMenu.Root` usage exists
+- **AND** each list item uses the `ItemContextMenu` component to provide context menu actions
 
 ### Requirement: Explorer sections are collapsible
 The system SHALL allow each Explorer Pane section to be collapsed and expanded independently. The collapsed/expanded state SHALL be preserved during the current session.
