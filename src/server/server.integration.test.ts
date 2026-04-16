@@ -33,12 +33,29 @@ async function createTempDir(prefix: string): Promise<string> {
   return dir;
 }
 
+function createProjectConfigYaml(name: string, options: { context?: string; schema?: string } = {}) {
+  const context = options.context ?? `Description for ${name}.`;
+  const schema = options.schema ?? 'default-workflow';
+  const indent = (value: string) =>
+    value
+      .split('\n')
+      .map((line) => `  ${line}`)
+      .join('\n');
+
+  return `schema: |\n${indent(schema)}\ncontext: |\n${indent(context)}\nrules:\n  tasks:\n    guidance: Keep ${name} synchronized.\n`;
+}
+
 async function createProjectFixture(name: string): Promise<string> {
   const sandbox = await createTempDir('openspec-webui-server-project-');
   const projectRoot = join(sandbox, name);
   await mkdir(projectRoot, { recursive: true });
   await cp(resolve('test-openspec'), join(projectRoot, 'openspec'), { recursive: true });
-  await writeFile(join(projectRoot, 'openspec', 'project.md'), `# ${name}\n\nDescription for ${name}.\n`, 'utf8');
+  await rm(join(projectRoot, 'openspec', 'project.md'), { force: true });
+  await writeFile(
+    join(projectRoot, 'openspec', 'config.yaml'),
+    createProjectConfigYaml(name),
+    'utf8'
+  );
   return projectRoot;
 }
 
@@ -592,8 +609,11 @@ test('project-scoped websocket refresh only reaches clients bound to the changed
       );
 
       await writeFile(
-        join(alphaRoot, 'openspec', 'project.md'),
-        '# alpha-project\n\nUpdated description for alpha-project.\n',
+        join(alphaRoot, 'openspec', 'config.yaml'),
+        createProjectConfigYaml('alpha-project', {
+          context: 'Updated description for alpha-project.\nSupports refreshed planning context.',
+          schema: 'refined-workflow',
+        }),
         'utf8'
       );
 
@@ -606,6 +626,13 @@ test('project-scoped websocket refresh only reaches clients bound to the changed
             name?: string;
             description?: string;
             path?: string;
+            planningContext?: {
+              source?: { path?: string; type?: string };
+              aiContext?: string;
+              workflowSchema?: string;
+            };
+            legacyProjectDoc?: unknown;
+            migrationState?: string;
             content?: string;
           };
         };
@@ -614,11 +641,20 @@ test('project-scoped websocket refresh only reaches clients bound to the changed
       assert.equal(refresh.entity, 'project');
       assert.equal(refresh.data?.project?.name, 'Alpha Project');
       assert.equal(refresh.data?.project?.description, 'Updated description for alpha-project.');
-      assert.equal(refresh.data?.project?.path, join(alphaRoot, 'openspec', 'project.md'));
+      assert.equal(refresh.data?.project?.path, join(alphaRoot, 'openspec', 'config.yaml'));
       assert.equal(
-        refresh.data?.project?.content,
-        '# alpha-project\n\nUpdated description for alpha-project.\n'
+        refresh.data?.project?.planningContext?.source?.path,
+        join(alphaRoot, 'openspec', 'config.yaml')
       );
+      assert.equal(refresh.data?.project?.planningContext?.source?.type, 'config');
+      assert.equal(
+        refresh.data?.project?.planningContext?.aiContext,
+        'Updated description for alpha-project.\nSupports refreshed planning context.'
+      );
+      assert.equal(refresh.data?.project?.planningContext?.workflowSchema, 'refined-workflow');
+      assert.equal(refresh.data?.project?.legacyProjectDoc ?? null, null);
+      assert.equal(refresh.data?.project?.migrationState, 'config-only');
+      assert.match(refresh.data?.project?.content ?? '', /Updated description for alpha-project\./);
       await betaClient.recorder.expectNoMessage(500);
     } finally {
       alphaClient.ws.close();

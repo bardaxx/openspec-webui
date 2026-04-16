@@ -1,8 +1,10 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { Archive, ArrowRight, Bookmark, House, Calendar, CheckSquare, FileText, FolderPen, History, SquarePen } from '@lucide/svelte';
+  import { Archive, ArrowRight, Bookmark, ChevronDown, ChevronRight, House, Calendar, CheckSquare, FileText, FolderPen, History, SquarePen } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
   import { Button } from '$lib/components/ui/button';
+  import { Callout } from '$lib/components/ui/callout';
+  import * as Collapsible from '$lib/components/ui/collapsible';
   import { EmptyState } from '$lib/components/ui/empty-state';
   import { IconBox } from '$lib/components/ui/icon-box';
   import { ItemContextMenu } from '$lib/components/ui/item-context-menu';
@@ -10,6 +12,7 @@
   import { activeChanges, archivedChanges, project, specs, stats } from '../stores/index.svelte.ts';
   import { commandPreferencesStore } from '../stores/commandPreferences.svelte.ts';
   import { getChangeCommands, getWorkspaceCommands } from '../lib/commandShortcuts';
+  import { getPlanningContextNotice } from '../lib/projectPlanningContext';
   import { layoutStore } from '../stores/layout.svelte.ts';
   import { tabStore } from '../stores/tabs.svelte.ts';
   import MarkdownRenderer from './MarkdownRenderer.svelte';
@@ -51,6 +54,7 @@
   };
 
   const formatDashboardDate = formatDate;
+  let legacyProjectDocOpen = $state(false);
 
   function commandPreferencesSnapshot() {
     return {
@@ -189,6 +193,12 @@
     return getChangeCommands(changeContext, commandPreferencesSnapshot());
   }
 
+  let planningContext = $derived(project.value?.planningContext ?? null);
+  let legacyProjectDoc = $derived(project.value?.legacyProjectDoc ?? null);
+  let migrationState = $derived(project.value?.migrationState ?? 'config-only');
+  let hasArtifactRules = $derived((planningContext?.artifactRules.length ?? 0) > 0);
+  let planningContextNotice = $derived(getPlanningContextNotice({ migrationState }));
+
 </script>
 
 <svelte:head>
@@ -212,8 +222,6 @@
           <FolderPen class="h-4 w-4" />
         </Button>
       </h1>
-
-
     </div>
 
     <div>
@@ -415,11 +423,11 @@
               >
                 <div class="flex items-start justify-between gap-3">
                   <div class="flex min-w-0 items-start gap-3">
-                     <IconBox
-                        icon={item.badge === 'Spec' ? FileText : item.badge === 'Archived' ? Archive : SquarePen}
-                        size="sm"
-                        variant={item.badge === 'Spec' ? 'success' : item.badge === 'Archived' ? 'muted' : 'info'}
-                      />
+                    <IconBox
+                      icon={item.badge === 'Spec' ? FileText : item.badge === 'Archived' ? Archive : SquarePen}
+                      size="sm"
+                      variant={item.badge === 'Spec' ? 'success' : item.badge === 'Archived' ? 'muted' : 'info'}
+                    />
                     <div class="min-w-0 flex-1">
                       <div class="truncate font-medium text-foreground" title={item.title}>{item.title}</div>
                       <div class="mt-2 flex flex-wrap items-center gap-2">
@@ -439,21 +447,134 @@
     {/if}
   </div>
 
-  <!-- Project Info -->
-  {#if project.value?.content}
+  <!-- Planning Context -->
+  {#if planningContext}
     <div id="project-documentation" class="rounded-lg border border-border bg-card shadow-lg">
       <div class="flex flex-wrap items-start justify-between gap-3 border-b border-border px-6 py-4">
         <h2 class="flex items-center gap-2 text-lg font-semibold text-foreground">
           <Bookmark class="h-5 w-5 text-muted-foreground" />
-          Project Documentation
+          OpenSpec Planning Context
         </h2>
         <Button variant="ghost" size="sm" onclick={openDocumentation}>
           <Bookmark class="h-4 w-4" />
           Focus section
         </Button>
       </div>
-      <div class="px-6 py-4">
-        <MarkdownRenderer content={project.value.content} />
+      <div class="space-y-6 px-6 py-4">
+        <div class="space-y-2">
+          <p class="text-sm text-muted-foreground">
+            OpenSpec planning uses <code class="rounded bg-secondary px-1.5 py-0.5 text-xs text-foreground">{planningContext.source.path}</code>.
+          </p>
+
+          {#if planningContextNotice.variant === 'warning'}
+            <Callout variant={planningContextNotice.variant}>
+              <p class="font-medium">{planningContextNotice.title}</p>
+              <p class="mt-1 text-sm">
+                OpenSpec planning uses <code class="rounded bg-background/60 px-1 py-0.5 text-[11px]">config.yaml</code>, but valuable context may still exist only in legacy <code class="rounded bg-background/60 px-1 py-0.5 text-[11px]">project.md</code>.
+              </p>
+            </Callout>
+          {:else if planningContextNotice.variant === 'info'}
+            <Callout variant={planningContextNotice.variant}>
+              <p><code class="rounded bg-background/60 px-1 py-0.5 text-[11px]">project.md</code> is legacy. OpenSpec planning uses <code class="rounded bg-background/60 px-1 py-0.5 text-[11px]">config.yaml</code>.</p>
+            </Callout>
+          {/if}
+        </div>
+
+        <section class="space-y-3">
+          <div>
+            <h3 class="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">AI Context</h3>
+            <p class="mt-1 text-sm text-muted-foreground">Included in every OpenSpec planning request.</p>
+          </div>
+
+          {#if planningContext.aiContext}
+            <div class="rounded-lg border border-border/70 bg-background/70 px-4 py-4">
+              <MarkdownRenderer content={planningContext.aiContext} />
+            </div>
+          {:else}
+            <div class="rounded-lg border border-dashed border-border/80 bg-background/40 px-4 py-4 text-sm text-muted-foreground">
+              No AI context configured.
+            </div>
+          {/if}
+        </section>
+
+        <section class="space-y-3">
+          <div>
+            <h3 class="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">Artifact Rules</h3>
+            <p class="mt-1 text-sm text-muted-foreground">Artifact-specific guidance from <code class="rounded bg-secondary px-1.5 py-0.5 text-xs text-foreground">rules:</code>.</p>
+          </div>
+
+          {#if hasArtifactRules}
+            <div class="space-y-3">
+              {#each planningContext.artifactRules as ruleSection}
+                <div class="rounded-lg border border-border/70 bg-background/70 p-4">
+                  <div class="flex items-center gap-2">
+                    <Badge variant="outline">{ruleSection.artifactId}</Badge>
+                    <span class="text-sm font-medium text-foreground">{ruleSection.title}</span>
+                  </div>
+
+                  <div class="mt-3 space-y-3">
+                    {#each ruleSection.items as item}
+                      <div>
+                        <div class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{item.label}</div>
+                        <div class="mt-1 rounded-md bg-secondary/50 px-3 py-2 text-sm whitespace-pre-wrap text-foreground">{item.value}</div>
+                      </div>
+                    {/each}
+                  </div>
+                </div>
+              {/each}
+            </div>
+          {:else}
+            <div class="rounded-lg border border-dashed border-border/80 bg-background/40 px-4 py-4 text-sm text-muted-foreground">
+              No artifact-specific rules.
+            </div>
+          {/if}
+        </section>
+
+        <section class="space-y-3">
+          <div>
+            <h3 class="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">Workflow Schema</h3>
+            <p class="mt-1 text-sm text-muted-foreground">Default workflow schema declared in <code class="rounded bg-secondary px-1.5 py-0.5 text-xs text-foreground">config.yaml</code>.</p>
+          </div>
+
+          <div class="rounded-lg border border-border/70 bg-background/70 px-4 py-3">
+            <span class="font-medium text-foreground">{planningContext.workflowSchema || 'No schema configured'}</span>
+          </div>
+        </section>
+
+        {#if legacyProjectDoc}
+          <section class="space-y-3">
+            <Collapsible.Root
+              open={legacyProjectDocOpen}
+              onOpenChange={(open) => {
+                legacyProjectDocOpen = open;
+              }}
+              class="overflow-hidden rounded-lg border border-border/70 bg-background/70"
+            >
+              <div class="border-b border-border/70 px-4 py-3">
+                <Collapsible.Trigger class="flex w-full items-center justify-between px-0 py-0 text-left">
+                  <span class="flex items-center gap-2">
+                    <span class="text-sm font-semibold text-foreground">Legacy project.md (Deprecated)</span>
+                    <Badge variant="outline">Legacy</Badge>
+                  </span>
+                  {#if legacyProjectDocOpen}
+                    <ChevronDown class="h-4 w-4 text-muted-foreground" />
+                  {:else}
+                    <ChevronRight class="h-4 w-4 text-muted-foreground" />
+                  {/if}
+                </Collapsible.Trigger>
+              </div>
+
+              <Collapsible.Content>
+                <div class="space-y-3 px-4 py-4">
+                  <p class="text-sm text-muted-foreground">
+                    AI planning does not rely on this file. Review it only for unmigrated legacy context.
+                  </p>
+                  <MarkdownRenderer content={legacyProjectDoc.content} />
+                </div>
+              </Collapsible.Content>
+            </Collapsible.Root>
+          </section>
+        {/if}
       </div>
     </div>
   {/if}

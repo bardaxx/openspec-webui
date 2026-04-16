@@ -1,63 +1,221 @@
 import { readFile } from 'fs/promises';
 import { join, basename, resolve, dirname } from 'path';
-import type { Project, ParseResult } from '../shared/types.js';
+import { parse as parseYaml } from 'yaml';
+import type {
+  LegacyProjectDoc,
+  PlanningContextRule,
+  PlanningContextSection,
+  PlanningContextSource,
+  Project,
+  ProjectMigrationState,
+  ParseResult,
+} from '../shared/types.js';
 
-/**
- * Convert a folder name to a human-readable project name
- * e.g., "my-project" -> "My Project", "my_project" -> "My Project"
- */
+interface ParsedConfigFile {
+  schema?: unknown;
+  context?: unknown;
+  rules?: unknown;
+}
+
 function folderNameToProjectName(folderName: string): string {
-  return folderName
+  return folderName.replace(/[-_]/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function normalizeText(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function humanizeArtifactId(value: string): string {
+  return value
     .replace(/[-_]/g, ' ')
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-/**
- * Parse the project.md file from an OpenSpec directory
- */
+function getFirstNonEmptyLine(value: string): string {
+  return value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find((line) => line.length > 0) ?? '';
+}
+
+function stringifyRuleValue(value: unknown): string {
+  if (typeof value === 'string') {
+    return value.trim();
+  }
+
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => stringifyRuleValue(item))
+      .filter((item) => item.length > 0)
+      .join('\n');
+  }
+
+  return JSON.stringify(value, null, 2);
+}
+
+function normalizeRules(value: unknown): PlanningContextSection[] {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return [];
+  }
+
+  return Object.entries(value as Record<string, unknown>)
+    .map(([artifactId, rawRules]) => {
+      if (rawRules && typeof rawRules === 'object' && !Array.isArray(rawRules)) {
+        const items = Object.entries(rawRules as Record<string, unknown>)
+          .map(([label, itemValue]) => ({
+            label,
+            value: stringifyRuleValue(itemValue),
+          }))
+          .filter((item) => item.value.length > 0);
+
+        if (items.length > 0) {
+          return {
+            artifactId,
+            title: humanizeArtifactId(artifactId),
+            content: items.map((item) => `${item.label}:\n${item.value}`).join('\n\n'),
+            items,
+          } satisfies PlanningContextSection;
+        }
+      }
+
+      const content = stringifyRuleValue(rawRules);
+      if (!content) {
+        return null;
+      }
+
+      return {
+        artifactId,
+        title: humanizeArtifactId(artifactId),
+        content,
+        items: [{ label: 'rule', value: content }] satisfies PlanningContextRule[],
+      } satisfies PlanningContextSection;
+    })
+    .filter((section): section is PlanningContextSection => section !== null);
+}
+
+function extractLegacyDescription(content: string): string {
+  const descMatch = content.match(/^#\s+.+\n+(.+?)(?:\n\n|\n#|$)/s);
+  return descMatch ? descMatch[1].trim() : '';
+}
+
+async function readOptionalLegacyProjectDoc(projectPath: string, warnings: string[]): Promise<LegacyProjectDoc | null> {
+  try {
+    const content = await readFile(projectPath, 'utf-8');
+    return {
+      path: projectPath,
+      content,
+      description: extractLegacyDescription(content),
+    };
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      warnings.push('project.md not found');
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+function determineMigrationState(aiContext: string, legacyProjectDoc: LegacyProjectDoc | null): ProjectMigrationState {
+  if (!legacyProjectDoc) {
+    return 'config-only';
+  }
+
+  return aiContext.length > 0 ? 'legacy-present' : 'migration-needed';
+}
+
+function buildCompatibilityContent(options: {
+  configPath: string;
+  schema: string;
+  aiContext: string;
+  artifactRules: PlanningContextSection[];
+  legacyProjectDoc: LegacyProjectDoc | null;
+}): string {
+  const sections: string[] = [`# OpenSpec Planning Context`, '', `Source: ${options.configPath}`];
+
+  sections.push('', '## AI Context', '', options.aiContext || '_No AI context configured._');
+
+  sections.push('', '## Artifact Rules');
+  if (options.artifactRules.length === 0) {
+    sections.push('', '_No artifact-specific rules._');
+  } else {
+    for (const section of options.artifactRules) {
+      sections.push('', `### ${section.title}`, '', section.content);
+    }
+  }
+
+  sections.push('', '## Workflow Schema', '', options.schema || '_No schema configured._');
+
+  if (options.legacyProjectDoc) {
+    sections.push('', '## Legacy project.md (Deprecated)', '', options.legacyProjectDoc.content);
+  }
+
+  return `${sections.join('\n').trimEnd()}\n`;
+}
+
 export async function parseProject(openspecPath: string): Promise<ParseResult<Project>> {
   const errors: string[] = [];
   const warnings: string[] = [];
 
+  const configPath = join(openspecPath, 'config.yaml');
   const projectPath = join(openspecPath, 'project.md');
-
-  // Infer project name from parent folder (openspecPath is typically project/openspec/)
   const projectRoot = dirname(resolve(openspecPath));
   const folderName = basename(projectRoot);
   const name = folderNameToProjectName(folderName);
 
   try {
-    const content = await readFile(projectPath, 'utf-8');
-
-    // Extract description from first paragraph after heading
-    const descMatch = content.match(/^#\s+.+\n+(.+?)(?:\n\n|\n#|$)/s);
-    const description = descMatch ? descMatch[1].trim() : '';
+    const configContent = await readFile(configPath, 'utf-8');
+    const parsedConfig = (parseYaml(configContent) ?? {}) as ParsedConfigFile;
+    const aiContext = normalizeText(parsedConfig.context);
+    const schema = normalizeText(parsedConfig.schema);
+    const artifactRules = normalizeRules(parsedConfig.rules);
+    const legacyProjectDoc = await readOptionalLegacyProjectDoc(projectPath, warnings);
+    const migrationState = determineMigrationState(aiContext, legacyProjectDoc);
+    const description = getFirstNonEmptyLine(aiContext);
+    const content = buildCompatibilityContent({
+      configPath,
+      schema,
+      aiContext,
+      artifactRules,
+      legacyProjectDoc,
+    });
 
     return {
       data: {
         name,
         description,
-        path: projectPath,
+        path: configPath,
         content,
+        planningContext: {
+          source: {
+            path: configPath,
+            type: 'config' satisfies PlanningContextSource['type'],
+          },
+          aiContext,
+          artifactRules,
+          workflowSchema: schema,
+        },
+        legacyProjectDoc,
+        migrationState,
       },
       errors,
       warnings,
     };
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      warnings.push('project.md not found');
-      return {
-        data: {
-          name,
-          description: 'No project.md file found',
-          path: projectPath,
-          content: '',
-        },
-        errors,
-        warnings,
-      };
+      errors.push('config.yaml not found');
+      return { data: null, errors, warnings };
     }
-    errors.push(`Failed to read project.md: ${error}`);
+
+    errors.push(`Failed to read config.yaml: ${error}`);
     return { data: null, errors, warnings };
   }
 }

@@ -5,7 +5,42 @@ export interface Project {
   description: string;
   path: string;
   content: string;
+  planningContext: PlanningContext;
+  legacyProjectDoc: LegacyProjectDoc | null;
+  migrationState: ProjectMigrationState;
 }
+
+export interface PlanningContextSource {
+  path: string;
+  type: 'config';
+}
+
+export interface PlanningContextRule {
+  label: string;
+  value: string;
+}
+
+export interface PlanningContextSection {
+  artifactId: string;
+  title: string;
+  content: string;
+  items: PlanningContextRule[];
+}
+
+export interface PlanningContext {
+  source: PlanningContextSource;
+  aiContext: string;
+  artifactRules: PlanningContextSection[];
+  workflowSchema: string;
+}
+
+export interface LegacyProjectDoc {
+  path: string;
+  content: string;
+  description: string;
+}
+
+export type ProjectMigrationState = 'config-only' | 'legacy-present' | 'migration-needed';
 
 export interface Spec {
   name: string;

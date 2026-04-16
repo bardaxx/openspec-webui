@@ -31,13 +31,13 @@ export function createFileWatcher(
   });
 
   const handleFileEvent = (eventType: 'add' | 'change' | 'unlink') => (filePath: string) => {
-    // Only watch markdown files
-    if (!filePath.endsWith('.md')) {
-      return;
-    }
-
     const relativePath = relative(openspecPath, filePath);
     const parts = relativePath.split(sep);
+    const isConfigFile = parts[0] === 'config.yaml';
+
+    if (!filePath.endsWith('.md') && !isConfigFile) {
+      return;
+    }
 
     let affectedEntity: 'project' | 'specs' | 'changes';
     let entityId: string | undefined;
@@ -52,7 +52,7 @@ export function createFileWatcher(
       } else {
         entityId = parts[1]; // active change name
       }
-    } else if (parts[0] === 'project.md' || parts[0] === 'AGENTS.md') {
+    } else if (parts[0] === 'project.md' || parts[0] === 'AGENTS.md' || parts[0] === 'config.yaml') {
       affectedEntity = 'project';
     } else {
       // Unsupported markdown file, treat as project

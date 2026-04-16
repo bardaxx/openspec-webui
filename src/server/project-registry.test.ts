@@ -44,19 +44,42 @@ async function createProjectRoot(name: string): Promise<string> {
   const sandbox = await createTempDir('openspec-webui-project-');
   const projectRoot = join(sandbox, name);
   await mkdir(join(projectRoot, 'openspec'), { recursive: true });
-  await writeFile(join(projectRoot, 'openspec', 'project.md'), `# ${name}\n`);
+  await writeFile(
+    join(projectRoot, 'openspec', 'config.yaml'),
+    `schema: |\n  ${name}-workflow\ncontext: |\n  Description for ${name}\nrules:\n  tasks:\n    guidance: Keep ${name} aligned.\n`,
+    'utf8'
+  );
   return projectRoot;
 }
 
 function createData(openspecPath: string): OpenSpecData {
   const projectName = basename(openspecPath);
+  const configPath = join(openspecPath, 'config.yaml');
 
   return {
     project: {
       name: projectName,
       description: `Description for ${projectName}`,
-      path: join(openspecPath, 'project.md'),
-      content: `# ${projectName}`,
+      path: configPath,
+      content: `# OpenSpec Planning Context\n\nSource: ${configPath}\n`,
+      planningContext: {
+        source: {
+          path: configPath,
+          type: 'config',
+        },
+        aiContext: `Description for ${projectName}`,
+        artifactRules: [
+          {
+            artifactId: 'tasks',
+            title: 'Tasks',
+            content: `guidance:\nKeep ${projectName} aligned.`,
+            items: [{ label: 'guidance', value: `Keep ${projectName} aligned.` }],
+          },
+        ],
+        workflowSchema: `${projectName}-workflow`,
+      },
+      legacyProjectDoc: null,
+      migrationState: 'config-only',
     },
     specs: [],
     changes: {
@@ -193,7 +216,13 @@ test('add, activate, remove, clear, and getters manage multi-project sessions wi
   assert.match(first.entry.id, /^project-\d+$/);
   assert.equal(registry.getActiveProjectRoot(), projectAlpha);
   assert.equal(registry.getActiveOpenSpecPath(), getOpenSpecPath(projectAlpha));
-  assert.equal(registry.getActiveData()?.project.path, join(getOpenSpecPath(projectAlpha), 'project.md'));
+  assert.equal(registry.getActiveData()?.project.path, join(getOpenSpecPath(projectAlpha), 'config.yaml'));
+  assert.deepEqual(registry.getActiveData()?.project.planningContext.source, {
+    path: join(getOpenSpecPath(projectAlpha), 'config.yaml'),
+    type: 'config',
+  });
+  assert.equal(registry.getActiveData()?.project.legacyProjectDoc, null);
+  assert.equal(registry.getActiveData()?.project.migrationState, 'config-only');
   assert.equal(registry.listProjects().length, 1);
 
   registry.setCommandAvailabilityCache(harness.cacheValue);

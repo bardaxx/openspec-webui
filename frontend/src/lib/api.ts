@@ -41,6 +41,29 @@ export interface Project {
   description: string;
   path: string;
   content: string;
+  planningContext: {
+    source: {
+      path: string;
+      type: 'config';
+    };
+    aiContext: string;
+    artifactRules: Array<{
+      artifactId: string;
+      title: string;
+      content: string;
+      items: Array<{
+        label: string;
+        value: string;
+      }>;
+    }>;
+    workflowSchema: string;
+  };
+  legacyProjectDoc: {
+    path: string;
+    content: string;
+    description: string;
+  } | null;
+  migrationState: 'config-only' | 'legacy-present' | 'migration-needed';
 }
 
 export interface ProjectEntry {
