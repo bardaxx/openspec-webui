@@ -1,20 +1,15 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  OpenSpec WebUI: local-first browser UI for exploring and iterating on OpenSpec-compatible directories.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  Tech stack: Node.js 20+, TypeScript, Fastify, Svelte 5, Vite, chokidar.
+
+  Directory conventions:
+  - src/ → CLI, server, parser, shared types, watcher logic
+  - frontend/ → Svelte app, UI components, static browser assets
+  - openspec/ → project context, main specs, active changes, archived changes
+
+  Constraints:
+  - Local-first, defaults to 127.0.0.1
+  - User-visible behavior changes should be captured in OpenSpec before or alongside implementation

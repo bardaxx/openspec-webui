@@ -1,9 +1,28 @@
 import type { Change, ChangeSummary, CommandAvailability, TaskProgress } from './api';
-import type { AiTool, ExpandedCommand, WorkflowCommand } from './commandTypes';
+import {
+  CORE_COMMANDS,
+  type CommandFormat,
+  type CoreCommand,
+  type ExpandedCommand,
+  type WorkflowCommand,
+} from './commandTypes';
+
+const SKILL_NAMES: Record<WorkflowCommand, string> = {
+  propose: 'openspec-propose',
+  explore: 'openspec-explore',
+  apply: 'openspec-apply-change',
+  archive: 'openspec-archive-change',
+  verify: 'openspec-verify-change',
+  sync: 'openspec-sync-specs',
+  new: 'openspec-new-change',
+  continue: 'openspec-continue-change',
+  ff: 'openspec-ff-change',
+  'bulk-archive': 'openspec-bulk-archive-change',
+};
 
 export interface CommandPreferencesSnapshot {
-  aiTool: AiTool;
-  expandedVisibility: Record<ExpandedCommand, boolean>;
+  format: CommandFormat;
+  commandVisibility: Record<WorkflowCommand, boolean>;
   availability: CommandAvailability;
 }
 
@@ -14,11 +33,20 @@ export interface ChangeCommandContext {
 
 export function buildCommand(
   workflow: WorkflowCommand,
-  aiTool: AiTool,
+  format: CommandFormat,
   changeName?: string
 ): string {
-  const prefix = aiTool === 'claude-code' ? '/opsx:' : '/opsx-';
+  if (format === 'skill') {
+    const skillName = SKILL_NAMES[workflow];
+    return changeName ? `/${skillName} ${changeName}` : `/${skillName}`;
+  }
+
+  const prefix = format === 'claude-code' ? '/opsx:' : '/opsx-';
   return changeName ? `${prefix}${workflow} ${changeName}` : `${prefix}${workflow}`;
+}
+
+export function isCoreCommand(command: WorkflowCommand): command is CoreCommand {
+  return CORE_COMMANDS.includes(command as CoreCommand);
 }
 
 export function isExpandedCommandAvailable(
@@ -33,7 +61,18 @@ export function isExpandedCommandEnabled(
   command: ExpandedCommand
 ): boolean {
   return isExpandedCommandAvailable(command, preferences.availability)
-    && preferences.expandedVisibility[command];
+    && preferences.commandVisibility[command];
+}
+
+export function isCommandEnabled(
+  preferences: CommandPreferencesSnapshot,
+  command: WorkflowCommand
+): boolean {
+  if (isCoreCommand(command)) {
+    return preferences.commandVisibility[command];
+  }
+
+  return isExpandedCommandEnabled(preferences, command);
 }
 
 function hasIncompleteTaskProgress(progress: TaskProgress): boolean {
@@ -48,24 +87,32 @@ export function getWorkspaceCommands(
   activeChanges: ChangeSummary[],
   preferences: CommandPreferencesSnapshot
 ): WorkflowCommand[] {
-  const commands: WorkflowCommand[] = ['propose', 'explore'];
+  const commands: WorkflowCommand[] = [];
 
-  if (isExpandedCommandEnabled(preferences, 'new')) {
+  if (isCommandEnabled(preferences, 'propose')) {
+    commands.push('propose');
+  }
+
+  if (isCommandEnabled(preferences, 'explore')) {
+    commands.push('explore');
+  }
+
+  if (isCommandEnabled(preferences, 'new')) {
     commands.push('new');
   }
 
   if (activeChanges.some((change) => hasIncompleteTaskProgress(change.taskProgress))) {
-    if (isExpandedCommandEnabled(preferences, 'continue')) {
+    if (isCommandEnabled(preferences, 'continue')) {
       commands.push('continue');
     }
 
-    if (isExpandedCommandEnabled(preferences, 'ff')) {
+    if (isCommandEnabled(preferences, 'ff')) {
       commands.push('ff');
     }
   }
 
   if (activeChanges.some((change) => hasCompleteTaskProgress(change.taskProgress))
-    && isExpandedCommandEnabled(preferences, 'bulk-archive')) {
+    && isCommandEnabled(preferences, 'bulk-archive')) {
     commands.push('bulk-archive');
   }
 
@@ -81,26 +128,34 @@ export function getChangeCommands(
   }
 
   if (hasCompleteTaskProgress(change.taskProgress)) {
-    const commands: WorkflowCommand[] = ['archive'];
+    const commands: WorkflowCommand[] = [];
 
-    if (isExpandedCommandEnabled(preferences, 'verify')) {
+    if (isCommandEnabled(preferences, 'archive')) {
+      commands.push('archive');
+    }
+
+    if (isCommandEnabled(preferences, 'verify')) {
       commands.push('verify');
     }
 
-    if (isExpandedCommandEnabled(preferences, 'sync')) {
+    if (isCommandEnabled(preferences, 'sync')) {
       commands.push('sync');
     }
 
     return commands;
   }
 
-  const commands: WorkflowCommand[] = ['apply'];
+  const commands: WorkflowCommand[] = [];
 
-  if (isExpandedCommandEnabled(preferences, 'continue')) {
+  if (isCommandEnabled(preferences, 'apply')) {
+    commands.push('apply');
+  }
+
+  if (isCommandEnabled(preferences, 'continue')) {
     commands.push('continue');
   }
 
-  if (isExpandedCommandEnabled(preferences, 'ff')) {
+  if (isCommandEnabled(preferences, 'ff')) {
     commands.push('ff');
   }
 

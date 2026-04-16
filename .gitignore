@@ -31,6 +31,7 @@ npm-debug.log*
 .opencode*
 .cursor/
 .codex
+.github/
 
 # OpenSpec: exclude active (unarchived) changes, keep archive/
 openspec/changes/*

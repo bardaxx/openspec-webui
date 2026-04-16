@@ -1,14 +1,13 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { Archive, ArrowRight, Bookmark, House, BookOpen, Calendar, CheckSquare, Clipboard, FileText, FolderPen, History, SquarePen } from '@lucide/svelte';
+  import { Archive, ArrowRight, Bookmark, House, BookOpen, Calendar, CheckSquare, FileText, FolderPen, History, SquarePen } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
   import { Button } from '$lib/components/ui/button';
   import { EmptyState } from '$lib/components/ui/empty-state';
   import { IconBox } from '$lib/components/ui/icon-box';
   import { activeChanges, archivedChanges, project, specs, stats } from '../stores/index.svelte.ts';
   import { commandPreferencesStore } from '../stores/commandPreferences.svelte.ts';
-  import { buildCommand, getChangeCommands, getWorkspaceCommands } from '../lib/commandShortcuts';
-  import type { WorkflowCommand } from '../lib/commandTypes';
+  import { getChangeCommands, getWorkspaceCommands } from '../lib/commandShortcuts';
   import { layoutStore } from '../stores/layout.svelte.ts';
   import { tabStore } from '../stores/tabs.svelte.ts';
   import MarkdownRenderer from './MarkdownRenderer.svelte';
@@ -16,7 +15,6 @@
   import CommandShortcutBar from './CommandShortcutBar.svelte';
   import { formatChangeName } from '../lib/utils';
   import * as utils from '../lib/utils';
-  import { toast } from 'svelte-sonner';
 
   type TimestampedChange = {
     name: string;
@@ -43,7 +41,15 @@
     iso: string | null | undefined,
   ) => string;
 
-  let workspaceCommands = $derived(getWorkspaceCommands(activeChanges.value, commandPreferencesStore));
+  function commandPreferencesSnapshot() {
+    return {
+      format: commandPreferencesStore.format,
+      commandVisibility: commandPreferencesStore.commandVisibility,
+      availability: commandPreferencesStore.availability,
+    };
+  }
+
+  let workspaceCommands = $derived(getWorkspaceCommands(activeChanges.value, commandPreferencesSnapshot()));
 
   function timestampValue(value: string | null | undefined) {
     if (!value) {
@@ -153,24 +159,13 @@
     document.getElementById('project-documentation')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  async function copyCommand(command: WorkflowCommand, changeName?: string) {
-    const text = buildCommand(command, commandPreferencesStore.aiTool, changeName);
-
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success('Copied to clipboard!');
-    } catch {
-      toast.error('Failed to copy');
-    }
-  }
-
   function changeCommandsFor(change: TimestampedChange) {
     const changeContext = {
       isArchived: change.isArchived ?? false,
       taskProgress: change.taskProgress,
     } as Parameters<typeof getChangeCommands>[0];
 
-    return getChangeCommands(changeContext, commandPreferencesStore);
+    return getChangeCommands(changeContext, commandPreferencesSnapshot());
   }
 </script>
 

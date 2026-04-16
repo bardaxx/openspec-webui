@@ -30,7 +30,15 @@
     onRequestClose = () => {},
   }: Props = $props();
 
-  let workspaceCommands = $derived(getWorkspaceCommands(activeChanges.value, commandPreferencesStore));
+  function commandPreferencesSnapshot() {
+    return {
+      format: commandPreferencesStore.format,
+      commandVisibility: commandPreferencesStore.commandVisibility,
+      availability: commandPreferencesStore.availability,
+    };
+  }
+
+  let workspaceCommands = $derived(getWorkspaceCommands(activeChanges.value, commandPreferencesSnapshot()));
   const formatExplorerDate = ((utils as Record<string, unknown>).formatDate ?? (() => '')) as (
     iso: string | null | undefined,
   ) => string;

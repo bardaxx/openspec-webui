@@ -13,8 +13,8 @@
 
   let { commands = [], changeName = null }: Props = $props();
 
-  function commandText(command: WorkflowCommand) {
-    return buildCommand(command, commandPreferencesStore.aiTool, changeName ?? undefined);
+  function commandText(command: WorkflowCommand): string {
+    return buildCommand(command, commandPreferencesStore.format, changeName ?? undefined);
   }
 
   async function copyCommand(command: WorkflowCommand) {
@@ -32,10 +32,11 @@
 {#if commands.length > 0}
   <div class="flex max-w-full flex-wrap items-center gap-1.5">
     {#each commands as command}
+      {@const text = commandText(command)}
       <CommandChip
         label={command}
         icon={Clipboard}
-        title={`Copy ${commandText(command)}`}
+        title={`Copy ${text}`}
         onclick={() => copyCommand(command)}
       />
     {/each}

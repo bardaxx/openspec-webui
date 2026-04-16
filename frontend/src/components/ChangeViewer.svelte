@@ -35,11 +35,19 @@
   let activeGroupIndex = $state(0);
   let activeFileIndex = $state(0);
 
+  function commandPreferencesSnapshot() {
+    return {
+      format: commandPreferencesStore.format,
+      commandVisibility: commandPreferencesStore.commandVisibility,
+      availability: commandPreferencesStore.availability,
+    };
+  }
+
   let activeGroup = $derived(change?.fileGroups[activeGroupIndex] ?? null);
   let activeFile = $derived(activeGroup?.files[activeFileIndex] ?? null);
   let showDeltasTab = $derived((change?.specDeltas.length ?? 0) > 0);
   let isDeltasActive = $derived(activeGroupIndex === (change?.fileGroups.length ?? 0));
-  let changeCommands = $derived(change ? getChangeCommands(change, commandPreferencesStore) : []);
+  let changeCommands = $derived(change ? getChangeCommands(change, commandPreferencesSnapshot()) : []);
   let primaryTabs = $derived(
     change
       ? [

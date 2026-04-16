@@ -1,15 +1,20 @@
 import { getCommandAvailability, type CommandAvailability } from '../lib/api';
-import { EXPANDED_COMMANDS, type AiTool, type ExpandedCommand } from '../lib/commandTypes';
+import type { WorkflowCommand } from '../lib/commandTypes';
+import {
+  createCommandPreferencesStoreWithAdapter,
+  loadCommandPreferences,
+  type CommandFormat,
+  type CommandPreferences,
+  type CommandVisibility,
+} from './commandPreferencesCore';
 
-const STORAGE_KEY = 'openspec-command-preferences';
-
-type ExpandedVisibility = Record<ExpandedCommand, boolean>;
+export type { CommandFormat, CommandPreferences, CommandVisibility } from './commandPreferencesCore';
 
 export interface CommandPreferencesState {
   initialized: boolean;
   availabilityLoading: boolean;
-  aiTool: AiTool;
-  expandedVisibility: ExpandedVisibility;
+  format: CommandFormat;
+  commandVisibility: CommandVisibility;
   availability: CommandAvailability;
 }
 
@@ -21,103 +26,26 @@ const defaultAvailability: CommandAvailability = {
   error: null,
 };
 
-function createDefaultExpandedVisibility(): ExpandedVisibility {
-  return {
-    new: true,
-    continue: true,
-    ff: true,
-    verify: true,
-    sync: true,
-    'bulk-archive': true,
-  };
-}
-
-function isAiTool(value: unknown): value is AiTool {
-  return value === 'default' || value === 'claude-code';
-}
-
-function normalizeExpandedVisibility(value: unknown): ExpandedVisibility {
-  const normalized = createDefaultExpandedVisibility();
-
-  if (!value || typeof value !== 'object') {
-    return normalized;
-  }
-
-  const candidate = value as Partial<Record<ExpandedCommand, unknown>>;
-  for (const command of EXPANDED_COMMANDS) {
-    const commandValue = candidate[command];
-    if (typeof commandValue === 'boolean') {
-      normalized[command] = commandValue;
-    }
-  }
-
-  return normalized;
-}
-
-function loadPreferences(): Pick<CommandPreferencesState, 'aiTool' | 'expandedVisibility'> {
-  const defaults = {
-    aiTool: 'default' as AiTool,
-    expandedVisibility: createDefaultExpandedVisibility(),
-  };
-
-  if (typeof localStorage === 'undefined') {
-    return defaults;
-  }
-
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) {
-      return defaults;
-    }
-
-    const parsed = JSON.parse(stored) as {
-      aiTool?: unknown;
-      expandedVisibility?: unknown;
-    };
-
-    return {
-      aiTool: isAiTool(parsed.aiTool) ? parsed.aiTool : defaults.aiTool,
-      expandedVisibility: normalizeExpandedVisibility(parsed.expandedVisibility),
-    };
-  } catch {
-    return defaults;
-  }
-}
-
-function savePreferences(state: Pick<CommandPreferencesState, 'aiTool' | 'expandedVisibility'>) {
-  if (typeof localStorage === 'undefined') {
-    return;
-  }
-
-  try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        aiTool: state.aiTool,
-        expandedVisibility: { ...state.expandedVisibility },
-      })
-    );
-  } catch {
-    // Ignore storage errors.
-  }
-}
-
 function createCommandPreferencesStore() {
-  const state = $state<CommandPreferencesState>({
-    initialized: false,
-    availabilityLoading: false,
-    aiTool: 'default',
-    expandedVisibility: createDefaultExpandedVisibility(),
-    availability: defaultAvailability,
+  let initialized = $state(false);
+  let availabilityLoading = $state(false);
+  let availability = $state<CommandAvailability>(defaultAvailability);
+  let preferences = $state<CommandPreferences>(loadCommandPreferences());
+
+  const preferencesStore = createCommandPreferencesStoreWithAdapter({
+    get: () => preferences,
+    set: (nextPreferences) => {
+      preferences = nextPreferences;
+    },
   });
 
   async function refreshAvailability() {
-    state.availabilityLoading = true;
+    availabilityLoading = true;
 
     try {
-      state.availability = await getCommandAvailability();
+      availability = await getCommandAvailability();
     } catch (cause) {
-      state.availability = {
+      availability = {
         status: 'unavailable',
         profile: null,
         workflows: [],
@@ -125,64 +53,50 @@ function createCommandPreferencesStore() {
         error: cause instanceof Error ? cause.message : 'Failed to load command availability',
       };
     } finally {
-      state.availabilityLoading = false;
+      availabilityLoading = false;
     }
   }
 
   return {
     get initialized() {
-      return state.initialized;
+      return initialized;
     },
 
     get availabilityLoading() {
-      return state.availabilityLoading;
+      return availabilityLoading;
     },
 
-    get aiTool() {
-      return state.aiTool;
+    get format() {
+      return preferencesStore.format;
     },
 
-    get expandedVisibility() {
-      return state.expandedVisibility;
+    get commandVisibility() {
+      return preferencesStore.commandVisibility;
     },
 
     get availability() {
-      return state.availability;
+      return availability;
     },
 
     async initialize() {
-      if (state.initialized) {
+      if (initialized) {
         return;
       }
 
-      const preferences = loadPreferences();
-      state.initialized = true;
-      state.aiTool = preferences.aiTool;
-      state.expandedVisibility = preferences.expandedVisibility;
+      initialized = true;
+      preferencesStore.initialize();
 
       await refreshAvailability();
     },
 
     refreshAvailability,
 
-    setAiTool(aiTool: AiTool) {
-      state.aiTool = aiTool;
-      savePreferences({
-        aiTool: state.aiTool,
-        expandedVisibility: state.expandedVisibility,
-      });
+    setFormat(format: CommandFormat) {
+      preferencesStore.setFormat(format);
     },
 
-    setExpandedVisibility(command: ExpandedCommand, visible: boolean) {
-      state.expandedVisibility = {
-        ...state.expandedVisibility,
-        [command]: visible,
-      };
-
-      savePreferences({
-        aiTool: state.aiTool,
-        expandedVisibility: state.expandedVisibility,
-      });
+    setCommandVisibility(command: WorkflowCommand, visible: boolean) {
+      preferencesStore.setCommandVisibility(command, visible);
     },
   };
 }
