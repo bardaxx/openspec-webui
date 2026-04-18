@@ -1,21 +1,23 @@
 import { tick } from 'svelte';
-import type { Project, Stats, SpecSummary, ChangeSummary } from '../lib/api';
+import { toast } from 'svelte-sonner';
+
 import {
   getApiErrorMessage,
-  getProject,
-  getStats,
-  getSpecs,
   getChanges,
+  getProject,
+  getSpecs,
+  getStats,
   isNoActiveProjectError,
-} from '../lib/api';
-import { wsClient, type WSMessage } from '../lib/websocket';
+} from '$lib/api';
+import type { ChangeSummary, Project, SpecSummary, Stats } from '$lib/types/api';
+import { wsClient, type WSMessage } from '$lib/websocket';
+
 import { commandPreferencesStore } from './commandPreferences.svelte.ts';
 import { layoutStore } from './layout.svelte.ts';
 import { projectStore } from './projects.svelte.ts';
 import { shouldRestoreProjectBinding } from './projectsCore';
 import { handleProjectContextMessage } from './projectSync';
 import { tabStore } from './tabs.svelte.ts';
-import { toast } from 'svelte-sonner';
 
 function createBox<T>(read: () => T, write: (value: T) => void) {
   return {

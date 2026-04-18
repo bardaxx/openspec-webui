@@ -3,10 +3,11 @@
   import { Button } from '$lib/components/ui/button';
   import * as Collapsible from '$lib/components/ui/collapsible';
   import * as Dialog from '$lib/components/ui/dialog';
-  import { DialogHeader as SharedDialogHeader } from '$lib/components/ui/dialog-header';
-  import { projectStore } from '../../stores/projects.svelte.ts';
-  import { layoutStore } from '../../stores/layout.svelte.ts';
-  import { browseDirectory, type BrowseResult } from '../../lib/api.ts';
+  import { DialogHeader as SharedDialogHeader } from '$lib/components/shared/dialog-header';
+  import { browseDirectory } from '$lib/api';
+  import { layoutStore } from '$lib/state/layout.svelte.ts';
+  import { projectStore } from '$lib/state/projects.svelte.ts';
+  import type { BrowseResult } from '$lib/types/api';
 
   interface Props {
     open: boolean;

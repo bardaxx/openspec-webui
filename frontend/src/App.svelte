@@ -2,11 +2,11 @@
   import {
     initializeData,
     setupWebSocket,
-  } from './stores/index.svelte.ts';
-  import { commandPreferencesStore } from './stores/commandPreferences.svelte.ts';
-  import { themeStore } from './stores/theme.svelte.ts';
-  import { uiPreferencesStore } from './stores/uiPreferences.svelte.ts';
-  import AppLayout from './components/layout/AppLayout.svelte';
+  } from '$lib/state/appData.svelte.ts';
+  import { commandPreferencesStore } from '$lib/state/commandPreferences.svelte.ts';
+  import { themeStore } from '$lib/state/theme.svelte.ts';
+  import { uiPreferencesStore } from '$lib/state/uiPreferences.svelte.ts';
+  import AppLayout from '$lib/components/layout/AppLayout.svelte';
   import { Toaster } from '$lib/components/ui/sonner';
 
   $effect(() => {

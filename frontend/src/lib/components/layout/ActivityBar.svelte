@@ -2,10 +2,10 @@
   import { Archive, FileText, House, PanelLeftClose, PanelLeftOpen, Search, Settings } from '@lucide/svelte';
   import * as Tooltip from '$lib/components/ui/tooltip';
   import { decodeName } from '$lib/utils';
-  import { archivedChanges, project } from '../../stores/index.svelte.ts';
-  import { projectStore } from '../../stores/projects.svelte.ts';
-  import { layoutStore, type ActivityPreset } from '../../stores/layout.svelte.ts';
-  import { tabStore } from '../../stores/tabs.svelte.ts';
+  import { archivedChanges, project } from '$lib/state/appData.svelte.ts';
+  import { projectStore } from '$lib/state/projects.svelte.ts';
+  import { layoutStore, type ActivityPreset } from '$lib/state/layout.svelte.ts';
+  import { tabStore } from '$lib/state/tabs.svelte.ts';
 
   function sectionFromPath(path: string): ActivityPreset {
     if (path === '/specs' || path.startsWith('/specs/')) {

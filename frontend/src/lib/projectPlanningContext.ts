@@ -1,4 +1,4 @@
-import type { Project } from './api';
+import type { Project } from './types/api';
 
 export function getPlanningContextNotice(project: Pick<Project, 'migrationState'>): {
   variant: 'warning' | 'info' | null;

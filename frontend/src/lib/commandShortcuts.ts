@@ -1,11 +1,11 @@
-import type { Change, ChangeSummary, CommandAvailability, TaskProgress } from './api';
+import type { Change, ChangeSummary, CommandAvailability, TaskProgress } from './types/api';
 import {
   CORE_COMMANDS,
   type CommandFormat,
   type CoreCommand,
   type ExpandedCommand,
   type WorkflowCommand,
-} from './commandTypes';
+} from './types/commandTypes';
 
 const SKILL_NAMES: Record<WorkflowCommand, string> = {
   propose: 'openspec-propose',

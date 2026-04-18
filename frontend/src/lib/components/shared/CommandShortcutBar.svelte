@@ -1,10 +1,10 @@
 <script lang="ts">
   import { Clipboard } from '@lucide/svelte';
-  import { CommandChip } from '$lib/components/ui/command-chip';
-  import type { WorkflowCommand } from '../lib/commandTypes';
-  import { buildCommand } from '../lib/commandShortcuts';
+  import { CommandChip } from '$lib/components/shared/command-chip';
+  import type { WorkflowCommand } from '$lib/types/commandTypes';
+  import { buildCommand } from '$lib/commandShortcuts';
   import { toast } from 'svelte-sonner';
-  import { commandPreferencesStore } from '../stores/commandPreferences.svelte.ts';
+  import { commandPreferencesStore } from '$lib/state/commandPreferences.svelte.ts';
 
   interface Props {
     commands?: WorkflowCommand[];

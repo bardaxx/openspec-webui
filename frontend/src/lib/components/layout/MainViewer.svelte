@@ -1,12 +1,12 @@
 <script lang="ts">
   import { decodeName } from '$lib/utils';
-  import { ErrorBanner } from '$lib/components/ui/error-banner';
-  import { LoadingState } from '$lib/components/ui/loading-state';
-  import { error, initializeData, isLoading } from '../../stores/index.svelte.ts';
-  import { tabStore } from '../../stores/tabs.svelte.ts';
-  import Dashboard from '../Dashboard.svelte';
-  import ChangeViewer from '../ChangeViewer.svelte';
-  import SpecViewer from '../SpecViewer.svelte';
+  import { ErrorBanner } from '$lib/components/shared/error-banner';
+  import { LoadingState } from '$lib/components/shared/loading-state';
+  import { error, initializeData, isLoading } from '$lib/state/appData.svelte.ts';
+  import { tabStore } from '$lib/state/tabs.svelte.ts';
+  import Dashboard from '$lib/views/Dashboard.svelte';
+  import ChangeViewer from '$lib/views/ChangeViewer.svelte';
+  import SpecViewer from '$lib/views/SpecViewer.svelte';
   import TabBar from './TabBar.svelte';
 
   let activeTab = $derived(tabStore.activeTab);

@@ -2,12 +2,13 @@
   import { tick } from 'svelte';
   import { Search } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
-  import { DialogHeader as SharedDialogHeader } from '$lib/components/ui/dialog-header';
+  import { DialogHeader as SharedDialogHeader } from '$lib/components/shared/dialog-header';
   import * as Dialog from '$lib/components/ui/dialog';
-  import { search, type SearchResult } from '../../lib/api';
-  import { searchQuery } from '../../stores/index.svelte.ts';
-  import { tabStore } from '../../stores/tabs.svelte.ts';
-  import { layoutStore } from '../../stores/layout.svelte.ts';
+  import { search } from '$lib/api';
+  import { searchQuery } from '$lib/state/appData.svelte.ts';
+  import { tabStore } from '$lib/state/tabs.svelte.ts';
+  import { layoutStore } from '$lib/state/layout.svelte.ts';
+  import type { SearchResult } from '$lib/types/api';
 
   interface Props {
     open?: boolean;

@@ -4,9 +4,9 @@ import {
   type CommandFormat,
   type ExpandedCommand,
   type WorkflowCommand,
-} from '../lib/commandTypes';
+} from '../types/commandTypes';
 
-export type { CommandFormat } from '../lib/commandTypes';
+export type { CommandFormat } from '../types/commandTypes';
 export type CommandVisibility = Record<WorkflowCommand, boolean>;
 
 export interface CommandPreferences {

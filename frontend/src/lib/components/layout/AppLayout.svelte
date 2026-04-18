@@ -1,16 +1,16 @@
 <script lang="ts">
   import * as Resizable from '$lib/components/ui/resizable';
   import * as Sheet from '$lib/components/ui/sheet';
-  import { layoutStore } from '../../stores/layout.svelte.ts';
-  import { projectStore } from '../../stores/projects.svelte.ts';
-  import SettingsModal from '../SettingsModal.svelte';
+  import { layoutStore } from '$lib/state/layout.svelte.ts';
+  import { projectStore } from '$lib/state/projects.svelte.ts';
+  import SettingsModal from './SettingsModal.svelte';
   import ActivityBar from './ActivityBar.svelte';
   import ExplorerPane from './ExplorerPane.svelte';
   import MainViewer from './MainViewer.svelte';
   import SearchDialog from './SearchDialog.svelte';
   import ProjectSelector from './ProjectSelector.svelte';
   import AddProjectDialog from './AddProjectDialog.svelte';
-  import EmptyProjectState from '../EmptyProjectState.svelte';
+  import EmptyProjectState from './EmptyProjectState.svelte';
 
   let dragStartWidth = $state(layoutStore.rememberedExplorerWidth);
 

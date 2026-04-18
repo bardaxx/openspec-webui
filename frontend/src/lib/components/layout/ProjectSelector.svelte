@@ -2,10 +2,10 @@
   import { Folder, FolderPlus, Loader2, Trash2, CheckCircle2 } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button';
   import * as Dialog from '$lib/components/ui/dialog';
-  import { DialogHeader as SharedDialogHeader } from '$lib/components/ui/dialog-header';
+  import { DialogHeader as SharedDialogHeader } from '$lib/components/shared/dialog-header';
   import { toast } from 'svelte-sonner';
-  import { projectStore } from '../../stores/projects.svelte.ts';
-  import { layoutStore } from '../../stores/layout.svelte.ts';
+  import { projectStore } from '$lib/state/projects.svelte.ts';
+  import { layoutStore } from '$lib/state/layout.svelte.ts';
 
   interface Props {
     open: boolean;

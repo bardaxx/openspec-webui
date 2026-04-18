@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "node ./scripts/dev.mjs",
     "build": "node ./scripts/run-local-bin.mjs tsc && node ./scripts/run-local-bin.mjs vite build --config frontend/vite.config.ts",
-    "test": "node --import tsx --test src/parser/changes.test.ts src/parser/project.test.ts src/server/project-registry.test.ts src/server/server.integration.test.ts frontend/src/stores/theme.test.ts frontend/src/stores/uiPreferences.test.ts frontend/src/stores/projectSync.test.ts frontend/src/stores/projectsCore.test.ts frontend/src/stores/commandPreferencesCore.test.ts frontend/src/lib/utils.test.ts frontend/src/lib/contextCopy.test.ts frontend/src/lib/commandShortcuts.test.ts frontend/src/lib/projectPlanningContext.test.ts scripts/dev-utils.test.mjs",
+    "test": "node --import tsx --test src/parser/changes.test.ts src/parser/project.test.ts src/server/project-registry.test.ts src/server/server.integration.test.ts frontend/src/lib/state/theme.test.ts frontend/src/lib/state/uiPreferences.test.ts frontend/src/lib/state/projectSync.test.ts frontend/src/lib/state/projectsCore.test.ts frontend/src/lib/state/commandPreferencesCore.test.ts frontend/src/lib/utils.test.ts frontend/src/lib/contextCopy.test.ts frontend/src/lib/commandShortcuts.test.ts frontend/src/lib/projectPlanningContext.test.ts scripts/dev-utils.test.mjs",
     "typecheck": "node ./scripts/run-local-bin.mjs tsc --noEmit && node ./scripts/run-local-bin.mjs svelte-check --tsconfig ./frontend/tsconfig.json",
     "prepublishOnly": "npm run build"
   },

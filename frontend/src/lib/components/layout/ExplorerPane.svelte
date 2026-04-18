@@ -2,20 +2,20 @@
   import { Archive, Calendar, CheckSquare, FileText, Folder, FolderPen, SquarePen } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
   import { Button } from '$lib/components/ui/button';
-  import { EmptyState } from '$lib/components/ui/empty-state';
-  import { ExplorerSection as SharedExplorerSection } from '$lib/components/ui/explorer-section';
-  import { ItemContextMenu } from '$lib/components/ui/item-context-menu';
+  import { EmptyState } from '$lib/components/shared/empty-state';
+  import { ExplorerSection as SharedExplorerSection } from '$lib/components/shared/explorer-section';
+  import { ItemContextMenu } from '$lib/components/shared/item-context-menu';
   import { createItemContextMenuItems } from '$lib/itemContextMenu';
   import * as ScrollArea from '$lib/components/ui/scroll-area';
-  import { getWorkspaceCommands } from '../../lib/commandShortcuts';
-  import { activeChanges, archivedChanges, project, specs } from '../../stores/index.svelte.ts';
-  import { commandPreferencesStore } from '../../stores/commandPreferences.svelte.ts';
-  import { layoutStore, type ExplorerSection } from '../../stores/layout.svelte.ts';
-  import { tabStore } from '../../stores/tabs.svelte.ts';
-  import { uiPreferencesStore } from '../../stores/uiPreferences.svelte.ts';
-  import CommandShortcutBar from '../CommandShortcutBar.svelte';
+  import { getWorkspaceCommands } from '$lib/commandShortcuts';
+  import { activeChanges, archivedChanges, project, specs } from '$lib/state/appData.svelte.ts';
+  import { commandPreferencesStore } from '$lib/state/commandPreferences.svelte.ts';
+  import { layoutStore, type ExplorerSection } from '$lib/state/layout.svelte.ts';
+  import { tabStore } from '$lib/state/tabs.svelte.ts';
+  import { uiPreferencesStore } from '$lib/state/uiPreferences.svelte.ts';
+  import CommandShortcutBar from '$lib/components/shared/CommandShortcutBar.svelte';
   import { Progress } from '$lib/components/ui/progress';
-  import { formatChangeName, formatDate } from '../../lib/utils';
+  import { formatChangeName, formatDate } from '$lib/utils';
 
   interface Props {
     temporary?: boolean;

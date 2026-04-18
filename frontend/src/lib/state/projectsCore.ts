@@ -1,4 +1,4 @@
-import type { ProjectListResponse } from '../lib/api';
+import type { ProjectListResponse } from '../types/api';
 
 export const ACTIVE_PROJECT_SESSION_STORAGE_KEY = 'openspec-active-project-id';
 

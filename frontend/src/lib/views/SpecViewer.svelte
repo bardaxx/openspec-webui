@@ -1,22 +1,23 @@
 <script lang="ts">
   import { FileText, Calendar, Search, Clipboard, Quote } from '@lucide/svelte';
-  import { ErrorBanner } from '$lib/components/ui/error-banner';
-  import { IconBox } from '$lib/components/ui/icon-box';
-  import { LoadingState } from '$lib/components/ui/loading-state';
-  import { UnderlineTabs } from '$lib/components/ui/underline-tabs';
+  import { ErrorBanner } from '$lib/components/shared/error-banner';
+  import { IconBox } from '$lib/components/shared/icon-box';
+  import { LoadingState } from '$lib/components/shared/loading-state';
+  import { UnderlineTabs } from '$lib/components/shared/underline-tabs';
   import { Button } from '$lib/components/ui/button';
   import * as ContextMenu from '$lib/components/ui/context-menu';
   import { toast } from 'svelte-sonner';
-  import { getSpec, type Spec } from '../lib/api';
+  import { getSpec } from '$lib/api';
   import {
     buildCopySelectionResult,
     buildQuotedCopySelectionResult,
     getSpecViewerContextLabel,
-  } from '../lib/contextCopy';
-  import { specsRefreshTrigger } from '../stores/index.svelte.ts';
-  import { layoutStore } from '../stores/layout.svelte.ts';
-  import MarkdownRenderer from './MarkdownRenderer.svelte';
-  import { formatDate } from '../lib/utils';
+  } from '$lib/contextCopy';
+  import { specsRefreshTrigger } from '$lib/state/appData.svelte.ts';
+  import { layoutStore } from '$lib/state/layout.svelte.ts';
+  import type { Spec } from '$lib/types/api';
+  import MarkdownRenderer from '$lib/components/shared/MarkdownRenderer.svelte';
+  import { formatDate } from '$lib/utils';
   interface Props {
     specName: string;
   }

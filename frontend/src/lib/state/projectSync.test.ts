@@ -59,7 +59,6 @@ test('project bound reinitialization closes the selector, resets tabs to Dashboa
   ]);
 });
 
-
 test('connection:init reinitializes project-scoped state when the active project changed during reconnect', async () => {
   const { actions, calls } = createActions({
     messageType: 'connection:init',

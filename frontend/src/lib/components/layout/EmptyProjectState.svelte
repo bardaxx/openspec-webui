@@ -1,7 +1,7 @@
 <script lang="ts">
   import { FileArchive, FolderPlus } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button';
-  import { layoutStore } from '../stores/layout.svelte.ts';
+  import { layoutStore } from '$lib/state/layout.svelte.ts';
 </script>
 
 <div class="flex h-full w-full items-center justify-center bg-background p-4 text-center">

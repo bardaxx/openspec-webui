@@ -1,23 +1,23 @@
 <script lang="ts">
   import { Command, ListChecks, Settings } from '@lucide/svelte';
-  import { Callout } from '$lib/components/ui/callout';
-  import { DialogHeader as SharedDialogHeader } from '$lib/components/ui/dialog-header';
+  import { Callout } from '$lib/components/shared/callout';
+  import { DialogHeader as SharedDialogHeader } from '$lib/components/shared/dialog-header';
   import * as Dialog from '$lib/components/ui/dialog';
-  import type { CommandFormat, WorkflowCommand } from '../lib/commandTypes';
+  import type { CommandFormat, WorkflowCommand } from '$lib/types/commandTypes';
   import {
     CORE_COMMANDS,
     CORE_COMMAND_LABELS,
     EXPANDED_COMMANDS,
     EXPANDED_COMMAND_LABELS,
-  } from '../lib/commandTypes';
+  } from '$lib/types/commandTypes';
   import {
     buildCommand,
     isExpandedCommandAvailable,
-  } from '../lib/commandShortcuts';
-  import { commandPreferencesStore } from '../stores/commandPreferences.svelte.ts';
-  import { tabStore } from '../stores/tabs.svelte.ts';
-  import { themeStore, type Theme } from '../stores/theme.svelte.ts';
-  import { uiPreferencesStore } from '../stores/uiPreferences.svelte.ts';
+  } from '$lib/commandShortcuts';
+  import { commandPreferencesStore } from '$lib/state/commandPreferences.svelte.ts';
+  import { tabStore } from '$lib/state/tabs.svelte.ts';
+  import { themeStore, type Theme } from '$lib/state/theme.svelte.ts';
+  import { uiPreferencesStore } from '$lib/state/uiPreferences.svelte.ts';
 
   interface Props {
     open?: boolean;

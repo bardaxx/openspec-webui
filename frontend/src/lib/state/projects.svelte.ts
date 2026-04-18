@@ -4,18 +4,21 @@ import {
   getProjects,
   removeProject as removeProjectRequest,
   setActiveProjectContext,
-  type ProjectEntry,
-  type ProjectListResponse,
-  type ProjectSelectionResponse,
-  type RemoveProjectResponse,
-} from '../lib/api';
+} from '$lib/api';
+import type {
+  ProjectEntry,
+  ProjectListResponse,
+  ProjectSelectionResponse,
+  RemoveProjectResponse,
+} from '$lib/types/api';
+import { wsClient } from '$lib/websocket';
+
 import {
   loadPreferredProjectId,
   persistPreferredProjectId,
   resolveProjectSelection,
   type ProjectSelectionResolution,
 } from './projectsCore';
-import { wsClient } from '../lib/websocket';
 
 const PROJECT_BIND_TIMEOUT_MS = 10000;
 

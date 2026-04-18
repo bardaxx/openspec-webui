@@ -1,6 +1,6 @@
 import { Clipboard, FileText, Search } from '@lucide/svelte';
 
-import type { MenuItem } from '$lib/components/ui/item-context-menu';
+import type { MenuItem } from '$lib/components/shared/item-context-menu';
 
 import { copyToClipboard } from './utils';
 

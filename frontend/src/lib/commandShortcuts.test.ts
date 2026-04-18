@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import type { ChangeSummary, CommandAvailability } from './api';
-import type { CommandFormat, WorkflowCommand } from './commandTypes';
+import type { ChangeSummary, CommandAvailability } from './types/api';
+import type { CommandFormat, WorkflowCommand } from './types/commandTypes';
 import {
   buildCommand,
   getChangeCommands,

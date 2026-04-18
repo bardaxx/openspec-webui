@@ -2,25 +2,26 @@
   import { untrack } from 'svelte';
   import { Archive, Calendar, CheckSquare, Clipboard, FileText, Quote, SquarePen } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
-  import { ErrorBanner } from '$lib/components/ui/error-banner';
-  import { IconBox } from '$lib/components/ui/icon-box';
-  import { LoadingState } from '$lib/components/ui/loading-state';
-  import { UnderlineTabs } from '$lib/components/ui/underline-tabs';
+  import { ErrorBanner } from '$lib/components/shared/error-banner';
+  import { IconBox } from '$lib/components/shared/icon-box';
+  import { LoadingState } from '$lib/components/shared/loading-state';
+  import { UnderlineTabs } from '$lib/components/shared/underline-tabs';
   import * as ContextMenu from '$lib/components/ui/context-menu';
   import { toast } from 'svelte-sonner';
-  import { getChange, type Change } from '../lib/api';
+  import { getChange } from '$lib/api';
   import {
     buildCopySelectionResult,
     buildQuotedCopySelectionResult,
     getChangeViewerContextLabel,
-  } from '../lib/contextCopy';
-  import { changesRefreshTrigger } from '../stores/index.svelte.ts';
-  import { commandPreferencesStore } from '../stores/commandPreferences.svelte.ts';
-  import { getChangeCommands } from '../lib/commandShortcuts';
-  import MarkdownRenderer from './MarkdownRenderer.svelte';
+  } from '$lib/contextCopy';
+  import { changesRefreshTrigger } from '$lib/state/appData.svelte.ts';
+  import { commandPreferencesStore } from '$lib/state/commandPreferences.svelte.ts';
+  import type { Change } from '$lib/types/api';
+  import { getChangeCommands } from '$lib/commandShortcuts';
+  import MarkdownRenderer from '$lib/components/shared/MarkdownRenderer.svelte';
   import { Progress } from '$lib/components/ui/progress';
-  import CommandShortcutBar from './CommandShortcutBar.svelte';
-  import { formatChangeName, formatDate } from '../lib/utils';
+  import CommandShortcutBar from '$lib/components/shared/CommandShortcutBar.svelte';
+  import { formatChangeName, formatDate } from '$lib/utils';
 
   interface Props {
     changeName: string;

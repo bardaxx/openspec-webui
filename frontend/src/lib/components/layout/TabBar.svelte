@@ -2,8 +2,8 @@
   import { Pin, X, House, FileText, Archive, SquarePen, Clipboard, ClipboardCopy } from '@lucide/svelte';
   import * as ContextMenu from '$lib/components/ui/context-menu';
   import * as ScrollArea from '$lib/components/ui/scroll-area';
-  import { tabStore, type TabType } from '../../stores/tabs.svelte.ts';
-  import { archivedChanges } from '../../stores/index.svelte.ts';
+  import { tabStore, type TabType } from '$lib/state/tabs.svelte.ts';
+  import { archivedChanges } from '$lib/state/appData.svelte.ts';
   import { formatChangeName } from '$lib/utils.ts';
   import { toast } from 'svelte-sonner';
 

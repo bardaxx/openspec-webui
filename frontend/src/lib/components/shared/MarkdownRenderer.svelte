@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { renderMarkdown, highlightDeltas } from '../lib/markdown';
+  import { renderMarkdown, highlightDeltas } from '$lib/markdown';
 
   interface Props {
     content: string;

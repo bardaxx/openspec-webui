@@ -1,5 +1,7 @@
-import { getCommandAvailability, type CommandAvailability } from '../lib/api';
-import type { WorkflowCommand } from '../lib/commandTypes';
+import { getCommandAvailability } from '$lib/api';
+import type { CommandAvailability } from '$lib/types/api';
+import type { WorkflowCommand } from '$lib/types/commandTypes';
+
 import {
   createCommandPreferencesStoreWithAdapter,
   loadCommandPreferences,

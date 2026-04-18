@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, test } from 'node:test';
 
-import { CORE_COMMANDS } from '../lib/commandTypes';
+import { CORE_COMMANDS } from '../types/commandTypes';
 import {
   COMMAND_PREFERENCES_STORAGE_KEY,
   createCommandPreferencesStore,

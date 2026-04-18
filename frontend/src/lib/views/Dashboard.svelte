@@ -3,22 +3,22 @@
   import { Archive, ArrowRight, Bookmark, ChevronDown, ChevronRight, House, Calendar, CheckSquare, FileText, FolderPen, History, SquarePen } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
   import { Button } from '$lib/components/ui/button';
-  import { Callout } from '$lib/components/ui/callout';
+  import { Callout } from '$lib/components/shared/callout';
   import * as Collapsible from '$lib/components/ui/collapsible';
-  import { EmptyState } from '$lib/components/ui/empty-state';
-  import { IconBox } from '$lib/components/ui/icon-box';
-  import { ItemContextMenu } from '$lib/components/ui/item-context-menu';
+  import { EmptyState } from '$lib/components/shared/empty-state';
+  import { IconBox } from '$lib/components/shared/icon-box';
+  import { ItemContextMenu } from '$lib/components/shared/item-context-menu';
   import { createItemContextMenuItems, type ItemContextMenuKind } from '$lib/itemContextMenu';
-  import { activeChanges, archivedChanges, project, specs, stats } from '../stores/index.svelte.ts';
-  import { commandPreferencesStore } from '../stores/commandPreferences.svelte.ts';
-  import { getChangeCommands, getWorkspaceCommands } from '../lib/commandShortcuts';
-  import { getPlanningContextNotice } from '../lib/projectPlanningContext';
-  import { layoutStore } from '../stores/layout.svelte.ts';
-  import { tabStore } from '../stores/tabs.svelte.ts';
-  import MarkdownRenderer from './MarkdownRenderer.svelte';
+  import { activeChanges, archivedChanges, project, specs, stats } from '$lib/state/appData.svelte.ts';
+  import { commandPreferencesStore } from '$lib/state/commandPreferences.svelte.ts';
+  import { getChangeCommands, getWorkspaceCommands } from '$lib/commandShortcuts';
+  import { getPlanningContextNotice } from '$lib/projectPlanningContext';
+  import { layoutStore } from '$lib/state/layout.svelte.ts';
+  import { tabStore } from '$lib/state/tabs.svelte.ts';
+  import MarkdownRenderer from '$lib/components/shared/MarkdownRenderer.svelte';
   import { Progress } from '$lib/components/ui/progress';
-  import CommandShortcutBar from './CommandShortcutBar.svelte';
-  import { formatChangeName, formatDate } from '../lib/utils';
+  import CommandShortcutBar from '$lib/components/shared/CommandShortcutBar.svelte';
+  import { formatChangeName, formatDate } from '$lib/utils';
 
   type TimestampedChange = {
     name: string;
