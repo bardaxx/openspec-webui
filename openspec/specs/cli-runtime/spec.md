@@ -4,33 +4,29 @@
 TBD - created by archiving change capture-baseline-specs. Update Purpose after archive.
 ## Requirements
 ### Requirement: Start a local workspace session
-The system SHALL start the WebUI without requiring a positional workspace path argument, SHALL default the port to `3001`, SHALL bind to `127.0.0.1` unless configured otherwise, and SHALL bootstrap an initial project from the `OPENSPEC_INITIAL_PROJECT` environment variable when it is set to a valid OpenSpec project path. Wrapper scripts MAY translate their own convenience arguments into `OPENSPEC_INITIAL_PROJECT`, but the standalone CLI contract SHALL remain argument-free for project selection.
+The system SHALL start the WebUI without requiring a positional workspace path argument, SHALL default the port to `3001`, SHALL bind to `127.0.0.1` unless configured otherwise, and SHALL bootstrap the current working directory when it points to a valid OpenSpec project root (or its `openspec/` directory). If the current working directory is not a valid OpenSpec project, the system SHALL still start normally and leave project selection to the UI. The user-facing `package.json` scripts surface SHALL be limited to the essential development commands: `dev`, `build`, `test`, and `typecheck`. npm lifecycle hooks such as `prepublishOnly` MAY remain.
 
-#### Scenario: Start with defaults
-- **WHEN** the operator runs `openspec-webui` without a path or port option
-- **THEN** the system starts without validating the current working directory as a workspace
-- **AND** the local server listens on port `3001`
-
-#### Scenario: Start with OPENSPEC_INITIAL_PROJECT
-- **WHEN** the operator starts the UI with `OPENSPEC_INITIAL_PROJECT=/home/user/my-repo`
-- **AND** the path points to a valid OpenSpec project
+#### Scenario: Start from a valid current working directory
+- **WHEN** the operator runs `openspec-webui` from `/home/user/my-repo`
+- **AND** the current working directory is a valid OpenSpec project
 - **THEN** the system starts normally
 - **AND** bootstraps that project into the registry as the active project
 
-#### Scenario: Ignore an invalid OPENSPEC_INITIAL_PROJECT
-- **WHEN** the operator starts the UI with `OPENSPEC_INITIAL_PROJECT` set to an invalid path
-- **THEN** the system reports a warning
-- **AND** continues starting the server without exiting
-
-#### Scenario: Wrapper script maps a project argument to bootstrap env
-- **WHEN** the operator runs a wrapper such as `npm run dev -- /path/to/project`
-- **THEN** the wrapper passes `/path/to/project` via `OPENSPEC_INITIAL_PROJECT`
-- **AND** does not pass a positional workspace path argument to `openspec-webui`
+#### Scenario: Start from a non-project current working directory
+- **WHEN** the operator runs `openspec-webui` from a directory without an `openspec/` subdirectory
+- **THEN** the system starts normally
+- **AND** no project is auto-added from the working directory
 
 #### Scenario: Reject an occupied port
 - **WHEN** the operator starts the UI on a port that is already in use
 - **THEN** the system reports that the port is already in use
 - **AND** suggests trying another port
+
+#### Scenario: README describes installation and usage for npm users
+- **WHEN** a user visits the GitHub repository or npm page
+- **THEN** the README SHALL provide clear installation instructions (`npm install -g openspec-webui` or `npx openspec-webui`)
+- **AND** SHALL provide basic usage instructions (CLI commands, options)
+- **AND** SHALL include a separate section for contributors (dev setup, build, test)
 
 ### Requirement: Manage browser launch and session controls
 The system SHALL open the browser to the running UI by default, SHALL skip auto-opening when `--no-open` is supplied, SHALL reopen the current UI URL when the operator presses `l` in an interactive terminal session, and SHALL shut down cleanly on `Ctrl+C`.

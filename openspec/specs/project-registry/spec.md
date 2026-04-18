@@ -145,18 +145,18 @@ The system SHALL return structured API errors for project-management and active-
 - **THEN** the response includes `code: 'ACTIVATION_FAILED'`
 - **AND** includes a human-readable `error` message
 
-### Requirement: Initial project from environment variable
-The system SHALL check the `OPENSPEC_INITIAL_PROJECT` environment variable at startup. If set to a valid directory path containing an `openspec/` subdirectory, the system SHALL add it to the registry and set it as active, equivalent to a `POST /api/projects` call. If the path is invalid, the system SHALL log a warning and continue without adding.
+### Requirement: Initial project from current working directory
+The system SHALL evaluate the current working directory at startup. If it is a valid directory containing an `openspec/` subdirectory, the system SHALL add it to the registry and set it as active, equivalent to a `POST /api/projects` call. If the current working directory is not a valid OpenSpec project, the system SHALL start normally without adding a project from startup context.
 
-#### Scenario: Startup with valid OPENSPEC_INITIAL_PROJECT
-- **WHEN** the server starts with `OPENSPEC_INITIAL_PROJECT=/home/user/my-repo`
-- **AND** the path is a valid OpenSpec project
+#### Scenario: Startup with a valid current working directory
+- **WHEN** the server starts from `/home/user/my-repo`
+- **AND** that directory is a valid OpenSpec project
 - **THEN** the project is added to the registry and becomes active
 
-#### Scenario: Startup with invalid OPENSPEC_INITIAL_PROJECT
-- **WHEN** the server starts with `OPENSPEC_INITIAL_PROJECT=/nonexistent`
-- **THEN** the server logs a warning
-- **AND** starts normally without the project
+#### Scenario: Startup with a non-project current working directory
+- **WHEN** the server starts from a directory that does not contain an `openspec/` subdirectory
+- **THEN** the server starts normally
+- **AND** the registry remains unchanged by startup bootstrap
 
 ### Requirement: WebSocket project-switched event
 The system SHALL broadcast a WebSocket message with `type: 'project:switched'` and a `projectId` field whenever the active project changes (add, activate, or remove). The `projectId` field SHALL contain the new active project id, or `null` when no active project remains. The system SHALL broadcast this event to all connected WebSocket clients.

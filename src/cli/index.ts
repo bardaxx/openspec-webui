@@ -11,24 +11,13 @@ program
   .version('0.2.0')
   .option('-p, --port <number>', 'Port to run server on', '3001')
   .option('--no-open', 'Do not open browser automatically')
-  .addHelpText(
-    'after',
-    '\nBootstrap an initial project with OPENSPEC_INITIAL_PROJECT=/path/to/repo openspec-webui\nProject selection is otherwise managed from the running UI.\n'
-  )
   .action(async (options: { port: string; open: boolean }) => {
     const port = parseInt(options.port, 10);
-    const initialProjectPath = process.env.OPENSPEC_INITIAL_PROJECT?.trim();
 
     console.log('Starting OpenSpec WebUI...');
-    console.log(
-      initialProjectPath
-        ? `Initial project bootstrap: ${initialProjectPath}`
-        : 'Initial project bootstrap: none'
-    );
 
     try {
       const server = await createServer({
-        initialProjectPath,
         port,
       });
 

@@ -11,12 +11,11 @@ import type { FileChangeEvent } from '../watcher/file-watcher.js';
 import type { WSIncomingMessage } from '../shared/types.js';
 import { WebSocketManager } from './websocket/handler.js';
 import { registerApiRoutes } from './routes/api.js';
-import { createProjectRegistry } from './project-registry.js';
+import { createProjectRegistry, ProjectRegistryError } from './project-registry.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export interface ServerOptions {
-  initialProjectPath?: string;
   port: number;
   host?: string;
 }
@@ -95,14 +94,16 @@ export async function createServer(options: ServerOptions): Promise<Server> {
 
   await projectRegistry.initialize();
 
-  const startupProject = resolveStartupProject(options);
+  const startupProject = resolveStartupProject();
 
   if (startupProject.path) {
     try {
       await projectRegistry.addProject(startupProject.path);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.warn(`Ignoring invalid OPENSPEC_INITIAL_PROJECT (${startupProject.path}): ${message}`);
+      if (!shouldIgnoreStartupProjectError(startupProject.source, error)) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`Failed to bootstrap startup project (${startupProject.path}): ${message}`);
+      }
     }
   }
 
@@ -201,7 +202,7 @@ export async function createServer(options: ServerOptions): Promise<Server> {
   if (existsSync(devFrontendPath)) {
     staticPath = devFrontendPath;
   } else if (!existsSync(frontendPath)) {
-    console.warn('Frontend build not found. Run `npm run build:frontend` first.');
+    console.warn('Frontend build not found. Run `npm run build` first.');
   }
 
   if (existsSync(staticPath)) {
@@ -250,20 +251,16 @@ function getBoundData(data: OpenSpecData): unknown {
   };
 }
 
-function resolveStartupProject(
-  options: ServerOptions
-): { path: string | null; source: 'initialProjectPath' | 'env' | null } {
-  const initialProjectPath = options.initialProjectPath?.trim();
-  if (initialProjectPath) {
-    return { path: initialProjectPath, source: 'initialProjectPath' };
+function resolveStartupProject(): { path: string | null; source: 'cwd' | null } {
+  try {
+    return { path: process.cwd(), source: 'cwd' };
+  } catch {
+    return { path: null, source: null };
   }
+}
 
-  const envInitialProject = process.env.OPENSPEC_INITIAL_PROJECT?.trim();
-  if (envInitialProject) {
-    return { path: envInitialProject, source: 'env' };
-  }
-
-  return { path: null, source: null };
+function shouldIgnoreStartupProjectError(source: 'cwd' | null, error: unknown): boolean {
+  return source === 'cwd' && error instanceof ProjectRegistryError && error.code === 'INVALID_PROJECT_PATH';
 }
 
 /**

@@ -1,106 +1,38 @@
 # OpenSpec WebUI
 
-<img src="./frontend/public/app-icon.svg" alt="OpenSpec WebUI app icon" width="48" height="48" />
+Browser-based viewer for [OpenSpec](https://github.com/Fission-AI/OpenSpec) projects.
 
-Browser UI for OpenSpec projects with server-side project selection.
+![OpenSpec WebUI](https://raw.githubusercontent.com/oioi555/openspec-webui/main/screenshot.png)
 
-This repository started from the MIT-licensed `MusicAdam/openspec-viewer` project and is being reshaped into a more general local-first UI for browsing specs, changes, and review workflows.
+## What is this?
 
-The shared `app-icon.svg` is used for the navigation home affordance, browser favicon, and repository documentation.
+[OpenSpec](https://github.com/Fission-AI/OpenSpec) is a spec-driven development workflow that organizes project knowledge into directories — `config.yaml`, `specs/`, `changes/` with proposals, designs, and tasks.
 
-## Requirements
+OpenSpec WebUI gives you an interactive browser interface to explore those directories. Launch the app, select your projects, and browse specs, changes, and artifacts — all from the browser.
 
-- Node.js >= 20
+- Multi-project support — add, switch, and remove projects from the UI
+- Browse `config.yaml`, `specs/`, `active changes`, and `archived changes`
+- Render Markdown artifacts with live preview
+- Track checkbox task progress
+- Search across all OpenSpec content
+- Live refresh when files change
+- Group supplemental change files by folder/tab
+- Contextual command actions — copy pre-filled workflow commands to paste into your AI tools
+- Light / dark / system theme support
 
-## The 3 workflows
-
-Everything should fit into one of these.
-
-### 1. Development
-
-Use this for normal feature work.
-
-```bash
-npm run setup
-npm run dev
-```
-
-- App URL: `http://127.0.0.1:3001`
-- Default bootstrap project in wrapper scripts: this repository root
-- Server code is watched and restarted automatically
-- Frontend source changes rebuild `dist-frontend` automatically
-- After frontend edits, refresh the browser manually
-
-Bootstrap another project:
+## Install
 
 ```bash
-npm run dev -- /path/to/project
+npm install -g openspec-webui
 ```
 
-or:
+Or use without installing:
 
 ```bash
-OPENSPEC_INITIAL_PROJECT=/path/to/project npm run dev
+npx openspec-webui
 ```
 
-### 2. Debug
-
-Use this when you want breakpoints and stack traces.
-
-```bash
-npm run setup
-npm run debug
-```
-
-- App URL: `http://127.0.0.1:3001`
-- Node inspector: `ws://127.0.0.1:9229`
-- Frontend assets are rebuilt with sourcemaps
-
-Bootstrap another project:
-
-```bash
-npm run debug -- /path/to/project
-```
-
-### 3. Release
-
-Use this to verify the production build locally.
-
-```bash
-npm run setup
-npm run release
-```
-
-- Builds server + frontend production assets
-- Starts the built app on `http://127.0.0.1:3001`
-- Default bootstrap project in wrapper scripts: this repository root
-
-Bootstrap another project:
-
-```bash
-npm run release -- /path/to/project
-```
-
-## Supporting commands
-
-| Command | Use |
-|--------|-----|
-| `npm run setup` | Install all required dependencies, including devDependencies |
-| `npm run doctor` | Check local tooling and current defaults |
-| `npm run typecheck` | Run TypeScript + Svelte diagnostics |
-| `npm run build` | Build production assets without starting the app |
-| `npm start` | Start the already-built app |
-
-## Project bootstrap and selection
-
-- `openspec-webui` no longer accepts a positional project path
-- Use `OPENSPEC_INITIAL_PROJECT=/path/to/repo openspec-webui` to pre-load an initial project at startup
-- Wrapper scripts (`npm run dev`, `npm run debug`, `npm run release`, `npm start`, `npm run dev:server`) map their first positional argument to `OPENSPEC_INITIAL_PROJECT`
-- If wrapper scripts are started without a project argument and `OPENSPEC_INITIAL_PROJECT` is unset, they bootstrap this repository root for local development ergonomics
-- After startup, add/switch/remove projects from the Project Selector UI
-- Project registry state is persisted in `${XDG_CONFIG_HOME:-~/.config}/openspec-webui/projects.json`
-
-## CLI usage
+## Usage
 
 ```bash
 openspec-webui [options]
@@ -109,9 +41,13 @@ openspec-webui [options]
 ### Examples
 
 ```bash
+# Start with default settings (port 3001, auto-open browser)
 openspec-webui
-OPENSPEC_INITIAL_PROJECT=./my-project openspec-webui
+
+# Use a different port
 openspec-webui --port 8080
+
+# Start without opening the browser
 openspec-webui --no-open
 ```
 
@@ -124,29 +60,31 @@ openspec-webui --no-open
 | `-V, --version` | Display version |
 | `-h, --help` | Display help |
 
-## What it does today
+## Development
 
-- Browse `project.md`, `specs/`, active changes, and archived changes
-- Render Markdown artifacts
-- Track checkbox task progress
-- Search across supported OpenSpec content
-- Watch files and refresh the UI when content changes
-- Group supplemental change files by folder/tab
-- Reuse a shared app icon across the navigation, favicon, and docs
+### Requirements
 
-## OpenSpec layout
+- Node.js >= 20
 
-[OpenSpec](https://github.com/Fission-AI/OpenSpec) is a spec-driven workflow built around directories like:
+### Commands
 
-- `project.md`
-- `specs/`
-- `changes/` with `proposal.md`, `tasks.md`, `design.md`
-- `changes/archive/`
+```bash
+npm install
+npm run dev        # Start dev mode (server + frontend watch)
+npm run build      # Build production assets
+npm run test       # Run unit tests
+npm run typecheck  # TypeScript + Svelte diagnostics
+```
 
-This UI also surfaces extra Markdown files under a change and groups them into tabs.
+### Dev mode details
+
+- App URL: `http://127.0.0.1:3001`
+- Server code is watched and restarted automatically
+- Frontend source changes rebuild `dist-frontend` automatically
+- After frontend edits, refresh the browser manually
 
 ## License
 
 MIT. See [LICENSE](./LICENSE).
 
-This project includes code derived from the MIT-licensed upstream repository `MusicAdam/openspec-viewer`.
+This project is based on [MusicAdam/openspec-viewer](https://github.com/MusicAdam/openspec-viewer), which is licensed under the MIT License.

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createServer as createTcpServer } from 'node:net';
 import { afterEach, beforeEach, test } from 'node:test';
 import { chmod, cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { homedir, tmpdir } from 'node:os';
@@ -9,20 +10,19 @@ import { createServer } from './index.js';
 const WS_OPEN = 1;
 
 const tempDirs: string[] = [];
+const originalCwd = process.cwd();
 const originalEnv = {
   XDG_CONFIG_HOME: process.env.XDG_CONFIG_HOME,
-  OPENSPEC_INITIAL_PROJECT: process.env.OPENSPEC_INITIAL_PROJECT,
   PATH: process.env.PATH,
 };
 
 beforeEach(() => {
   delete process.env.XDG_CONFIG_HOME;
-  delete process.env.OPENSPEC_INITIAL_PROJECT;
 });
 
 afterEach(async () => {
+  process.chdir(originalCwd);
   process.env.XDG_CONFIG_HOME = originalEnv.XDG_CONFIG_HOME;
-  process.env.OPENSPEC_INITIAL_PROJECT = originalEnv.OPENSPEC_INITIAL_PROJECT;
   process.env.PATH = originalEnv.PATH;
   await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
 });
@@ -49,8 +49,7 @@ async function createProjectFixture(name: string): Promise<string> {
   const sandbox = await createTempDir('openspec-webui-server-project-');
   const projectRoot = join(sandbox, name);
   await mkdir(projectRoot, { recursive: true });
-  await cp(resolve('test-openspec'), join(projectRoot, 'openspec'), { recursive: true });
-  await rm(join(projectRoot, 'openspec', 'project.md'), { force: true });
+  await cp(join(originalCwd, 'test-openspec'), join(projectRoot, 'openspec'), { recursive: true });
   await writeFile(
     join(projectRoot, 'openspec', 'config.yaml'),
     createProjectConfigYaml(name),
@@ -112,12 +111,21 @@ process.exit(1);
   process.env.PATH = `${binDir}:${process.env.PATH ?? ''}`;
 }
 
-async function startServer(options: { initialProjectPath?: string } = {}) {
-  const server = await createServer({
-    port: 0,
-    host: '127.0.0.1',
-    ...options,
-  });
+async function startServer(options: { port?: number; host?: string; cwd?: string } = {}) {
+  const { cwd = await createTempDir('openspec-webui-server-cwd-'), ...serverOptions } = options;
+  const previousCwd = process.cwd();
+  process.chdir(cwd);
+
+  let server;
+  try {
+    server = await createServer({
+      port: 0,
+      host: '127.0.0.1',
+      ...serverOptions,
+    });
+  } finally {
+    process.chdir(previousCwd);
+  }
 
   return {
     server,
@@ -453,7 +461,7 @@ test('server integration covers explicit websocket binding, scoped API routing, 
   }
 });
 
-test('startup bootstraps a valid OPENSPEC_INITIAL_PROJECT and removes stale persisted invalid paths', async () => {
+test('startup bootstraps a valid cwd openspec directory and removes stale persisted invalid paths', async () => {
   const configHome = await createTempDir('openspec-webui-server-config-');
   process.env.XDG_CONFIG_HOME = configHome;
   const validRoot = await createProjectFixture('bootstrap-project');
@@ -482,8 +490,7 @@ test('startup bootstraps a valid OPENSPEC_INITIAL_PROJECT and removes stale pers
     'utf8'
   );
 
-  process.env.OPENSPEC_INITIAL_PROJECT = validRoot;
-  const runtime = await startServer();
+  const runtime = await startServer({ cwd: join(validRoot, 'openspec') });
 
   try {
     const result = await apiJson(runtime.baseUrl, '/api/projects');
@@ -505,11 +512,86 @@ test('startup bootstraps a valid OPENSPEC_INITIAL_PROJECT and removes stale pers
   }
 });
 
+test('startup from a non-project cwd succeeds without auto-adding a project or bootstrap warnings', async () => {
+  const configHome = await createTempDir('openspec-webui-server-config-');
+  const nonProjectRoot = await createTempDir('openspec-webui-non-project-cwd-');
+  process.env.XDG_CONFIG_HOME = configHome;
+  const warnings: string[] = [];
+  const originalWarn = console.warn;
+  console.warn = (...args: unknown[]) => {
+    warnings.push(args.map((arg) => String(arg)).join(' '));
+  };
+
+  let runtime: Awaited<ReturnType<typeof startServer>> | null = null;
+
+  try {
+    runtime = await startServer({ cwd: nonProjectRoot });
+
+    const projects = await apiJson(runtime.baseUrl, '/api/projects');
+    assert.equal(projects.response.status, 200);
+    assert.deepEqual(projects.body.projects, []);
+    assert.equal(projects.body.activeProjectId, null);
+
+    const project = await apiJson(runtime.baseUrl, '/api/project');
+    assert.equal(project.response.status, 503);
+    assert.equal(project.body.code, 'NO_ACTIVE_PROJECT');
+
+    const registry = await readRegistry(configHome);
+    assert.deepEqual(registry.projects, []);
+    assert.equal(registry.activeProjectId, null);
+
+    assert.deepEqual(
+      warnings.filter((warning) => warning.includes('Failed to bootstrap startup project')),
+      []
+    );
+  } finally {
+    console.warn = originalWarn;
+    await runtime?.close();
+  }
+});
+
+test('server reports a helpful error when the port is already in use', async () => {
+  const configHome = await createTempDir('openspec-webui-server-config-');
+  const nonProjectRoot = await createTempDir('openspec-webui-port-check-cwd-');
+  process.env.XDG_CONFIG_HOME = configHome;
+  process.chdir(nonProjectRoot);
+
+  const blocker = createTcpServer();
+  await new Promise<void>((resolve, reject) => {
+    blocker.once('error', reject);
+    blocker.listen(0, '127.0.0.1', () => {
+      blocker.off('error', reject);
+      resolve();
+    });
+  });
+
+  const address = blocker.address();
+  assert.ok(address && typeof address !== 'string');
+
+  try {
+    await assert.rejects(
+      () => createServer({ port: address.port, host: '127.0.0.1' }),
+      new RegExp(`Port ${address.port} is already in use`)
+    );
+  } finally {
+    await new Promise<void>((resolve, reject) => {
+      blocker.close((error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve();
+      });
+    });
+  }
+});
+
 test('activation rollback on parse failure keeps the previous active project context when the target session is not loaded', async () => {
   const configHome = await createTempDir('openspec-webui-server-config-');
   process.env.XDG_CONFIG_HOME = configHome;
   const alphaRoot = await createProjectFixture('healthy-project');
   const brokenRoot = await createBrokenProjectFixture('broken-project');
+  const nonProjectRoot = await createTempDir('openspec-webui-activation-cwd-');
 
   await mkdir(join(configHome, 'openspec-webui'), { recursive: true });
   await writeFile(
@@ -541,7 +623,7 @@ test('activation rollback on parse failure keeps the previous active project con
     'utf8'
   );
 
-  const runtime = await startServer();
+  const runtime = await startServer({ cwd: nonProjectRoot });
 
   try {
     let result = await apiJson(runtime.baseUrl, `/api/projects/${encodeURIComponent('broken-project-id')}/activate`, {
