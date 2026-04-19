@@ -73,7 +73,7 @@ The system SHALL provide a `DialogHeader` component in `$lib/components/ui/dialo
 - **THEN** it renders the title and close button without an icon
 
 ### Requirement: ExplorerSection component
-The system SHALL provide an `ExplorerSection` component in `$lib/components/ui/explorer-section/` that renders a collapsible section with header and content area. The component SHALL accept `title` (string), `count` (number), `open` (boolean), `focused` (boolean, optional), `onToggle` (callback), an optional `icon`, an optional `headerExtra` slot, and a default slot for content. The header SHALL display the icon, title in uppercase tracking-wider text, a count badge, and a chevron icon indicating collapsed/expanded state.
+The system SHALL provide an `ExplorerSection` component in `$lib/components/shared/explorer-section/` that renders a collapsible section with header and content area. The component SHALL accept `title` (string), `count` (number), `open` (boolean), `focused` (boolean, optional), `onToggle` (callback), an optional `icon`, an optional `headerExtra` slot, `emptyMessage` (string, optional), `emptyIcon` (Component, optional), and a default slot for content. The header SHALL display the icon, title in uppercase tracking-wider text, a count badge, and a chevron icon indicating collapsed/expanded state. When `emptyMessage` is provided and the children snippet produces no content (i.e., the section is empty), the component SHALL render an `EmptyState` with the `emptyMessage` and optional `emptyIcon` instead of rendering the children.
 
 #### Scenario: Render expanded section
 - **WHEN** an ExplorerSection is rendered with `title="ACTIVE CHANGES"`, `count={3}`, and `open={true}`
@@ -96,6 +96,16 @@ The system SHALL provide an `ExplorerSection` component in `$lib/components/ui/e
 #### Scenario: Render focused section styling
 - **WHEN** an ExplorerSection is rendered with `focused={true}`
 - **THEN** the section container shows the current focused-section ring styling
+
+#### Scenario: Render empty state when emptyMessage provided and no items
+- **WHEN** an ExplorerSection is rendered with `emptyMessage="No active changes"`, `emptyIcon={SquarePen}`, and `open={true}` with no children rendered
+- **THEN** the section body shows an EmptyState with the provided message and icon
+- **AND** no children content area is rendered
+
+#### Scenario: Render children when items exist even with emptyMessage
+- **WHEN** an ExplorerSection is rendered with `emptyMessage="No active changes"` and children snippet produces content
+- **THEN** the section body shows the children content
+- **AND** no EmptyState is rendered
 
 ### Requirement: CommandChip component
 The system SHALL provide a `CommandChip` component in `$lib/components/ui/command-chip/` that renders a compact, emphasized command shortcut control. The component SHALL accept `label` (string), optional `title` (string), and optional `icon` (Svelte component) props, and SHALL forward standard button attributes and click handling. The component SHALL be visually distinct from standard Button variants by using a compact pill-style shape and command-emphasis styling.

@@ -1,21 +1,17 @@
 <script lang="ts">
-  import { Archive, Calendar, CheckSquare, FileText, Folder, FolderPen, SquarePen } from '@lucide/svelte';
-  import { Badge } from '$lib/components/ui/badge';
+  import { Folder, FolderPen } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button';
-  import { EmptyState } from '$lib/components/shared/empty-state';
-  import { ExplorerSection as SharedExplorerSection } from '$lib/components/shared/explorer-section';
-  import { ItemContextMenu } from '$lib/components/shared/item-context-menu';
-  import { createItemContextMenuItems } from '$lib/itemContextMenu';
+  import {
+    ActiveChangesExplorerSection,
+    ArchiveExplorerSection,
+    SpecsExplorerSection,
+  } from '$lib/components/shared/explorer-section';
   import * as ScrollArea from '$lib/components/ui/scroll-area';
   import { getWorkspaceCommands } from '$lib/commandShortcuts';
   import { activeChanges, archivedChanges, project, specs } from '$lib/state/appData.svelte.ts';
   import { commandPreferencesStore } from '$lib/state/commandPreferences.svelte.ts';
-  import { layoutStore, type ExplorerSection } from '$lib/state/layout.svelte.ts';
-  import { tabStore } from '$lib/state/tabs.svelte.ts';
-  import { uiPreferencesStore } from '$lib/state/uiPreferences.svelte.ts';
+  import { layoutStore } from '$lib/state/layout.svelte.ts';
   import CommandShortcutBar from '$lib/components/shared/CommandShortcutBar.svelte';
-  import { Progress } from '$lib/components/ui/progress';
-  import { formatChangeName, formatDate } from '$lib/utils';
 
   interface Props {
     temporary?: boolean;
@@ -38,60 +34,10 @@
   }
 
   let workspaceCommands = $derived(getWorkspaceCommands(activeChanges.value, commandPreferencesSnapshot()));
-  const formatExplorerDate = formatDate;
-
-  type TimestampedChange = {
-    lastModified?: string | null;
-  };
-
-  type TimestampedSpec = {
-    lastModified?: string | null;
-  };
-
-  function sectionOpen(section: ExplorerSection) {
-    return !layoutStore.sectionCollapsed[section];
-  }
-
-  function openTab(path: string, section: ExplorerSection) {
-    layoutStore.focusSection(section);
-    tabStore.openConfirmed(path);
-    onItemSelected();
-  }
-
-  function openItemPreview(path: string, section: ExplorerSection) {
-    layoutStore.focusSection(section);
-    tabStore.openPreview(path);
-    onItemSelected();
-  }
-
-  function openItemConfirmed(path: string, section: ExplorerSection) {
-    openTab(path, section);
-  }
-
-  function handleItemClick(event: MouseEvent, path: string, section: ExplorerSection) {
-    if (!uiPreferencesStore.previewTabsEnabled || event.ctrlKey) {
-      openItemConfirmed(path, section);
-      return;
-    }
-
-    openItemPreview(path, section);
-  }
-
-  function itemClass(path: string) {
-    return tabStore.activeTab.path === path
-      ? 'bg-primary/10 text-foreground'
-      : 'text-muted-foreground hover:bg-secondary/70 hover:text-foreground';
-  }
 
   function openProjectSelector() {
     layoutStore.openOverlay('project-selector');
   }
-
-  function searchForSpec(specName: string) {
-    layoutStore.openOverlay('search', { initialQuery: specName });
-    onItemSelected();
-  }
-
 </script>
 
 <aside class="flex h-full min-h-0 flex-col bg-card">
@@ -122,161 +68,21 @@
         {/if}
       {/snippet}
 
-      <SharedExplorerSection
-        title="Active Changes"
-        icon={SquarePen}
-        count={activeChanges.value.length}
-        open={sectionOpen('active-changes')}
-        focused={layoutStore.focusedSection === 'active-changes'}
-        onToggle={() => {
-          const nextOpen = !sectionOpen('active-changes');
-          layoutStore.setSectionCollapsed('active-changes', !nextOpen);
-          if (nextOpen) {
-            layoutStore.focusSection('active-changes');
-          }
-        }}
+      <ActiveChangesExplorerSection
+        changes={activeChanges.value}
+        {onItemSelected}
         headerExtra={activeChangesExtra}
-      >
-        <div class="divide-y divide-border/70">
-          {#if activeChanges.value.length === 0}
-            <EmptyState message="No active changes" icon={SquarePen} class="px-3 py-6" />
-          {:else}
-            {#each activeChanges.value as change}
-              {@const changePath = `/changes/${encodeURIComponent(change.name)}`}
-              <ItemContextMenu
-                items={createItemContextMenuItems({
-                  kind: 'active-change',
-                  name: change.name,
-                  onOpenInNewTab: () => openItemConfirmed(changePath, 'active-changes'),
-                })}
-              >
-                <button
-                  type="button"
-                  class={`flex w-full items-start gap-3 px-3 py-3 text-left transition-colors ${itemClass(changePath)}`}
-                  onclick={(event) => handleItemClick(event, changePath, 'active-changes')}
-                >
-                  <div class="min-w-0 flex-1">
-                    <div class="truncate text-sm font-medium" title={change.name}>{change.name}</div>
-                    <div class="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-                      <div class="flex items-center gap-2">
-                        {#if (change as TimestampedChange).lastModified}
-                          <span class="flex items-center gap-0.5"><Calendar class="h-3 w-3" />{formatExplorerDate((change as TimestampedChange).lastModified)}</span>
-                        {/if}
-                        <span class="flex items-center gap-0.5"><FileText class="h-3 w-3" />{change.specDeltaCount}</span>
-                        <span class="flex items-center gap-0.5"><CheckSquare class="h-3 w-3" />{change.taskProgress.done}/{change.taskProgress.total}</span>
-                      </div>
-                      <div class="w-14 shrink-0">
-                        <Progress value={change.taskProgress.percentage} />
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              </ItemContextMenu>
-            {/each}
-          {/if}
-        </div>
-      </SharedExplorerSection>
+      />
 
-      <SharedExplorerSection
-        title="Archive"
-        icon={Archive}
-        count={archivedChanges.value.length}
-        open={sectionOpen('archive')}
-        focused={layoutStore.focusedSection === 'archive'}
-        onToggle={() => {
-          const nextOpen = !sectionOpen('archive');
-          layoutStore.setSectionCollapsed('archive', !nextOpen);
-          if (nextOpen) {
-            layoutStore.focusSection('archive');
-          }
-        }}
-      >
-        <div class="divide-y divide-border/70">
-          {#if archivedChanges.value.length === 0}
-            <EmptyState message="No archived changes" icon={Archive} class="px-3 py-6" />
-          {:else}
-            {#each archivedChanges.value as change}
-              {@const changePath = `/changes/${encodeURIComponent(change.name)}`}
-              <ItemContextMenu
-                items={createItemContextMenuItems({
-                  kind: 'archived-change',
-                  name: change.name,
-                  onOpenInNewTab: () => openItemConfirmed(changePath, 'archive'),
-                })}
-              >
-                <button
-                  type="button"
-                  class={`flex w-full items-start gap-3 px-3 py-3 text-left transition-colors ${itemClass(changePath)}`}
-                  onclick={(event) => handleItemClick(event, changePath, 'archive')}
-                >
-                  <div class="min-w-0 flex-1">
-                    <div class="truncate text-sm font-medium" title={change.name}>{formatChangeName(change.name)}</div>
-                    <div class="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                      {#if change.archivedDate}
-                        <span class="flex items-center gap-0.5"><Calendar class="h-3 w-3" />{change.archivedDate}</span>
-                      {/if}
-                      <span class="flex items-center gap-0.5"><FileText class="h-3 w-3" />{change.specDeltaCount}</span>
-                      <span class="flex items-center gap-0.5"><CheckSquare class="h-3 w-3" />{change.taskProgress.done}/{change.taskProgress.total}</span>
-                    </div>
-                  </div>
-                </button>
-              </ItemContextMenu>
-            {/each}
-          {/if}
-        </div>
-      </SharedExplorerSection>
+      <ArchiveExplorerSection
+        changes={archivedChanges.value}
+        {onItemSelected}
+      />
 
-      <SharedExplorerSection
-        title="Specs"
-        icon={FileText}
-        count={specs.value.length}
-        open={sectionOpen('specs')}
-        focused={layoutStore.focusedSection === 'specs'}
-        onToggle={() => {
-          const nextOpen = !sectionOpen('specs');
-          layoutStore.setSectionCollapsed('specs', !nextOpen);
-          if (nextOpen) {
-            layoutStore.focusSection('specs');
-          }
-        }}
-      >
-        <div class="divide-y divide-border/70">
-          {#if specs.value.length === 0}
-            <EmptyState message="No specs found" icon={FileText} class="px-3 py-6" />
-          {:else}
-            {#each specs.value as spec}
-              {@const specPath = `/specs/${encodeURIComponent(spec.name)}`}
-              <ItemContextMenu
-                items={createItemContextMenuItems({
-                  kind: 'spec',
-                  name: spec.name,
-                  onOpenInNewTab: () => openItemConfirmed(specPath, 'specs'),
-                  onSearchRelatedChanges: () => searchForSpec(spec.name),
-                })}
-              >
-                <button
-                  type="button"
-                  class={`flex w-full items-center gap-3 px-3 py-3 text-left transition-colors ${itemClass(specPath)}`}
-                  onclick={(event) => handleItemClick(event, specPath, 'specs')}
-                >
-                  <div class="min-w-0 flex-1">
-                    <div class="truncate text-sm font-medium">{spec.name}</div>
-                    <div class="mt-1 flex items-center gap-0.5 text-xs text-muted-foreground">
-                      {#if (spec as TimestampedSpec).lastModified}
-                        <Calendar class="h-3 w-3" />{formatExplorerDate((spec as TimestampedSpec).lastModified)}
-                      {/if}
-                    </div>
-                  </div>
-
-                  {#if spec.hasDesign}
-                    <Badge variant="outline" class="text-[10px] font-medium">Design</Badge>
-                  {/if}
-                </button>
-              </ItemContextMenu>
-            {/each}
-          {/if}
-        </div>
-      </SharedExplorerSection>
+      <SpecsExplorerSection
+        specs={specs.value}
+        {onItemSelected}
+      />
     </div>
   </ScrollArea.Root>
 </aside>

@@ -3,6 +3,8 @@
   import type { Component, Snippet } from 'svelte';
   import { Badge } from '$lib/components/ui/badge';
   import * as Collapsible from '$lib/components/ui/collapsible';
+  import { EmptyState } from '$lib/components/shared/empty-state';
+  import { layoutStore, type ExplorerSection } from '$lib/state/layout.svelte.ts';
   import { cn } from '$lib/utils';
 
   type IconComponent = Component<{ class?: string }>;
@@ -10,11 +12,14 @@
   interface Props {
     title: string;
     count: number;
-    open: boolean;
+    section?: ExplorerSection;
+    open?: boolean;
     focused?: boolean;
     onToggle?: () => void;
     icon?: IconComponent;
     headerExtra?: Snippet;
+    emptyMessage?: string;
+    emptyIcon?: IconComponent;
     children?: Snippet;
     class?: string;
     [key: string]: unknown;
@@ -23,21 +28,56 @@
   let {
     title,
     count,
-    open,
-    focused = false,
-    onToggle = () => {},
+    section = undefined,
+    open: openProp = undefined,
+    focused: focusedProp = undefined,
+    onToggle: onToggleProp = undefined,
     icon = undefined,
     headerExtra,
+    emptyMessage = undefined,
+    emptyIcon = undefined,
     children,
     class: className = '',
     ...restProps
   }: Props = $props();
+
+  const resolvedEmptyIcon = $derived(emptyIcon ?? icon);
+
+  const open = $derived(
+    section
+      ? !layoutStore.sectionCollapsed[section]
+      : (openProp ?? true)
+  );
+
+  const focused = $derived(
+    section
+      ? layoutStore.focusedSection === section
+      : (focusedProp ?? false)
+  );
+
+  function handleToggle(nextOpen?: boolean) {
+    if (onToggleProp) {
+      onToggleProp();
+      return;
+    }
+
+    if (!section) return;
+
+    const shouldOpen = nextOpen ?? layoutStore.sectionCollapsed[section];
+
+    if (shouldOpen) {
+      layoutStore.focusSection(section);
+      return;
+    }
+
+    layoutStore.setSectionCollapsed(section, true);
+  }
 </script>
 
 <Collapsible.Root
   {...restProps}
   {open}
-  onOpenChange={() => onToggle()}
+  onOpenChange={handleToggle}
   class={cn('overflow-hidden rounded-lg border border-border/70 bg-card', focused && 'ring-1 ring-ring/40', className)}
 >
   <div class="border-b border-border/70 bg-secondary/40 px-3 py-2 transition-colors hover:bg-secondary/70">
@@ -72,6 +112,10 @@
   </div>
 
   <Collapsible.Content class="bg-card">
-    {@render children?.()}
+    {#if count === 0 && emptyMessage}
+      <EmptyState message={emptyMessage} icon={resolvedEmptyIcon} class="px-3 py-6" />
+    {:else}
+      {@render children?.()}
+    {/if}
   </Collapsible.Content>
 </Collapsible.Root>
