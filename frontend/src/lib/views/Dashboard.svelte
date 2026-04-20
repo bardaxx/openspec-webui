@@ -397,7 +397,7 @@
   {#if recentActivity.length > 0}
     <div class="rounded-lg border border-border bg-card shadow-sm">
       <div class="border-b border-border px-5 py-4">
-        <h2 class="flex items-center gap-2 text-base font-semibold text-foreground">
+        <h2 class="flex items-center gap-2 text-lg font-semibold text-foreground">
           <History class="h-5 w-5 text-muted-foreground" />
           {FIXED_LABELS.dashboard.recentActivity}
         </h2>

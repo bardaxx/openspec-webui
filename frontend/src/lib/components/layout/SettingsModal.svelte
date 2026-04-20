@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { Command, ListChecks, Settings, Sun, Moon, Monitor } from '@lucide/svelte';
+  import { Command, ListChecks, Settings, Sun, Moon, Monitor, Terminal, Sparkles, Wrench, Info, ChevronDown } from '@lucide/svelte';
   import { Callout } from '$lib/components/shared/callout';
   import { DialogHeader as SharedDialogHeader } from '$lib/components/shared/dialog-header';
+  import { OptionCard } from '$lib/components/shared/option-card';
   import * as Dialog from '$lib/components/ui/dialog';
+  import * as Select from '$lib/components/ui/select';
   import { t } from '$lib/i18n';
   import { LOCALE_LABELS, localeStore, type AppLocale } from '$lib/state/locale.svelte.ts';
   import * as m from '$lib/paraglide/messages.js';
@@ -132,56 +134,44 @@
             </div>
 
             <div class="grid gap-3 md:grid-cols-3">
-              <label class="group relative flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 p-4 text-center transition-all hover:border-primary/50 {themeStore.value === 'light' ? 'border-primary bg-primary/5' : 'border-border bg-secondary/30'}">
-                <input
-                  type="radio"
-                  name="theme"
-                  class="sr-only"
-                  checked={themeStore.value === 'light'}
-                  onchange={() => setTheme('light')}
-                />
-                <div class="rounded-full bg-background p-3 shadow-sm transition-transform duration-300 group-hover:scale-110">
-                  <Sun class="h-6 w-6 text-foreground" />
-                </div>
-                <div class="space-y-1">
-                  <div class="font-medium text-foreground">{FIXED_LABELS.settings.themeOptions.light}</div>
-                  <div class="text-xs text-muted-foreground">{t(m.settings_theme_light_description)}</div>
-                </div>
-              </label>
+              <OptionCard
+                icon={Sun}
+                label={FIXED_LABELS.settings.themeOptions.light}
+                selected={themeStore.value === 'light'}
+                name="theme"
+                value="light"
+                onchange={() => setTheme('light')}
+              >
+                {#snippet description()}
+                  {t(m.settings_theme_light_description)}
+                {/snippet}
+              </OptionCard>
 
-              <label class="group relative flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 p-4 text-center transition-all hover:border-primary/50 {themeStore.value === 'dark' ? 'border-primary bg-primary/5' : 'border-border bg-secondary/30'}">
-                <input
-                  type="radio"
-                  name="theme"
-                  class="sr-only"
-                  checked={themeStore.value === 'dark'}
-                  onchange={() => setTheme('dark')}
-                />
-                <div class="rounded-full bg-background p-3 shadow-sm transition-transform duration-300 group-hover:scale-110">
-                  <Moon class="h-6 w-6 text-foreground" />
-                </div>
-                <div class="space-y-1">
-                  <div class="font-medium text-foreground">{FIXED_LABELS.settings.themeOptions.dark}</div>
-                  <div class="text-xs text-muted-foreground">{t(m.settings_theme_dark_description)}</div>
-                </div>
-              </label>
+              <OptionCard
+                icon={Moon}
+                label={FIXED_LABELS.settings.themeOptions.dark}
+                selected={themeStore.value === 'dark'}
+                name="theme"
+                value="dark"
+                onchange={() => setTheme('dark')}
+              >
+                {#snippet description()}
+                  {t(m.settings_theme_dark_description)}
+                {/snippet}
+              </OptionCard>
 
-              <label class="group relative flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 p-4 text-center transition-all hover:border-primary/50 {themeStore.value === 'system' ? 'border-primary bg-primary/5' : 'border-border bg-secondary/30'}">
-                <input
-                  type="radio"
-                  name="theme"
-                  class="sr-only"
-                  checked={themeStore.value === 'system'}
-                  onchange={() => setTheme('system')}
-                />
-                <div class="rounded-full bg-background p-3 shadow-sm transition-transform duration-300 group-hover:scale-110">
-                  <Monitor class="h-6 w-6 text-foreground" />
-                </div>
-                <div class="space-y-1">
-                  <div class="font-medium text-foreground">{FIXED_LABELS.settings.themeOptions.system}</div>
-                  <div class="text-xs text-muted-foreground">{t(m.settings_theme_system_description)}</div>
-                </div>
-              </label>
+              <OptionCard
+                icon={Monitor}
+                label={FIXED_LABELS.settings.themeOptions.system}
+                selected={themeStore.value === 'system'}
+                name="theme"
+                value="system"
+                onchange={() => setTheme('system')}
+              >
+                {#snippet description()}
+                  {t(m.settings_theme_system_description)}
+                {/snippet}
+              </OptionCard>
             </div>
 
             <div class="space-y-3 pt-6">
@@ -190,16 +180,25 @@
               </div>
               <div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_12rem] sm:items-start">
                 <p class="text-sm text-muted-foreground pt-1.5">{t(m.settings_language_description)}</p>
-                <select
-                  class="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/30 sm:justify-self-end"
+                <Select.Root
                   value={localeStore.value}
-                  aria-label={getLocaleHeadingLabel()}
-                  onchange={(event) => setLocale((event.currentTarget as HTMLSelectElement).value as AppLocale)}
+                  onValueChange={(v) => setLocale(v as AppLocale)}
                 >
-                  {#each localeStore.supportedLocales as locale}
-                    <option value={locale}>{LOCALE_LABELS[locale]}</option>
-                  {/each}
-                </select>
+                  <Select.Trigger
+                    class="sm:justify-self-end w-full"
+                    aria-label={getLocaleHeadingLabel()}
+                  >
+                    {LOCALE_LABELS[localeStore.value]}
+                    <ChevronDown class="h-4 w-4 text-muted-foreground" />
+                  </Select.Trigger>
+                  <Select.Content>
+                    {#each localeStore.supportedLocales as locale}
+                      <Select.Item value={locale}>
+                        {LOCALE_LABELS[locale]}
+                      </Select.Item>
+                    {/each}
+                  </Select.Content>
+                </Select.Root>
               </div>
             </div>
 
@@ -229,7 +228,8 @@
             <div>
               <h3 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{FIXED_LABELS.settings.headings.workflow}</h3>
               <p class="mt-1 text-sm text-muted-foreground">{t(m.settings_workflow_description)}</p>
-              <p class="mt-1 text-xs text-muted-foreground">
+              <p class="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                <Info class="h-5 w-5 text-info" />
                 {t(m.settings_docs_intro)}
                 <a href="https://github.com/Fission-AI/OpenSpec/blob/main/docs/opsx.md" target="_blank" class="underline hover:text-foreground">{FIXED_LABELS.settings.docs.opsxReference}</a> ·
                 <a href="https://github.com/Fission-AI/OpenSpec/blob/main/docs/supported-tools.md" target="_blank" class="underline hover:text-foreground">{FIXED_LABELS.settings.docs.supportedTools}</a>
@@ -237,47 +237,44 @@
             </div>
 
             <div class="grid gap-3 md:grid-cols-3">
-              <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-secondary/50 p-4 text-sm text-card-foreground">
-                <input
-                  type="radio"
-                  name="workflow"
-                  class="mt-1"
-                  checked={commandPreferencesStore.format === 'standard'}
-                  onchange={() => setFormat('standard')}
-                />
-                <div>
-                  <div class="font-medium text-foreground">{FIXED_LABELS.settings.workflowFormats.standard}</div>
-                  <div class="mt-1 text-muted-foreground"><code class="rounded bg-background px-1.5 py-0.5 text-xs text-primary">/opsx-propose</code></div>
-                </div>
-              </label>
+              <OptionCard
+                icon={Terminal}
+                label={FIXED_LABELS.settings.workflowFormats.standard}
+                selected={commandPreferencesStore.format === 'standard'}
+                name="workflow"
+                value="standard"
+                onchange={() => setFormat('standard')}
+              >
+                {#snippet description()}
+                  <code class="rounded bg-background px-1.5 py-0.5 text-xs text-primary">/opsx-propose</code>
+                {/snippet}
+              </OptionCard>
 
-              <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-secondary/50 p-4 text-sm text-card-foreground">
-                <input
-                  type="radio"
-                  name="workflow"
-                  class="mt-1"
-                  checked={commandPreferencesStore.format === 'claude-code'}
-                  onchange={() => setFormat('claude-code')}
-                />
-                <div>
-                  <div class="font-medium text-foreground">{FIXED_LABELS.settings.workflowFormats.claudeCode}</div>
-                  <div class="mt-1 text-muted-foreground"><code class="rounded bg-background px-1.5 py-0.5 text-xs text-primary">/opsx:propose</code></div>
-                </div>
-              </label>
+              <OptionCard
+                icon={Sparkles}
+                label={FIXED_LABELS.settings.workflowFormats.claudeCode}
+                selected={commandPreferencesStore.format === 'claude-code'}
+                name="workflow"
+                value="claude-code"
+                onchange={() => setFormat('claude-code')}
+              >
+                {#snippet description()}
+                  <code class="rounded bg-background px-1.5 py-0.5 text-xs text-primary">/opsx:propose</code>
+                {/snippet}
+              </OptionCard>
 
-              <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-secondary/50 p-4 text-sm text-card-foreground">
-                <input
-                  type="radio"
-                  name="workflow"
-                  class="mt-1"
-                  checked={commandPreferencesStore.format === 'skill'}
-                  onchange={() => setFormat('skill')}
-                />
-                <div>
-                  <div class="font-medium text-foreground">{FIXED_LABELS.settings.workflowFormats.skill}</div>
-                  <div class="mt-1 text-muted-foreground"><code class="rounded bg-background px-1.5 py-0.5 text-xs text-primary">/openspec-propose</code></div>
-                </div>
-              </label>
+              <OptionCard
+                icon={Wrench}
+                label={FIXED_LABELS.settings.workflowFormats.skill}
+                selected={commandPreferencesStore.format === 'skill'}
+                name="workflow"
+                value="skill"
+                onchange={() => setFormat('skill')}
+              >
+                {#snippet description()}
+                  <code class="rounded bg-background px-1.5 py-0.5 text-xs text-primary">/openspec-propose</code>
+                {/snippet}
+              </OptionCard>
             </div>
 
             <Callout variant="info">
@@ -299,7 +296,8 @@
               <div>
                 <h3 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{FIXED_LABELS.settings.headings.commands}</h3>
                 <p class="mt-1 text-sm text-muted-foreground">{t(m.settings_commands_description)}</p>
-                <p class="mt-1 text-xs text-muted-foreground">
+                <p class="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                  <Info class="h-5 w-5 text-info" />
                   {t(m.settings_docs_intro)}
                   <a href="https://github.com/Fission-AI/OpenSpec/blob/main/docs/commands.md" target="_blank" class="underline hover:text-foreground">{FIXED_LABELS.settings.docs.commands}</a> ·
                   <a href="https://github.com/Fission-AI/OpenSpec/blob/main/docs/workflows.md" target="_blank" class="underline hover:text-foreground">{FIXED_LABELS.settings.docs.workflows}</a>
