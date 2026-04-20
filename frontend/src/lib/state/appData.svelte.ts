@@ -1,5 +1,7 @@
 import { tick } from 'svelte';
 import { toast } from 'svelte-sonner';
+import { t } from '$lib/i18n';
+import * as m from '$lib/paraglide/messages.js';
 
 import {
   getApiErrorMessage,
@@ -202,7 +204,7 @@ export async function initializeData() {
       return;
     }
 
-    state.error = getApiErrorMessage(cause, 'Failed to load data');
+    state.error = getApiErrorMessage(cause, t(m.error_failed_to_load_data));
   } finally {
     state.isLoading = false;
   }
@@ -219,7 +221,7 @@ async function handleConnectionInit(announcedActiveProjectId: string | null) {
     } catch (cause) {
       stopIgnoringRefreshUntilBound();
       projectStore.setActiveProjectId(announcedActiveProjectId);
-      toast.error(getApiErrorMessage(cause, 'Failed to restore project binding'));
+      toast.error(getApiErrorMessage(cause, t(m.error_failed_to_restore_project_binding)));
       await reinitializeProjectScopedState('connection:init', announcedActiveProjectId);
     }
 
@@ -285,7 +287,7 @@ export function setupWebSocket() {
           state.stats = await getStats();
 
           if (entity !== 'all') {
-            toast(`Updated: ${message.entityId || entity}`);
+            toast(t(m.toast_workspace_updated, { target: message.entityId || entity }));
           }
 
           await tick();
@@ -296,7 +298,7 @@ export function setupWebSocket() {
             return;
           }
 
-          toast.error(getApiErrorMessage(cause, 'Failed to refresh workspace data'));
+          toast.error(getApiErrorMessage(cause, t(m.error_failed_to_refresh_workspace_data)));
         }
 
         return;

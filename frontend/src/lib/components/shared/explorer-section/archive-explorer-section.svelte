@@ -4,6 +4,8 @@
   import { formatChangeName } from '$lib/utils';
   import ExplorerSection from './explorer-section.svelte';
   import ExplorerSectionItem from './explorer-section-item.svelte';
+  import * as m from '$lib/paraglide/messages.js';
+  import { FIXED_LABELS } from '$lib/uiText';
 
   interface Props {
     changes: ChangeSummary[];
@@ -17,11 +19,11 @@
 </script>
 
 <ExplorerSection
-  title="Archive"
+  title={FIXED_LABELS.explorer.archive}
   icon={Archive}
   section="archive"
   count={changes.length}
-  emptyMessage="No archived changes"
+  emptyMessage={m.explorer_no_archived_changes()}
 >
   {#each changes as change}
     {@const changePath = `/changes/${encodeURIComponent(change.name)}`}

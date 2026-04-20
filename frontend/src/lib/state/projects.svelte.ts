@@ -5,6 +5,8 @@ import {
   removeProject as removeProjectRequest,
   setActiveProjectContext,
 } from '$lib/api';
+import { t } from '$lib/i18n';
+import * as m from '$lib/paraglide/messages.js';
 import type {
   ProjectEntry,
   ProjectListResponse,
@@ -117,7 +119,7 @@ function createProjectsStore() {
     shouldPersistPreference = true
   ): Promise<void> {
     if (!wsClient.isConnected) {
-      throw new Error('WebSocket is not connected');
+      throw new Error(t(m.error_websocket_not_connected));
     }
 
     if (!force && !pendingBind && state.activeProjectId === projectId) {
@@ -129,7 +131,7 @@ function createProjectsStore() {
       return;
     }
 
-    rejectPendingBind('Project switch interrupted');
+    rejectPendingBind(t(m.error_project_switch_interrupted));
 
     let resolvePending = () => {};
     let rejectPending = (_error: Error) => {};
@@ -141,7 +143,7 @@ function createProjectsStore() {
 
     const timeoutId = setTimeout(() => {
       if (pendingBind?.projectId === projectId) {
-        rejectPendingBind('Timed out waiting for project binding');
+        rejectPendingBind(t(m.error_project_binding_timed_out));
       }
     }, PROJECT_BIND_TIMEOUT_MS);
 
@@ -166,7 +168,7 @@ function createProjectsStore() {
         projectId,
       });
     } catch (error) {
-      rejectPendingBind(error instanceof Error ? error.message : 'Failed to send project bind message');
+      rejectPendingBind(error instanceof Error ? error.message : t(m.error_failed_to_send_project_bind_message));
       throw error;
     }
 
@@ -176,7 +178,7 @@ function createProjectsStore() {
   async function bindProject(projectId: string | null, options: { force?: boolean } = {}): Promise<void> {
     return runAction(
       () => bindProjectRequest(projectId, options.force ?? false),
-      'Failed to switch project'
+      t(m.error_failed_to_switch_project)
     );
   }
 
@@ -201,7 +203,7 @@ function createProjectsStore() {
     },
 
     async loadProjects(): Promise<ProjectListResponse> {
-      return runAction(() => refreshSnapshot(), 'Failed to load projects');
+      return runAction(() => refreshSnapshot(), t(m.error_failed_to_load_projects));
     },
 
     async addProject(path: string): Promise<ProjectSelectionResponse> {
@@ -211,7 +213,7 @@ function createProjectsStore() {
         await refreshSnapshot();
         await bindProjectRequest(response.project.id, false, true);
         return response;
-      }, 'Failed to add project');
+      }, t(m.error_failed_to_add_project));
     },
 
     async removeProject(id: string): Promise<RemoveProjectResponse> {
@@ -226,7 +228,7 @@ function createProjectsStore() {
 
         await refreshSnapshot();
         return response;
-      }, 'Failed to remove project');
+      }, t(m.error_failed_to_remove_project));
     },
 
     bindProject,
@@ -247,7 +249,7 @@ function createProjectsStore() {
       if (pendingBind?.projectId === projectId) {
         pendingBind.resolve();
       } else if (pendingBind) {
-        pendingBind.reject(new Error('Received unexpected project binding update'));
+        pendingBind.reject(new Error(t(m.error_unexpected_project_binding_update)));
       }
     },
 

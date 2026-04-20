@@ -8,6 +8,7 @@ import {
   getChangeViewerContextLabel,
   getSpecViewerContextLabel,
 } from './contextCopy';
+import { FIXED_LABELS } from './uiText';
 
 test('buildQuotedCopySelectionResult formats single-line quoted text', () => {
   assert.deepEqual(
@@ -27,12 +28,12 @@ test('buildQuotedCopySelectionResult formats multiline quoted text', () => {
   assert.deepEqual(
     buildQuotedCopySelectionResult({
       sourceName: 'add-context-menu-copy',
-      contextLabel: 'Design',
+      contextLabel: 'Specification',
       selection: 'Line one\nLine two',
     }),
     {
       ok: true,
-      text: '> [add-context-menu-copy] Design\n> Line one\n> Line two',
+      text: '> [add-context-menu-copy] Specification\n> Line one\n> Line two',
     },
   );
 });
@@ -70,7 +71,6 @@ test('getChangeViewerContextLabel falls back to active file name', () => {
   assert.equal(getChangeViewerContextLabel({ activeFileName: 'design.md' }), 'design.md');
 });
 
-test('getSpecViewerContextLabel returns specification and design labels', () => {
-  assert.equal(getSpecViewerContextLabel('spec'), 'Specification');
-  assert.equal(getSpecViewerContextLabel('design'), 'Design');
+test('getSpecViewerContextLabel always returns the specification label', () => {
+  assert.equal(getSpecViewerContextLabel(), FIXED_LABELS.viewer.specification);
 });

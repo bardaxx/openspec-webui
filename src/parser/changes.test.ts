@@ -51,20 +51,17 @@ test('parseChangeByName includes files under changes/<name>/specs in lastModifie
   const fixture = await createChangeFixture('spec-delta-mtime-change');
   const specDeltaDir = join(fixture.changePath, 'specs', 'explorer-pane');
   const specDeltaPath = join(specDeltaDir, 'spec.md');
-  const specDeltaDesignPath = join(specDeltaDir, 'design.md');
 
   await mkdir(specDeltaDir, { recursive: true });
   await writeFile(specDeltaPath, '## MODIFIED Requirements\n\n### Requirement: Example\n');
-  await writeFile(specDeltaDesignPath, '## Context\n\nFollow-up design note\n');
 
   await setFileMtime(fixture.proposalPath, '2026-04-10T08:00:00.000Z');
   await setFileMtime(fixture.tasksPath, '2026-04-11T09:30:00.000Z');
   await setFileMtime(specDeltaPath, '2026-04-12T07:45:00.000Z');
-  await setFileMtime(specDeltaDesignPath, '2026-04-13T11:15:00.000Z');
 
   const result = await parseChangeByName(fixture.root, 'spec-delta-mtime-change');
 
   assert.equal(result.errors.length, 0);
   assert.equal(result.data?.specDeltas.length, 1);
-  assert.equal(result.data?.lastModified, '2026-04-13T11:15:00.000Z');
+  assert.equal(result.data?.lastModified, '2026-04-12T07:45:00.000Z');
 });

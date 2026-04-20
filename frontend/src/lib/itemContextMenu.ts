@@ -1,4 +1,6 @@
 import { Clipboard, FileText, Search } from '@lucide/svelte';
+import { t } from '$lib/i18n';
+import * as m from '$lib/paraglide/messages.js';
 
 import type { MenuItem } from '$lib/components/shared/item-context-menu';
 
@@ -24,18 +26,18 @@ type ChangeItemContextMenuConfig = BaseItemContextMenuConfig & {
 export type ItemContextMenuConfig = ChangeItemContextMenuConfig | SpecItemContextMenuConfig;
 
 function copyLabelFor(kind: ItemContextMenuKind) {
-  return kind === 'spec' ? 'Spec name' : 'Change name';
+  return kind === 'spec' ? t(m.copy_label_spec_name) : t(m.copy_label_change_name);
 }
 
 export function createItemContextMenuItems(config: ItemContextMenuConfig): MenuItem[] {
   const items: MenuItem[] = [
     {
-      label: 'Open in New Tab',
+      label: t(m.context_menu_open_in_new_tab),
       icon: FileText,
       onSelect: config.onOpenInNewTab,
     },
     {
-      label: 'Copy Name',
+      label: t(m.context_menu_copy_name),
       icon: Clipboard,
       onSelect: () => copyToClipboard(config.name, copyLabelFor(config.kind)),
     },
@@ -43,7 +45,7 @@ export function createItemContextMenuItems(config: ItemContextMenuConfig): MenuI
 
   if (config.kind === 'spec') {
     items.push({
-      label: 'Search Related Changes',
+      label: t(m.context_menu_search_related_changes),
       icon: Search,
       onSelect: config.onSearchRelatedChanges,
     });

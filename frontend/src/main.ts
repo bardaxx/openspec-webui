@@ -1,9 +1,15 @@
 import './app.css';
-import App from './App.svelte';
+import { initializeLocaleSystem } from '$lib/i18n';
 import { mount } from 'svelte';
 
-const app = mount(App, {
-  target: document.getElementById('app')!,
-});
+initializeLocaleSystem();
+
+const target = document.getElementById('app')!;
+
+const app = import('./App.svelte').then(({ default: App }) =>
+  mount(App, {
+    target,
+  })
+);
 
 export default app;

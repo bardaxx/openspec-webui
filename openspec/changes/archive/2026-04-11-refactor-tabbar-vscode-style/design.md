@@ -47,7 +47,7 @@ Tab Store (`stores/tabs.svelte.ts`) は Svelte 5 Runes ベースで、Tab型は 
 **選択**: `TabBar.svelte` 内に `getTabIcon(tab)` 関数を定義。change タイプは `archivedChanges` ストアと照合し、アーカイブ済みなら `Archive`(`text-muted-foreground`)、アクティブなら `SquarePen`(`text-info`) を返す。dashboard と spec は固定マッピング。
 
 マッピング:
-- `dashboard` → `House` icon, `text-muted-foreground`
+- `dashboard` → `LayoutDashboard` icon, `text-muted-foreground`
 - `spec` → `FileText` icon, `text-primary`
 - `change` (active) → `SquarePen` icon, `text-info`
 - `change` (archived) → `Archive` icon, `text-muted-foreground`

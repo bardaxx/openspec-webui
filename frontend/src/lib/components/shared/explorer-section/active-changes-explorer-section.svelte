@@ -5,6 +5,8 @@
   import { formatDate } from '$lib/utils';
   import ExplorerSection from './explorer-section.svelte';
   import ExplorerSectionItem from './explorer-section-item.svelte';
+  import * as m from '$lib/paraglide/messages.js';
+  import { FIXED_LABELS } from '$lib/uiText';
 
   interface Props {
     changes: ChangeSummary[];
@@ -20,12 +22,12 @@
 </script>
 
 <ExplorerSection
-  title="Active Changes"
+  title={FIXED_LABELS.explorer.activeChanges}
   icon={SquarePen}
   section="active-changes"
   count={changes.length}
   {headerExtra}
-  emptyMessage="No active changes"
+  emptyMessage={m.explorer_no_active_changes()}
 >
   {#each changes as change}
     {@const changePath = `/changes/${encodeURIComponent(change.name)}`}

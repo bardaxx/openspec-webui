@@ -1,5 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { getLocale } from './paraglide/runtime.js';
+import * as m from './paraglide/messages.js';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -38,7 +40,7 @@ export function formatChangeName(name: string): string {
  * Format an ISO date string to YYYY-MM-DD.
  * Returns empty string if the input is null/undefined or invalid.
  */
-export function formatDate(iso: string | null | undefined): string {
+export function formatDate(iso: string | null | undefined, locale: string = getLocale()): string {
   if (!iso) return '';
 
   const date = new Date(iso);
@@ -46,16 +48,21 @@ export function formatDate(iso: string | null | undefined): string {
     return '';
   }
 
-  return date.toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat(locale, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
 }
 
 export async function copyToClipboard(text: string, label: string) {
   try {
     await navigator.clipboard.writeText(text);
     const { toast } = await import('svelte-sonner');
-    toast.success(`${label} copied`);
+    toast.success(m.common_copied({ label }));
   } catch {
     const { toast } = await import('svelte-sonner');
-    toast.error('Failed to copy');
+    toast.error(m.common_failed_to_copy());
   }
 }

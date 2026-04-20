@@ -4,7 +4,9 @@
   import type { WorkflowCommand } from '$lib/types/commandTypes';
   import { buildCommand } from '$lib/commandShortcuts';
   import { toast } from 'svelte-sonner';
+  import * as m from '$lib/paraglide/messages.js';
   import { commandPreferencesStore } from '$lib/state/commandPreferences.svelte.ts';
+  import { FIXED_LABELS, getCommandShortcutCopyTitle, getWorkflowCommandLabel } from '$lib/uiText';
 
   interface Props {
     commands?: WorkflowCommand[];
@@ -22,9 +24,9 @@
 
     try {
       await navigator.clipboard.writeText(text);
-      toast.success('Copied to clipboard!');
+      toast.success(m.command_shortcuts_copied());
     } catch {
-      toast.error('Failed to copy');
+      toast.error(m.common_failed_to_copy());
     }
   }
 </script>
@@ -34,9 +36,9 @@
     {#each commands as command}
       {@const text = commandText(command)}
       <CommandChip
-        label={command}
+        label={getWorkflowCommandLabel(command)}
         icon={Clipboard}
-        title={`Copy ${text}`}
+        title={getCommandShortcutCopyTitle(text)}
         onclick={() => copyCommand(command)}
       />
     {/each}

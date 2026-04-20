@@ -4,13 +4,12 @@
 Expose capability specs through the Explorer Pane and open spec content in the tabbed Main Viewer.
 ## Requirements
 ### Requirement: Catalog capability specs
-The system SHALL discover capability directories under `specs/`, sort them alphabetically, and display them in the Explorer Pane's SPECS collapsible section. Each entry SHALL indicate whether the spec includes a design document.
+The system SHALL discover capability directories under `specs/`, sort them alphabetically, and display them in the Explorer Pane's SPECS collapsible section.
 
 #### Scenario: List available capabilities in Explorer
 - **WHEN** the workspace contains one or more spec capability directories
 - **THEN** the Explorer Pane's SPECS section lists them in alphabetical order
 - **AND** each entry shows the capability name
-- **AND** entries with design content are visually distinguished
 
 #### Scenario: Show an empty spec list in Explorer
 - **WHEN** the workspace contains no spec capability directories
@@ -44,22 +43,15 @@ The system SHALL display each spec entry with a Calendar icon and the last modif
 - **WHEN** the Explorer Pane renders a spec with lastModified "2026-04-08"
 - **THEN** the second line shows a Calendar icon followed by "2026-04-08"
 
-### Requirement: Render spec and design content
-The system SHALL load a spec by capability name when the operator clicks it in the Explorer Pane, SHALL open a tab in the Main Viewer rendering `spec.md` content, and SHALL offer `Specification` and `Design` sub-tabs when `design.md` is present. The SpecViewer header subtitle SHALL display the spec's last modification date using the same compact metadata style as other views: a Calendar icon followed by the formatted date when available, or `Specification` as fallback. The SpecViewer heading icon SHALL use the same `FileText`-based success color treatment as the Dashboard Specs summary card so spec surfaces share a consistent visual identity.
+### Requirement: Render spec content
+The system SHALL load a spec by capability name when the operator clicks it in the Explorer Pane, SHALL open a tab in the Main Viewer rendering `spec.md` content, and SHALL display the spec's last modification date using the same compact metadata style as other views: a Calendar icon followed by the formatted date when available, or `Specification` as fallback. The SpecViewer heading icon SHALL use the same `FileText`-based success color treatment as the Dashboard Specs summary card so spec surfaces share a consistent visual identity.
 
-#### Scenario: View a capability with design content
-- **WHEN** the operator clicks a capability that has both `spec.md` and `design.md` in the Explorer Pane
+#### Scenario: View a capability spec
+- **WHEN** the operator clicks a capability that has `spec.md` in the Explorer Pane
 - **THEN** a tab opens in the Main Viewer
-- **AND** the tab renders the specification content by default
-- **AND** provides a Design sub-tab for the design document
-- **AND** the header subtitle shows a Calendar icon and the formatted last modification date
-- **AND** the heading icon uses the shared spec color treatment
-
-#### Scenario: View a capability without design content
-- **WHEN** the operator clicks a capability that only has `spec.md`
-- **THEN** a tab opens rendering the specification content
+- **AND** the tab renders the specification content
 - **AND** no design sub-tab is shown
-- **AND** the header subtitle shows a Calendar icon and the formatted spec modification date
+- **AND** the header subtitle shows a Calendar icon and the formatted last modification date
 - **AND** the heading icon uses the shared spec color treatment
 
 ### Requirement: Change lastModified includes spec delta file updates
@@ -69,4 +61,3 @@ The system SHALL include markdown files under `changes/<name>/specs/` when compu
 - **WHEN** a change's newest modified file is `changes/<name>/specs/<capability>/spec.md`
 - **THEN** the parsed change `lastModified` equals that spec delta file's modification time
 - **AND** the change still renders spec deltas in the dedicated UI area rather than the regular file groups
-

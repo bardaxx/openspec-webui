@@ -4,8 +4,11 @@
   import * as Dialog from '$lib/components/ui/dialog';
   import { DialogHeader as SharedDialogHeader } from '$lib/components/shared/dialog-header';
   import { toast } from 'svelte-sonner';
+  import { t } from '$lib/i18n';
+  import * as m from '$lib/paraglide/messages.js';
   import { projectStore } from '$lib/state/projects.svelte.ts';
   import { layoutStore } from '$lib/state/layout.svelte.ts';
+  import { FIXED_LABELS } from '$lib/uiText';
 
   interface Props {
     open: boolean;
@@ -30,7 +33,7 @@
       await projectStore.bindProject(id);
       onClose();
     } catch {
-      toast.error(error ?? 'Failed to switch project');
+      toast.error(error ?? t(m.error_failed_to_switch_project));
     } finally {
       switchingProjectId = null;
     }
@@ -57,15 +60,15 @@
   <Dialog.Content class="max-w-md gap-0 p-0">
     <SharedDialogHeader
       icon={Folder}
-      title="Project Selector"
-      description="Switch to a different project or add a new one."
+      title={FIXED_LABELS.projectSelector.title}
+      description={t(m.project_selector_description)}
       onClose={onClose}
     />
 
     <div class="flex flex-col gap-4 px-6 py-4">
       {#if projects.length > 0}
         <div class="flex flex-col gap-2">
-          <h3 class="text-sm font-medium text-muted-foreground">Your Projects</h3>
+          <h3 class="text-sm font-medium text-muted-foreground">{FIXED_LABELS.projectSelector.yourProjects}</h3>
           <div class="max-h-80 overflow-y-auto rounded-lg border border-border">
             {#each projects as project}
               <div
@@ -89,13 +92,13 @@
                       {project.label}
                       {#if switchingProjectId === project.id}
                         <span class="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
-                          Switching...
+                          {FIXED_LABELS.projectSelector.switching}
                         </span>
                       {/if}
                       {#if project.id === activeProjectId}
                         <span class="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
                           <CheckCircle2 class="mr-1 h-3 w-3" />
-                          Active
+                          {FIXED_LABELS.common.active}
                         </span>
                       {/if}
                     </span>
@@ -108,7 +111,7 @@
                 <div class="flex shrink-0 items-center">
                   {#if confirmRemoveId === project.id}
                     <div class="flex items-center gap-2 bg-destructive/10 rounded-md p-1 border border-destructive/20">
-                      <span class="text-xs text-destructive font-medium px-2">Remove?</span>
+                      <span class="text-xs text-destructive font-medium px-2">{FIXED_LABELS.projectSelector.removeConfirm}</span>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -116,7 +119,7 @@
                         onclick={() => handleRemove(project.id)}
                         disabled={loading || Boolean(switchingProjectId)}
                       >
-                        Yes
+                        {FIXED_LABELS.common.yes}
                       </Button>
                       <Button
                         variant="ghost"
@@ -125,7 +128,7 @@
                         onclick={() => confirmRemoveId = null}
                          disabled={loading || Boolean(switchingProjectId)}
                        >
-                        Cancel
+                        {FIXED_LABELS.common.cancel}
                       </Button>
                     </div>
                   {:else}
@@ -135,10 +138,10 @@
                       class="h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive hover:bg-destructive/10"
                       onclick={() => confirmRemoveId = project.id}
                        disabled={loading || Boolean(switchingProjectId)}
-                       title="Remove project"
+                       title={FIXED_LABELS.projectSelector.removeProject}
                      >
                       <Trash2 class="h-4 w-4" />
-                      <span class="sr-only">Remove</span>
+                      <span class="sr-only">{FIXED_LABELS.common.remove}</span>
                     </Button>
                   {/if}
                 </div>
@@ -148,7 +151,7 @@
         </div>
       {:else}
         <div class="py-6 text-center text-sm text-muted-foreground">
-          No projects added yet.
+          {t(m.project_selector_no_projects)}
         </div>
       {/if}
 
@@ -159,7 +162,7 @@
         disabled={loading}
       >
         <FolderPlus class="mr-2 h-4 w-4" />
-        Add New Project
+        {FIXED_LABELS.projectSelector.addNewProject}
       </Button>
     </div>
   </Dialog.Content>

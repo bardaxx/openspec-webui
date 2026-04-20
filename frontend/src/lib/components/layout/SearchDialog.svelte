@@ -4,6 +4,9 @@
   import { Badge } from '$lib/components/ui/badge';
   import { DialogHeader as SharedDialogHeader } from '$lib/components/shared/dialog-header';
   import * as Dialog from '$lib/components/ui/dialog';
+  import { t } from '$lib/i18n';
+  import * as m from '$lib/paraglide/messages.js';
+  import { FIXED_LABELS, getSearchResultTypeLabel } from '$lib/uiText';
   import { search } from '$lib/api';
   import { searchQuery } from '$lib/state/appData.svelte.ts';
   import { tabStore } from '$lib/state/tabs.svelte.ts';
@@ -46,7 +49,7 @@
 
   function openResult(result: SearchResult) {
     if (result.type === 'spec') {
-      tabStore.open(`/specs/${encodeURIComponent(result.name.replace(' (design)', ''))}`);
+      tabStore.open(`/specs/${encodeURIComponent(result.name)}`);
     } else if (result.type === 'change') {
       tabStore.open(`/changes/${encodeURIComponent(result.name)}`);
     } else {
@@ -104,8 +107,8 @@
   <Dialog.Content class="max-w-2xl gap-0 p-0">
     <SharedDialogHeader
       icon={Search}
-      title="Search"
-      description="Type at least 2 characters to search specs, changes, and project docs."
+      title={FIXED_LABELS.search.title}
+      description={t(m.search_description)}
       onClose={onClose}
       class="px-5 py-4"
     />
@@ -114,7 +117,7 @@
       <input
         bind:this={inputRef}
         type="text"
-        placeholder="Search workspace..."
+        placeholder={FIXED_LABELS.search.placeholder}
         value={searchQuery.value}
         oninput={handleSearch}
         class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/30"
@@ -123,9 +126,9 @@
 
     <div class="max-h-96 overflow-y-auto px-2 py-2">
       {#if searchQuery.value.length < 2}
-        <div class="px-3 py-8 text-center text-sm text-muted-foreground">Start typing to search the workspace.</div>
+        <div class="px-3 py-8 text-center text-sm text-muted-foreground">{t(m.search_start_typing)}</div>
       {:else if searchResults.length === 0}
-        <div class="px-3 py-8 text-center text-sm text-muted-foreground">No results found for “{searchQuery.value}”.</div>
+        <div class="px-3 py-8 text-center text-sm text-muted-foreground">{t(m.search_no_results, { query: searchQuery.value })}</div>
       {:else}
         {#each searchResults as result}
           <button
@@ -135,7 +138,7 @@
           >
             <div class="flex items-center gap-2">
               <Badge variant={resultBadgeVariant(result.type)} class="text-[11px] font-medium">
-                {result.type}
+                {getSearchResultTypeLabel(result.type)}
               </Badge>
               <span class="font-medium text-foreground">{result.name}</span>
             </div>

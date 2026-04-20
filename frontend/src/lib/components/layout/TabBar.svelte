@@ -1,15 +1,18 @@
 <script lang="ts">
-  import { Pin, X, House, FileText, Archive, SquarePen, Clipboard, ClipboardCopy } from '@lucide/svelte';
+  import { Pin, X, LayoutDashboard, FileText, Archive, SquarePen, Clipboard, ClipboardCopy } from '@lucide/svelte';
   import * as ContextMenu from '$lib/components/ui/context-menu';
   import * as ScrollArea from '$lib/components/ui/scroll-area';
+  import { t } from '$lib/i18n';
+  import * as m from '$lib/paraglide/messages.js';
   import { tabStore, type TabType } from '$lib/state/tabs.svelte.ts';
   import { archivedChanges } from '$lib/state/appData.svelte.ts';
   import { formatChangeName } from '$lib/utils.ts';
   import { toast } from 'svelte-sonner';
+  import { FIXED_LABELS, getPinnedTabAriaLabel, getPreviewTabAriaLabel, getRegularTabAriaLabel } from '$lib/uiText';
 
   // --- File-type icon mapping ---
-  const TAB_ICONS: Record<TabType, { icon: typeof House; color: string }> = {
-    dashboard: { icon: House, color: 'text-muted-foreground' },
+  const TAB_ICONS: Record<TabType, { icon: typeof LayoutDashboard; color: string }> = {
+    dashboard: { icon: LayoutDashboard, color: 'text-muted-foreground' },
     spec: { icon: FileText, color: 'text-success' },
     change: { icon: SquarePen, color: 'text-info' },
   };
@@ -40,9 +43,9 @@
   async function copyToClipboard(text: string, label: string) {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success(`${label} copied: ${text}`);
+      toast.success(m.common_copied_with_value({ label, value: text }));
     } catch {
-      toast.error(`Failed to copy ${label.toLowerCase()}`);
+      toast.error(m.common_failed_to_copy());
     }
   }
 
@@ -119,7 +122,7 @@
         {@const isHome = isHomeTab(tab)}
         {@const isPinned = tab.pinned ?? false}
         {@const isPreview = tab.preview === true}
-        {@const visibleLabel = tab.type === 'change' ? formatChangeName(tab.name) : tab.name}
+        {@const visibleLabel = tab.type === 'change' ? formatChangeName(tab.name) : tab.type === 'dashboard' ? FIXED_LABELS.common.dashboard : tab.name}
 
         <ContextMenu.Root>
           <button
@@ -132,8 +135,8 @@
               {draggedIndex === index ? 'opacity-50' : ''}"
             role="tab"
             aria-selected={isActive}
-            aria-label={isPreview ? `${visibleLabel} Preview tab` : `${visibleLabel} tab`}
-            title={isPreview ? `${visibleLabel} • Preview` : visibleLabel}
+            aria-label={isPreview ? getPreviewTabAriaLabel(visibleLabel) : getRegularTabAriaLabel(visibleLabel)}
+            title={isPreview ? `${visibleLabel} • ${FIXED_LABELS.tab.preview}` : visibleLabel}
             data-preview={isPreview ? 'true' : 'false'}
             draggable={isHome ? false : true}
             onclick={() => tabStore.focus(tab.id)}
@@ -156,7 +159,7 @@
                 type="button"
                 class="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground hover:text-foreground"
                 tabindex={-1}
-                aria-label={isHome ? `Pinned ${tab.name} tab` : 'Unpin tab'}
+                aria-label={isHome ? getPinnedTabAriaLabel(visibleLabel) : FIXED_LABELS.tab.unpinAria}
                 disabled={isHome}
                 onclick={(e) => {
                   e.stopPropagation();
@@ -174,7 +177,7 @@
                 class="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm transition-opacity hover:bg-muted
                   {isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}"
                 tabindex={-1}
-                aria-label="Close tab"
+                aria-label={FIXED_LABELS.tab.closeAria}
                 onclick={(e) => { e.stopPropagation(); tabStore.close(tab.id); }}
               >
                 <X class="h-3.5 w-3.5" />
@@ -185,25 +188,25 @@
           <!-- Context Menu -->
           <ContextMenu.Content>
             <ContextMenu.Item onSelect={() => togglePin(tab.id, isPinned)} disabled={isHome}>
-              {isPinned ? 'Unpin' : 'Pin'}
+              {isPinned ? t(m.context_menu_unpin) : t(m.context_menu_pin)}
             </ContextMenu.Item>
             <ContextMenu.Item onSelect={() => tabStore.close(tab.id)} disabled={isPinned || isHome}>
-              Close
+              {t(m.context_menu_close)}
             </ContextMenu.Item>
             <ContextMenu.Item onSelect={() => tabStore.closeOthers(tab.id)} disabled={isHome}>
-              Close Others
+              {t(m.context_menu_close_others)}
             </ContextMenu.Item>
             <ContextMenu.Item onSelect={() => tabStore.closeAll()}>
-              Close All
+              {t(m.context_menu_close_all)}
             </ContextMenu.Item>
             <ContextMenu.Separator />
-            <ContextMenu.Item onSelect={() => copyToClipboard(tab.name, 'Name')}>
+            <ContextMenu.Item onSelect={() => copyToClipboard(tab.type === 'dashboard' ? visibleLabel : tab.name, t(m.copy_label_tab_name))}>
               <Clipboard class="h-4 w-4" />
-              Copy Name
+              {t(m.context_menu_copy_name)}
             </ContextMenu.Item>
-            <ContextMenu.Item onSelect={() => copyToClipboard(`openspec${tab.path}`, 'Path')}>
+            <ContextMenu.Item onSelect={() => copyToClipboard(`openspec${tab.path}`, t(m.copy_label_tab_path))}>
               <ClipboardCopy class="h-4 w-4" />
-              Copy Path
+              {t(m.context_menu_copy_path)}
             </ContextMenu.Item>
           </ContextMenu.Content>
         </ContextMenu.Root>

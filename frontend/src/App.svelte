@@ -3,6 +3,7 @@
     initializeData,
     setupWebSocket,
   } from '$lib/state/appData.svelte.ts';
+  import { localeStore } from '$lib/state/locale.svelte.ts';
   import { commandPreferencesStore } from '$lib/state/commandPreferences.svelte.ts';
   import { themeStore } from '$lib/state/theme.svelte.ts';
   import { uiPreferencesStore } from '$lib/state/uiPreferences.svelte.ts';
@@ -12,6 +13,10 @@
   $effect(() => {
     let disposed = false;
     let unsubscribe = () => {};
+
+    if (!localeStore.initialized) {
+      localeStore.initialize();
+    }
 
     themeStore.initialize();
     uiPreferencesStore.initialize();

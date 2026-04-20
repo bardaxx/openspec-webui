@@ -2,11 +2,25 @@ import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 
 const debugSourcemap = process.env.OPENSPEC_WEBUI_SOURCEMAP === '1';
 
 export default defineConfig({
-  plugins: [tailwindcss(), svelte()],
+  plugins: [
+    tailwindcss(),
+    svelte(),
+    paraglideVitePlugin({
+      project: path.resolve(__dirname, './project.inlang'),
+      outdir: path.resolve(__dirname, './src/lib/paraglide'),
+      strategy: ['custom-openspec-locale', 'preferredLanguage', 'baseLocale'],
+      emitTsDeclarations: true,
+      emitGitIgnore: false,
+      emitPrettierIgnore: false,
+      emitReadme: false,
+      isServer: 'import.meta.env.SSR',
+    }),
+  ],
   root: path.resolve(__dirname, '.'),
   resolve: {
     alias: {

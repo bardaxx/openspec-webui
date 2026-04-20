@@ -1,4 +1,6 @@
 import { getCommandAvailability } from '$lib/api';
+import { t } from '$lib/i18n';
+import * as m from '$lib/paraglide/messages.js';
 import type { CommandAvailability } from '$lib/types/api';
 import type { WorkflowCommand } from '$lib/types/commandTypes';
 
@@ -52,7 +54,7 @@ function createCommandPreferencesStore() {
         profile: null,
         workflows: [],
         availableExpandedCommands: [],
-        error: cause instanceof Error ? cause.message : 'Failed to load command availability',
+        error: cause instanceof Error ? cause.message : t(m.error_failed_to_load_command_availability),
       };
     } finally {
       availabilityLoading = false;

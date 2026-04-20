@@ -1,5 +1,6 @@
 <script lang="ts">
   import { cn } from '$lib/utils';
+  import { FIXED_LABELS } from '$lib/uiText';
 
   interface Props {
     height?: string;
@@ -14,5 +15,5 @@
   {...restProps}
   class={cn('flex items-center justify-center text-sm text-muted-foreground', height, className)}
 >
-  Loading...
+  {FIXED_LABELS.common.loading}
 </div>

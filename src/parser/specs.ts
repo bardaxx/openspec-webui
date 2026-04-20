@@ -53,10 +53,7 @@ async function parseCapability(
   const warnings: string[] = [];
 
   const specPath = join(capabilityPath, 'spec.md');
-  const designPath = join(capabilityPath, 'design.md');
-
   let specContent = '';
-  let designContent: string | null = null;
 
   try {
     specContent = await readFile(specPath, 'utf-8');
@@ -68,29 +65,11 @@ async function parseCapability(
     }
   }
 
-  try {
-    designContent = await readFile(designPath, 'utf-8');
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-      warnings.push(`${name}: Failed to read design.md: ${error}`);
-    }
-    // design.md is optional, so ENOENT is not an error
-  }
-
-  // Get the latest modification time from spec.md and design.md
+  // Get the modification time from spec.md
   let lastModified: string | null = null;
   try {
     const specStat = await stat(specPath);
-    let latestMtime = specStat.mtime;
-    try {
-      const designStat = await stat(designPath);
-      if (designStat.mtime > latestMtime) {
-        latestMtime = designStat.mtime;
-      }
-    } catch {
-      // design.md doesn't exist, that's fine
-    }
-    lastModified = latestMtime.toISOString();
+    lastModified = specStat.mtime.toISOString();
   } catch {
     // spec.md doesn't exist
   }
@@ -100,7 +79,6 @@ async function parseCapability(
       name,
       path: capabilityPath,
       specContent,
-      designContent,
       lastModified,
     },
     errors,

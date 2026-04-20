@@ -32,7 +32,7 @@ The system SHALL render an Explorer Pane between the Activity Bar and the Main V
 - **AND** the section passes `emptyMessage="No specs found"` and `emptyIcon={FileText}` to ExplorerSection
 - **AND** the default slot renders ExplorerItem components for each spec
 - **AND** each ExplorerItem shows a Calendar icon and last modification date on the second line
-- **AND** a Design badge may appear on the right when `design.md` is present
+- **AND** no design-specific badge or marker is shown for spec entries
 
 #### Scenario: Empty section displays placeholder via ExplorerSection
 - **WHEN** a section has no items

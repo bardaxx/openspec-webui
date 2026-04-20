@@ -12,6 +12,7 @@
   import { commandPreferencesStore } from '$lib/state/commandPreferences.svelte.ts';
   import { layoutStore } from '$lib/state/layout.svelte.ts';
   import CommandShortcutBar from '$lib/components/shared/CommandShortcutBar.svelte';
+  import { FIXED_LABELS } from '$lib/uiText';
 
   interface Props {
     temporary?: boolean;
@@ -44,15 +45,15 @@
   <div class={`gap-3 border-b border-border px-3 py-2 ${!temporary ? 'bg-secondary/70' : ''}`}>
     <div class="flex min-w-0 items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         <Folder class="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-        <span class="truncate">Current Project</span>
+        <span class="truncate">{FIXED_LABELS.common.currentProject}</span>
     </div>
     <div class="mt-1 flex min-w-0 items-center gap-1 rounded-md border border-border px-2 py-1 bg-background" >
-      <span class="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{project.value?.name ?? 'OpenSpec WebUI'}</span>
+      <span class="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{project.value?.name ?? FIXED_LABELS.appName}</span>
       <Button
         variant="ghost"
         size="icon"
         class="ml-auto size-7 shrink-0 text-muted-foreground hover:text-foreground"
-        aria-label="Open project selector"
+        aria-label={FIXED_LABELS.activityBar.openProjectSelector}
         onclick={openProjectSelector}
       >
         <FolderPen class="h-4 w-4" />

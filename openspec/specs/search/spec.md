@@ -22,15 +22,15 @@ The system SHALL expose a search interface accessible from the Activity Bar's Se
 - **AND** shows the returned results in the search panel
 
 ### Requirement: Search the supported content sources only
-The system SHALL search project markdown, spec markdown, spec design markdown, and change proposal markdown, and SHALL return each hit with a result type, result name, source path, excerpt, and first-match line number.
+The system SHALL search project markdown, spec markdown, and change proposal markdown, and SHALL return each hit with a result type, result name, source path, excerpt, and first-match line number.
 
 #### Scenario: Return a project match
 - **WHEN** the query matches the project document
 - **THEN** the system returns a `project` result with a project excerpt and line number
 
-#### Scenario: Return a spec design match
-- **WHEN** the query matches a capability design document
-- **THEN** the system returns a `spec` result whose display name includes `(design)`
+#### Scenario: Return a spec match
+- **WHEN** the query matches a capability specification document
+- **THEN** the system returns a `spec` result whose display name is the capability name
 
 ### Requirement: Navigate directly from search results
 Selecting a search result SHALL open a tab in the Main Viewer for the matching spec, change, or dashboard view and SHALL clear the current search results and query state.

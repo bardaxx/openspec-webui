@@ -3,6 +3,7 @@
   import * as Sheet from '$lib/components/ui/sheet';
   import { layoutStore } from '$lib/state/layout.svelte.ts';
   import { projectStore } from '$lib/state/projects.svelte.ts';
+  import { FIXED_LABELS } from '$lib/uiText';
   import SettingsModal from './SettingsModal.svelte';
   import ActivityBar from './ActivityBar.svelte';
   import ExplorerPane from './ExplorerPane.svelte';
@@ -50,7 +51,7 @@
 
     <Sheet.Root open={layoutStore.narrowDrawerOpen} onOpenChange={(open) => layoutStore.setNarrowDrawerOpen(open)}>
       <Sheet.Overlay class="left-12" />
-      <Sheet.Content side="left" aria-label="Explorer" class="z-50 left-12 w-[min(20rem,calc(100vw-3rem-3rem))] max-w-none border-r border-border p-0">
+      <Sheet.Content side="left" aria-label={FIXED_LABELS.layout.explorer} class="z-50 left-12 w-[min(20rem,calc(100vw-3rem-3rem))] max-w-none border-r border-border p-0">
         <ExplorerPane temporary={true} onItemSelected={() => layoutStore.setNarrowDrawerOpen(false)} onRequestClose={() => layoutStore.setNarrowDrawerOpen(false)} />
       </Sheet.Content>
     </Sheet.Root>

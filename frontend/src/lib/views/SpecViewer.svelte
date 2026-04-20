@@ -3,10 +3,11 @@
   import { ErrorBanner } from '$lib/components/shared/error-banner';
   import { IconBox } from '$lib/components/shared/icon-box';
   import { LoadingState } from '$lib/components/shared/loading-state';
-  import { UnderlineTabs } from '$lib/components/shared/underline-tabs';
   import { Button } from '$lib/components/ui/button';
   import * as ContextMenu from '$lib/components/ui/context-menu';
   import { toast } from 'svelte-sonner';
+  import { t } from '$lib/i18n';
+  import * as m from '$lib/paraglide/messages.js';
   import { getSpec } from '$lib/api';
   import {
     buildCopySelectionResult,
@@ -18,6 +19,7 @@
   import type { Spec } from '$lib/types/api';
   import MarkdownRenderer from '$lib/components/shared/MarkdownRenderer.svelte';
   import { formatDate } from '$lib/utils';
+  import { FIXED_LABELS } from '$lib/uiText';
   interface Props {
     specName: string;
   }
@@ -27,7 +29,6 @@
   let spec = $state<Spec | null>(null);
   let loading = $state(true);
   let error = $state<string | null>(null);
-  let activeTab = $state<'spec' | 'design'>('spec');
 
   let previousSpecName: string | null = null;
   let previousRefreshTrigger = -1;
@@ -36,9 +37,9 @@
   async function copyToClipboard(text: string, label: string) {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success(`${label} copied`);
+      toast.success(m.common_copied({ label }));
     } catch {
-      toast.error('Failed to copy');
+      toast.error(m.common_failed_to_copy());
     }
   }
 
@@ -49,13 +50,13 @@
       return;
     }
 
-    copyToClipboard(result.text, 'Text');
+    copyToClipboard(result.text, m.copy_label_text());
   }
 
   function handleQuoteCopy() {
     const result = buildQuotedCopySelectionResult({
       sourceName: specName,
-      contextLabel: getSpecViewerContextLabel(activeTab),
+      contextLabel: getSpecViewerContextLabel(),
       selection: window.getSelection()?.toString(),
     });
     if (!result.ok) {
@@ -63,18 +64,12 @@
       return;
     }
 
-    copyToClipboard(result.text, 'Quoted text');
+    copyToClipboard(result.text, m.copy_label_quoted_text());
   }
 
   function handleMenuOpenChange(open: boolean) {
     if (open) {
       hasSelection = (window.getSelection()?.toString().length ?? 0) > 0;
-    }
-  }
-
-  function handleTabSelect(id: string) {
-    if (id === 'spec' || id === 'design') {
-      activeTab = id;
     }
   }
 
@@ -87,11 +82,8 @@
 
     try {
       spec = await getSpec(specName);
-      if (activeTab === 'design' && !spec.designContent) {
-        activeTab = 'spec';
-      }
     } catch (e) {
-      error = e instanceof Error ? e.message : 'Failed to load spec';
+      error = e instanceof Error ? e.message : t(m.error_failed_to_load_spec);
     } finally {
       loading = false;
     }
@@ -111,10 +103,6 @@
     const isSameSpec = previousSpecName === specName;
     const preserveState = isSameSpec && refreshTrigger > previousRefreshTrigger;
 
-    if (!isSameSpec) {
-      activeTab = 'spec';
-    }
-
     previousSpecName = specName;
     previousRefreshTrigger = refreshTrigger;
 
@@ -133,7 +121,7 @@
           variant="ghost"
           size="icon"
           class="size-7 shrink-0 text-muted-foreground hover:text-foreground"
-          aria-label="Search changes related to this spec"
+          aria-label={FIXED_LABELS.search.relatedChanges}
           onclick={searchRelatedChanges}
         >
           <Search class="h-4 w-4" />
@@ -143,7 +131,7 @@
         {#if spec?.lastModified}
           <span class="flex items-center gap-1"><Calendar class="h-3.5 w-3.5" />{formatDate(spec.lastModified)}</span>
         {:else}
-          Specification
+          {FIXED_LABELS.viewer.specification}
         {/if}
       </p>
     </div>
@@ -154,32 +142,19 @@
   {:else if error}
     <ErrorBanner {error} />
   {:else if spec}
-    <!-- Tabs -->
-    {#if spec.designContent}
-      <UnderlineTabs
-        tabs={[{ id: 'spec', label: 'Specification' }, { id: 'design', label: 'Design' }]}
-        activeId={activeTab}
-        onSelect={handleTabSelect}
-      />
-    {/if}
-
     <!-- Content -->
     <ContextMenu.Root onOpenChange={handleMenuOpenChange}>
       <div class="rounded-lg border border-border bg-card p-6 shadow-lg">
-        {#if activeTab === 'spec'}
-          <MarkdownRenderer content={spec.specContent} />
-        {:else if spec.designContent}
-          <MarkdownRenderer content={spec.designContent} />
-        {/if}
+        <MarkdownRenderer content={spec.specContent} />
       </div>
       <ContextMenu.Content>
         <ContextMenu.Item disabled={!hasSelection} onSelect={handleCopy}>
           <Clipboard class="h-4 w-4" />
-          Copy
+          {t(m.common_copy)}
         </ContextMenu.Item>
         <ContextMenu.Item disabled={!hasSelection} onSelect={handleQuoteCopy}>
           <Quote class="h-4 w-4" />
-          Quote Copy
+          {t(m.common_quote_copy)}
         </ContextMenu.Item>
       </ContextMenu.Content>
     </ContextMenu.Root>

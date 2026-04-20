@@ -15,8 +15,8 @@ test('formatChangeName only removes a leading archive date prefix', () => {
   assert.equal(formatChangeName('refactor-2026-04-10-tabbar'), 'refactor-2026-04-10-tabbar');
 });
 
-test('formatDate returns YYYY-MM-DD for valid ISO strings', () => {
-  assert.equal(formatDate('2026-04-10T12:34:56.000Z'), '2026-04-10');
+test('formatDate returns locale-aware text for valid ISO strings', () => {
+  assert.equal(formatDate('2026-04-10T12:34:56.000Z', 'en-US'), 'Apr 10, 2026');
 });
 
 test('formatDate returns empty string for nullish input', () => {

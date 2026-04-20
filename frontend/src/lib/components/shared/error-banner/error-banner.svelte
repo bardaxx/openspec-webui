@@ -1,6 +1,8 @@
 <script lang="ts">
   import { AlertTriangle } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button';
+  import { t } from '$lib/i18n';
+  import * as m from '$lib/paraglide/messages.js';
   import { cn } from '$lib/utils';
 
   interface Props {
@@ -22,12 +24,12 @@
     <AlertTriangle class="mt-0.5 h-4 w-4 shrink-0" />
 
     <div class="min-w-0 flex-1">
-      <div class="font-medium">Error</div>
+      <div class="font-medium">{t(m.common_error)}</div>
       <p class="mt-1 text-sm">{error}</p>
 
       {#if onRetry}
         <div class="mt-3">
-          <Button variant="destructive" size="sm" onclick={onRetry}>Retry</Button>
+          <Button variant="destructive" size="sm" onclick={onRetry}>{t(m.common_retry)}</Button>
         </div>
       {/if}
     </div>

@@ -5,6 +5,7 @@ node_modules/
 dist/
 dist-frontend/
 frontend/dist/
+frontend/src/lib/paraglide/
 
 # IDE
 .idea/

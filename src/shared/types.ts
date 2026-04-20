@@ -46,7 +46,6 @@ export interface Spec {
   name: string;
   path: string;
   specContent: string;
-  designContent: string | null;
   lastModified: string | null;
 }
 

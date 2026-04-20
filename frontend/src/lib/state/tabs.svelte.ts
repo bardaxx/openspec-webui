@@ -1,5 +1,7 @@
 export type TabType = 'dashboard' | 'spec' | 'change';
 
+import { FIXED_LABELS } from '$lib/uiText';
+
 export interface Tab {
   id: string;
   type: TabType;
@@ -11,16 +13,19 @@ export interface Tab {
 
 type HistoryMode = 'push' | 'replace' | 'none';
 
-const HOME_TAB: Tab = {
-  id: 'dashboard:home',
-  type: 'dashboard',
-  name: 'Dashboard',
-  path: '/',
-  pinned: true,
-};
+function createHomeTab(): Tab {
+  return {
+    id: 'dashboard:home',
+    type: 'dashboard',
+    name: FIXED_LABELS.common.dashboard,
+    path: '/',
+    pinned: true,
+  };
+}
 
 function isHomeTab(tab: Tab) {
-  return tab.id === HOME_TAB.id || tab.path === HOME_TAB.path;
+  const homeTab = createHomeTab();
+  return tab.id === homeTab.id || tab.path === homeTab.path;
 }
 
 function normalizePath(path: string) {
@@ -28,7 +33,7 @@ function normalizePath(path: string) {
   const [pathname] = trimmed.split(/[?#]/, 1);
   const withLeadingSlash = pathname.startsWith('/') ? pathname : `/${pathname}`;
   const normalizedSectionPath = withLeadingSlash === '/specs' || withLeadingSlash === '/changes'
-    ? HOME_TAB.path
+    ? createHomeTab().path
     : withLeadingSlash;
 
   if (normalizedSectionPath.length > 1 && normalizedSectionPath.endsWith('/')) {
@@ -40,7 +45,7 @@ function normalizePath(path: string) {
 
 function getCurrentBrowserPath() {
   if (typeof window === 'undefined') {
-    return HOME_TAB.path;
+    return createHomeTab().path;
   }
 
   return normalizePath(window.location.pathname);
@@ -56,9 +61,10 @@ function decodeSegment(segment: string) {
 
 function createTabForPath(path: string): Tab {
   const normalizedPath = normalizePath(path);
+  const homeTab = createHomeTab();
 
-  if (normalizedPath === HOME_TAB.path) {
-    return { ...HOME_TAB };
+  if (normalizedPath === homeTab.path) {
+    return homeTab;
   }
 
   if (normalizedPath.startsWith('/specs/')) {
@@ -83,7 +89,7 @@ function createTabForPath(path: string): Tab {
     };
   }
 
-  return { ...HOME_TAB };
+  return homeTab;
 }
 
 function normalizeTabOrder(tabs: Tab[]) {
@@ -113,8 +119,8 @@ function getLookupKeys(tabIdOrPath: string) {
 export function createTabsStore() {
   const initialTab = createTabForPath(getCurrentBrowserPath());
   const initialTabs = isHomeTab(initialTab)
-    ? [{ ...HOME_TAB }]
-    : normalizeTabOrder([{ ...HOME_TAB }, initialTab]);
+    ? [createHomeTab()]
+    : normalizeTabOrder([createHomeTab(), initialTab]);
 
   const state = $state({
     tabs: initialTabs,
@@ -160,9 +166,10 @@ export function createTabsStore() {
       return null;
     }
 
-    state.tabs = [{ ...HOME_TAB }];
-    state.activeTabId = HOME_TAB.id;
-    syncBrowserPath(HOME_TAB.path, history);
+    const homeTab = createHomeTab();
+    state.tabs = [homeTab];
+    state.activeTabId = homeTab.id;
+    syncBrowserPath(homeTab.path, history);
     return state.tabs[0];
   }
 
@@ -204,7 +211,7 @@ export function createTabsStore() {
     },
 
     get activeTab() {
-      return state.tabs.find((tab) => tab.id === state.activeTabId) ?? state.tabs[0] ?? HOME_TAB;
+      return state.tabs.find((tab) => tab.id === state.activeTabId) ?? state.tabs[0] ?? createHomeTab();
     },
 
     get currentPath() {

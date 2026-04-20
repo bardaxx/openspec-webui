@@ -91,14 +91,12 @@ export interface Spec {
   name: string;
   path: string;
   specContent: string;
-  designContent: string | null;
   lastModified: string | null;
 }
 
 export interface SpecSummary {
   name: string;
   path: string;
-  hasDesign: boolean;
   lastModified: string | null;
 }
 

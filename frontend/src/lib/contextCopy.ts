@@ -1,15 +1,16 @@
+import * as m from './paraglide/messages.js';
+import { FIXED_LABELS } from './uiText';
+
 export const EMPTY_SELECTION_MESSAGE = 'No text selected';
 
 export type CopySelectionResult =
   | { ok: true; text: string }
   | { ok: false; error: string };
 
-export type SpecViewerTab = 'spec' | 'design';
-
 export function buildCopySelectionResult(selection: string | null | undefined): CopySelectionResult {
   const text = selection ?? '';
   if (!text) {
-    return { ok: false, error: EMPTY_SELECTION_MESSAGE };
+    return { ok: false, error: m.common_no_text_selected() };
   }
 
   return { ok: true, text };
@@ -43,6 +44,6 @@ export function getChangeViewerContextLabel(options: {
   return options.deltaCapability ?? options.activeFileName ?? '';
 }
 
-export function getSpecViewerContextLabel(activeTab: SpecViewerTab): 'Specification' | 'Design' {
-  return activeTab === 'design' ? 'Design' : 'Specification';
+export function getSpecViewerContextLabel(): string {
+  return FIXED_LABELS.viewer.specification;
 }

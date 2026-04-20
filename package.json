@@ -9,9 +9,10 @@
   "main": "./dist/cli/index.js",
   "scripts": {
     "dev": "node ./scripts/dev.mjs",
-    "build": "node ./scripts/run-local-bin.mjs tsc && node ./scripts/run-local-bin.mjs vite build --config frontend/vite.config.ts",
-    "test": "node --import tsx --test src/parser/changes.test.ts src/parser/project.test.ts src/server/project-registry.test.ts src/server/server.integration.test.ts frontend/src/lib/state/theme.test.ts frontend/src/lib/state/uiPreferences.test.ts frontend/src/lib/state/projectSync.test.ts frontend/src/lib/state/projectsCore.test.ts frontend/src/lib/state/commandPreferencesCore.test.ts frontend/src/lib/utils.test.ts frontend/src/lib/contextCopy.test.ts frontend/src/lib/commandShortcuts.test.ts frontend/src/lib/projectPlanningContext.test.ts scripts/dev-utils.test.mjs",
-    "typecheck": "node ./scripts/run-local-bin.mjs tsc --noEmit && node ./scripts/run-local-bin.mjs svelte-check --tsconfig ./frontend/tsconfig.json",
+    "i18n:compile": "node ./scripts/run-local-bin.mjs paraglide-js compile --project ./frontend/project.inlang --outdir ./frontend/src/lib/paraglide --strategy custom-openspec-locale preferredLanguage baseLocale --emit-ts-declarations --no-emit-git-ignore --no-emit-prettier-ignore --no-emit-readme",
+    "build": "npm run i18n:compile && node ./scripts/run-local-bin.mjs tsc && node ./scripts/run-local-bin.mjs vite build --config frontend/vite.config.ts",
+    "test": "npm run i18n:compile && node --import tsx --test src/parser/changes.test.ts src/parser/project.test.ts src/server/project-registry.test.ts src/server/server.integration.test.ts frontend/src/lib/state/theme.test.ts frontend/src/lib/state/uiPreferences.test.ts frontend/src/lib/state/projectSync.test.ts frontend/src/lib/state/projectsCore.test.ts frontend/src/lib/state/commandPreferencesCore.test.ts frontend/src/lib/state/localeCore.test.ts frontend/src/lib/locale.test.ts frontend/src/lib/utils.test.ts frontend/src/lib/contextCopy.test.ts frontend/src/lib/commandShortcuts.test.ts frontend/src/lib/projectPlanningContext.test.ts scripts/dev-utils.test.mjs",
+    "typecheck": "npm run i18n:compile && node ./scripts/run-local-bin.mjs tsc --noEmit && node ./scripts/run-local-bin.mjs svelte-check --tsconfig ./frontend/tsconfig.json",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -51,6 +52,8 @@
     "yaml": "^2.8.3"
   },
   "devDependencies": {
+    "@inlang/paraglide-js": "^2.16.0",
+    "@inlang/plugin-message-format": "^4.4.0",
     "@lucide/svelte": "^1.7.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
     "@tailwindcss/typography": "^0.5.19",

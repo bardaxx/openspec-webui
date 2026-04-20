@@ -1,7 +1,10 @@
 <script lang="ts">
   import { FileArchive, FolderPlus } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button';
+  import { t } from '$lib/i18n';
+  import * as m from '$lib/paraglide/messages.js';
   import { layoutStore } from '$lib/state/layout.svelte.ts';
+  import { FIXED_LABELS } from '$lib/uiText';
 </script>
 
 <div class="flex h-full w-full items-center justify-center bg-background p-4 text-center">
@@ -11,16 +14,15 @@
     </div>
 
     <div class="flex flex-col gap-2">
-      <h2 class="text-2xl font-bold tracking-tight">No Active Project</h2>
+      <h2 class="text-2xl font-bold tracking-tight">{FIXED_LABELS.emptyProject.title}</h2>
       <p class="text-muted-foreground">
-        OpenSpec requires a project to store specifications and changes.
-        Browse for a directory containing an <code>openspec/</code> folder.
+        {t(m.empty_project_description)}
       </p>
     </div>
 
     <Button size="lg" onclick={() => layoutStore.openOverlay('add-project')}>
       <FolderPlus class="mr-2 h-5 w-5" />
-      Add Project
+      {FIXED_LABELS.emptyProject.addProject}
     </Button>
   </div>
 </div>

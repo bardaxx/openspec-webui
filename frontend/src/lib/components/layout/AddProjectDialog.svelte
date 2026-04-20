@@ -4,10 +4,13 @@
   import * as Collapsible from '$lib/components/ui/collapsible';
   import * as Dialog from '$lib/components/ui/dialog';
   import { DialogHeader as SharedDialogHeader } from '$lib/components/shared/dialog-header';
+  import { t } from '$lib/i18n';
+  import * as m from '$lib/paraglide/messages.js';
   import { browseDirectory } from '$lib/api';
   import { layoutStore } from '$lib/state/layout.svelte.ts';
   import { projectStore } from '$lib/state/projects.svelte.ts';
   import type { BrowseResult } from '$lib/types/api';
+  import { FIXED_LABELS } from '$lib/uiText';
 
   interface Props {
     open: boolean;
@@ -34,7 +37,7 @@
     try {
       browseResult = await browseDirectory(dirPath);
     } catch {
-      browseError = 'Failed to browse directory';
+      browseError = m.add_project_browse_failed();
       browseResult = null;
     } finally {
       browseLoading = false;
@@ -100,8 +103,8 @@
   <Dialog.Content class="max-w-2xl gap-0 p-0">
     <SharedDialogHeader
       icon={FolderPlus}
-      title="Add Project"
-      description="Browse for a directory containing an openspec/ folder."
+      title={FIXED_LABELS.addProject.title}
+      description={t(m.add_project_description)}
       onClose={onClose}
     />
 
@@ -114,7 +117,7 @@
           class="size-7 shrink-0"
           onclick={goBack}
           disabled={history.length === 0 || browseLoading}
-          title="Go back"
+          title={FIXED_LABELS.addProject.goBack}
         >
           <ChevronRight class="h-4 w-4 rotate-180" />
         </Button>
@@ -124,7 +127,7 @@
           class="size-7 shrink-0"
           onclick={goUp}
           disabled={!browseResult?.parent || browseLoading}
-          title="Go to parent"
+          title={FIXED_LABELS.addProject.goParent}
         >
           <ChevronUp class="h-4 w-4" />
         </Button>
@@ -157,7 +160,7 @@
           </div>
         {:else if browseResult && browseResult.dirs.length === 0}
           <div class="px-4 py-8 text-center text-sm text-muted-foreground">
-            No subdirectories found
+            {m.add_project_no_subdirectories()}
           </div>
         {:else if browseResult}
           <div class="max-h-[400px] overflow-y-auto">
@@ -185,7 +188,7 @@
           </div>
         {:else}
           <div class="px-4 py-8 text-center text-sm text-muted-foreground">
-            Loading...
+            {FIXED_LABELS.common.loading}
           </div>
         {/if}
       </div>
@@ -203,7 +206,7 @@
           {:else}
             <FolderPlus class="mr-2 h-4 w-4" />
           {/if}
-          Add This Directory
+          {FIXED_LABELS.addProject.addThisDirectory}
         </Button>
       </div>
 
@@ -217,7 +220,7 @@
       >
         <div class="px-3 py-2">
           <Collapsible.Trigger class="w-full justify-between px-0 py-0 text-xs font-medium text-muted-foreground hover:text-foreground">
-            <span>Or enter path manually</span>
+            <span>{FIXED_LABELS.addProject.manualEntry}</span>
             {#if manualEntryOpen}
               <ChevronDown class="h-4 w-4" />
             {:else}
@@ -231,13 +234,13 @@
             <input
               bind:value={manualPath}
               type="text"
-              placeholder="/absolute/path/to/project"
+              placeholder={FIXED_LABELS.addProject.manualPlaceholder}
               disabled={loading}
               class="flex h-9 w-full flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             />
             <Button type="submit" size="sm" disabled={!manualPath.trim() || loading}>
               <FolderPlus class="mr-1.5 h-3.5 w-3.5" />
-              Add
+              {FIXED_LABELS.common.add}
             </Button>
           </form>
         </Collapsible.Content>

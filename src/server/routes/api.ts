@@ -205,7 +205,6 @@ export async function registerApiRoutes(
       specs: context.data.specs.map((s) => ({
         name: s.name,
         path: s.path,
-        hasDesign: s.designContent !== null,
         lastModified: s.lastModified,
       })),
     };

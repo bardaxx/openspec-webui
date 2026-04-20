@@ -8,6 +8,8 @@
   import { UnderlineTabs } from '$lib/components/shared/underline-tabs';
   import * as ContextMenu from '$lib/components/ui/context-menu';
   import { toast } from 'svelte-sonner';
+  import { t } from '$lib/i18n';
+  import * as m from '$lib/paraglide/messages.js';
   import { getChange } from '$lib/api';
   import {
     buildCopySelectionResult,
@@ -22,6 +24,7 @@
   import { Progress } from '$lib/components/ui/progress';
   import CommandShortcutBar from '$lib/components/shared/CommandShortcutBar.svelte';
   import { formatChangeName, formatDate } from '$lib/utils';
+  import { FIXED_LABELS } from '$lib/uiText';
 
   interface Props {
     changeName: string;
@@ -58,7 +61,7 @@
           badge: group.files.length > 1 ? group.files.length : undefined,
         })),
         ...(showDeltasTab
-          ? [{ id: 'spec-deltas', label: 'Spec Deltas', badge: change.specDeltas.length }]
+          ? [{ id: 'spec-deltas', label: FIXED_LABELS.viewer.specDeltas, badge: change.specDeltas.length }]
           : []),
       ]
       : []
@@ -72,9 +75,9 @@
   async function copyToClipboard(text: string, label: string) {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success(`${label} copied`);
+      toast.success(m.common_copied({ label }));
     } catch {
-      toast.error('Failed to copy');
+      toast.error(m.common_failed_to_copy());
     }
   }
 
@@ -85,7 +88,7 @@
       return;
     }
 
-    copyToClipboard(result.text, 'Text');
+    copyToClipboard(result.text, m.copy_label_text());
   }
 
   function handleQuoteCopy(contextLabel: string) {
@@ -99,7 +102,7 @@
       return;
     }
 
-    copyToClipboard(result.text, 'Quoted text');
+    copyToClipboard(result.text, m.copy_label_quoted_text());
   }
 
   function handleMenuOpenChange(open: boolean) {
@@ -133,7 +136,7 @@
         activeFileIndex = 0;
       }
     } catch (e) {
-      error = e instanceof Error ? e.message : 'Failed to load change';
+      error = e instanceof Error ? e.message : t(m.error_failed_to_load_change);
     } finally {
       loading = false;
     }
@@ -195,7 +198,7 @@
           {change?.isArchived ? formatChangeName(changeName) : changeName}
         </h1>
         {#if change?.isArchived}
-          <Badge variant="secondary">Archived</Badge>
+          <Badge variant="secondary">{FIXED_LABELS.common.archived}</Badge>
         {/if}
       </div>
       {#if change}
@@ -251,7 +254,7 @@
     <div class="rounded-lg border border-border bg-card p-6 shadow-lg">
       {#if isDeltasActive}
         <!-- Spec Deltas -->
-        <div class="space-y-8">
+        <div class="flex flex-col gap-3">
           {#each change.specDeltas as delta}
             <ContextMenu.Root onOpenChange={handleMenuOpenChange}>
               <div class="h-full rounded-xl border border-border/70 bg-background/70 p-0 text-left shadow-sm">
@@ -268,7 +271,7 @@
               <ContextMenu.Content>
                 <ContextMenu.Item disabled={!hasSelection} onSelect={handleCopy}>
                   <Clipboard class="h-4 w-4" />
-                  Copy
+                  {t(m.common_copy)}
                 </ContextMenu.Item>
                 <ContextMenu.Item
                   disabled={!hasSelection}
@@ -278,7 +281,7 @@
                     )}
                 >
                   <Quote class="h-4 w-4" />
-                  Quote Copy
+                  {t(m.common_quote_copy)}
                 </ContextMenu.Item>
               </ContextMenu.Content>
             </ContextMenu.Root>
@@ -294,7 +297,7 @@
           <ContextMenu.Content>
             <ContextMenu.Item disabled={!hasSelection} onSelect={handleCopy}>
               <Clipboard class="h-4 w-4" />
-              Copy
+              {t(m.common_copy)}
             </ContextMenu.Item>
             <ContextMenu.Item
               disabled={!hasSelection}
@@ -304,7 +307,7 @@
                 )}
             >
               <Quote class="h-4 w-4" />
-              Quote Copy
+              {t(m.common_quote_copy)}
             </ContextMenu.Item>
           </ContextMenu.Content>
         </ContextMenu.Root>

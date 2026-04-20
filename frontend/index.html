@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,11 +11,29 @@
     <meta name="theme-color" content="#1e1e1e" />
     <script>
       (() => {
-        const storageKey = 'openspec-theme';
+        const themeStorageKey = 'openspec-theme';
+        const localeStorageKey = 'openspec-locale';
         const isStoredTheme = (value) => value === 'light' || value === 'dark' || value === 'system';
+        const normalizeLocale = (value) => {
+          if (typeof value !== 'string') {
+            return null;
+          }
+
+          const normalized = value.toLowerCase().replace(/_/g, '-');
+
+          if (normalized === 'en' || normalized.startsWith('en-')) {
+            return 'en';
+          }
+
+          if (normalized === 'ja' || normalized.startsWith('ja-')) {
+            return 'ja';
+          }
+
+          return null;
+        };
 
         try {
-          const storedTheme = localStorage.getItem(storageKey);
+          const storedTheme = localStorage.getItem(themeStorageKey);
           const preferredTheme = isStoredTheme(storedTheme) ? storedTheme : 'dark';
           const effectiveTheme =
             preferredTheme === 'system'
@@ -27,6 +45,21 @@
           document.documentElement.setAttribute('data-theme', effectiveTheme);
         } catch {
           document.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        try {
+          const storedLocale = normalizeLocale(localStorage.getItem(localeStorageKey));
+          const browserLocales = Array.isArray(navigator.languages) && navigator.languages.length
+            ? navigator.languages
+            : [navigator.language];
+          const browserLocale = browserLocales.map(normalizeLocale).find(Boolean) ?? 'en';
+          const locale = storedLocale ?? browserLocale;
+
+          document.documentElement.setAttribute('lang', locale);
+          document.documentElement.setAttribute('dir', 'ltr');
+        } catch {
+          document.documentElement.setAttribute('lang', 'en');
+          document.documentElement.setAttribute('dir', 'ltr');
         }
       })();
     </script>

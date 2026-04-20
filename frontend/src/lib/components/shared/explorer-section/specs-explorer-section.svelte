@@ -1,10 +1,11 @@
 <script lang="ts">
   import { FileText } from '@lucide/svelte';
   import type { SpecSummary } from '$lib/types/api';
-  import { Badge } from '$lib/components/ui/badge';
   import { formatDate } from '$lib/utils';
   import ExplorerSection from './explorer-section.svelte';
   import ExplorerSectionItem from './explorer-section-item.svelte';
+  import * as m from '$lib/paraglide/messages.js';
+  import { FIXED_LABELS } from '$lib/uiText';
 
   interface Props {
     specs: SpecSummary[];
@@ -18,11 +19,11 @@
 </script>
 
 <ExplorerSection
-  title="Specs"
+  title={FIXED_LABELS.explorer.specs}
   icon={FileText}
   section="specs"
   count={specs.length}
-  emptyMessage="No specs found"
+  emptyMessage={m.explorer_no_specs_found()}
 >
   {#each specs as spec}
     {@const specPath = `/specs/${encodeURIComponent(spec.name)}`}
@@ -34,10 +35,6 @@
       {onItemSelected}
       name={spec.name}
       date={spec.lastModified ? formatDate(spec.lastModified) : null}
-    >
-      {#if spec.hasDesign}
-        <Badge variant="outline" class="text-[10px] font-medium">Design</Badge>
-      {/if}
-    </ExplorerSectionItem>
+    />
   {/each}
 </ExplorerSection>

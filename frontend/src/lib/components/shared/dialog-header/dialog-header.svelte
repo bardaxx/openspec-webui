@@ -3,6 +3,7 @@
   import type { Component, Snippet } from 'svelte';
   import { Button } from '$lib/components/ui/button';
   import { cn } from '$lib/utils';
+  import { FIXED_LABELS } from '$lib/uiText';
 
   type IconComponent = Component<{ class?: string }>;
 
@@ -51,7 +52,7 @@
   </div>
 
   {#if onClose}
-    <Button variant="ghost" size="icon" aria-label="Close" onclick={onClose}>
+    <Button variant="ghost" size="icon" aria-label={FIXED_LABELS.common.close} onclick={onClose}>
       <X class="h-4 w-4" />
     </Button>
   {/if}

@@ -21,11 +21,6 @@ The system SHALL display a context menu when the operator right-clicks on the ma
 - **THEN** a context menu appears at the cursor position
 - **AND** the menu contains "Copy" and "Quote Copy" items
 
-#### Scenario: Context menu appears for SpecViewer design tab
-- **WHEN** the operator right-clicks on the Design tab markdown content in SpecViewer
-- **THEN** a context menu appears with the same items
-- **AND** the quoted copy uses "Design" as the context label
-
 ### Requirement: Plain text copy from context menu
 The system SHALL provide a "Copy" item in the context menu. When selected, the system SHALL copy the currently selected text to the clipboard using `navigator.clipboard.writeText()`. If no text is selected, the item SHALL be disabled (greyed out, non-clickable). After a successful copy, the system SHALL show a toast notification confirming the action.
 
@@ -46,7 +41,7 @@ The system SHALL provide a "Quote Copy" item in the context menu. When selected 
 > [change-name] context-label
 > selected text
 ```
-Where `context-label` is: in ChangeViewer's file content tab the active file name, in ChangeViewer's spec deltas tab the spec delta capability name, in SpecViewer the active tab label ("Specification" or "Design"). Each line of the selected text SHALL be prefixed with `> `. If no text is selected, the item SHALL be disabled. After a successful copy, the system SHALL show a toast notification confirming the action.
+Where `context-label` is: in ChangeViewer's file content tab the active file name, in ChangeViewer's spec deltas tab the spec delta capability name, and in SpecViewer the label `Specification`. Each line of the selected text SHALL be prefixed with `> `. If no text is selected, the item SHALL be disabled. After a successful copy, the system SHALL show a toast notification confirming the action.
 
 #### Scenario: Quote copy with file context in ChangeViewer
 - **WHEN** the operator has text selected in a file content tab in ChangeViewer
@@ -64,12 +59,6 @@ Where `context-label` is: in ChangeViewer's file content tab the active file nam
 - **WHEN** the operator has text selected in the Specification tab in SpecViewer
 - **AND** right-clicks and selects "Quote Copy"
 - **THEN** the clipboard contains the selected text in blockquote format with the spec name and "Specification"
-- **AND** each line of the selected text is prefixed with `> `
-
-#### Scenario: Quote copy with design tab context in SpecViewer
-- **WHEN** the operator has text selected in the Design tab in SpecViewer
-- **AND** right-clicks and selects "Quote Copy"
-- **THEN** the clipboard contains the selected text in blockquote format with the spec name and "Design"
 - **AND** each line of the selected text is prefixed with `> `
 
 #### Scenario: Quote copy item disabled when no text selected

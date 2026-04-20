@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { Archive, FileText, House, PanelLeftClose, PanelLeftOpen, Search, Settings } from '@lucide/svelte';
+  import { Archive, FileText, LayoutDashboard, PanelLeftClose, PanelLeftOpen, Search, Settings } from '@lucide/svelte';
   import * as Tooltip from '$lib/components/ui/tooltip';
   import { decodeName } from '$lib/utils';
   import { archivedChanges, project } from '$lib/state/appData.svelte.ts';
   import { projectStore } from '$lib/state/projects.svelte.ts';
   import { layoutStore, type ActivityPreset } from '$lib/state/layout.svelte.ts';
   import { tabStore } from '$lib/state/tabs.svelte.ts';
+  import { FIXED_LABELS } from '$lib/uiText';
 
   function sectionFromPath(path: string): ActivityPreset {
     if (path === '/specs' || path.startsWith('/specs/')) {
@@ -100,94 +101,96 @@
 
   let topControlLabel = $derived(
     !projectStore.activeProjectId
-      ? 'Open project selector'
+      ? FIXED_LABELS.activityBar.openProjectSelector
       : explorerOpen
-        ? 'Collapse explorer'
-        : 'Expand explorer'
+        ? FIXED_LABELS.activityBar.collapseExplorer
+        : FIXED_LABELS.activityBar.expandExplorer
   );
 </script>
 
 <aside class="relative z-60 flex h-full w-12 shrink-0 flex-col items-center border-r border-border bg-secondary/70 py-2">
-  <Tooltip.Root>
-    <Tooltip.Trigger
-      class={`flex h-10 w-10 items-center justify-center rounded-lg bg-transparent transition-colors ${projectStore.activeProjectId && explorerOpen ? 'text-foreground' : 'text-muted-foreground'} hover:text-foreground ${layoutStore.overlay === 'project-selector' ? 'text-primary' : ''}`}
-      aria-label={topControlLabel}
-      onclick={toggleExplorer}
-    >
-      {#if projectStore.activeProjectId}
-        {#if explorerOpen}
-          <PanelLeftClose class="h-5 w-5" />
-        {:else}
-          <PanelLeftOpen class="h-5 w-5" />
-        {/if}
-      {:else}
-        <img src="/app-icon.svg" alt="" aria-hidden="true" class="h-6 w-6 rounded-sm" />
-      {/if}
-      <span class="sr-only">{project.value?.name ?? 'OpenSpec WebUI'}</span>
-    </Tooltip.Trigger>
-    <Tooltip.Content side="right">
-      <span>{topControlLabel}</span>
-    </Tooltip.Content>
-  </Tooltip.Root>
-
-  <div class="mt-3 flex flex-col gap-2">
+  <div class="mt-1 flex flex-col gap-3">
     <Tooltip.Root>
       <Tooltip.Trigger
         class={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${buttonClass('home')}`}
-        aria-label="Dashboard"
+        aria-label={FIXED_LABELS.common.dashboard}
         onclick={() => openPreset('home')}
       >
-        <House class="h-5 w-5" />
+        <LayoutDashboard class="h-5 w-5" />
       </Tooltip.Trigger>
-      <Tooltip.Content side="right">Dashboard</Tooltip.Content>
+      <Tooltip.Content side="right">{FIXED_LABELS.common.dashboard}</Tooltip.Content>
     </Tooltip.Root>
 
     <Tooltip.Root>
       <Tooltip.Trigger
         class={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${buttonClass('archive')}`}
-        aria-label="Archive"
+        aria-label={FIXED_LABELS.common.archive}
         onclick={() => openPreset('archive')}
       >
         <Archive class="h-5 w-5" />
       </Tooltip.Trigger>
-      <Tooltip.Content side="right">Archive</Tooltip.Content>
+      <Tooltip.Content side="right">{FIXED_LABELS.common.archive}</Tooltip.Content>
     </Tooltip.Root>
 
     <Tooltip.Root>
       <Tooltip.Trigger
         class={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${buttonClass('specs')}`}
-        aria-label="Specs"
+        aria-label={FIXED_LABELS.common.specs}
         onclick={() => openPreset('specs')}
       >
         <FileText class="h-5 w-5" />
       </Tooltip.Trigger>
-      <Tooltip.Content side="right">Specs</Tooltip.Content>
+      <Tooltip.Content side="right">{FIXED_LABELS.common.specs}</Tooltip.Content>
     </Tooltip.Root>
-  </div>
-  
-  <div class="flex flex-col gap-2">
+
+    <div class="px-2">
+      <hr class="border-foreground/30" />
+    </div>
+    
     <Tooltip.Root>
       <Tooltip.Trigger
         class={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${buttonClass('search')}`}
-        aria-label="Search"
+        aria-label={FIXED_LABELS.common.search}
         onclick={() => layoutStore.toggleOverlay('search')}
       >
         <Search class="h-5 w-5" />
       </Tooltip.Trigger>
-      <Tooltip.Content side="right">Search</Tooltip.Content>
+      <Tooltip.Content side="right">{FIXED_LABELS.common.search}</Tooltip.Content>
     </Tooltip.Root>
   </div>
 
-  <div class="mt-auto flex flex-col gap-2">
+  <div class="mt-auto flex flex-col gap-3">
     <Tooltip.Root>
       <Tooltip.Trigger
         class={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${buttonClass('settings')}`}
-        aria-label="Settings"
+        aria-label={FIXED_LABELS.common.settings}
         onclick={() => layoutStore.toggleOverlay('settings')}
       >
         <Settings class="h-5 w-5" />
       </Tooltip.Trigger>
-      <Tooltip.Content side="right">Settings</Tooltip.Content>
+      <Tooltip.Content side="right">{FIXED_LABELS.common.settings}</Tooltip.Content>
+    </Tooltip.Root>
+
+    <Tooltip.Root>
+      <Tooltip.Trigger
+        class={`flex h-10 w-10 items-center justify-center rounded-lg bg-transparent transition-colors ${projectStore.activeProjectId && explorerOpen ? 'text-foreground' : 'text-muted-foreground'} hover:text-foreground ${layoutStore.overlay === 'project-selector' ? 'text-primary' : ''}`}
+        aria-label={topControlLabel}
+        onclick={toggleExplorer}
+      >
+        {#if projectStore.activeProjectId}
+          {#if explorerOpen}
+            <PanelLeftClose class="h-5 w-5" />
+          {:else}
+            <PanelLeftOpen class="h-5 w-5" />
+          {/if}
+        {:else}
+          <img src="/app-icon.svg" alt="" aria-hidden="true" class="h-6 w-6 rounded-sm" />
+        {/if}
+        <span class="sr-only">{project.value?.name ?? FIXED_LABELS.appName}</span>
+      </Tooltip.Trigger>
+      <Tooltip.Content side="right">
+        <span>{topControlLabel}</span>
+      </Tooltip.Content>
     </Tooltip.Root>
   </div>
 </aside>

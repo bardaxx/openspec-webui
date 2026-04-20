@@ -127,16 +127,6 @@ export function searchOpenSpec(data: OpenSpecData, query: string): SearchResult[
         matchLine,
       });
     }
-    if (spec.designContent?.toLowerCase().includes(lowerQuery)) {
-      const matchLine = findMatchLine(spec.designContent, lowerQuery);
-      results.push({
-        type: 'spec',
-        name: `${spec.name} (design)`,
-        path: spec.path,
-        excerpt: getExcerpt(spec.designContent, lowerQuery),
-        matchLine,
-      });
-    }
   }
 
   // Search changes
