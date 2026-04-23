@@ -1,11 +1,13 @@
 <script lang="ts">
   import { untrack } from 'svelte';
-  import { Archive, Calendar, CheckSquare, Clipboard, FileText, Quote, SquarePen } from '@lucide/svelte';
+  import { Archive, Calendar, ChevronDown, ChevronRight, CircleCheckBig, Clipboard, FileText, Quote, Search, SquarePen } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
   import { ErrorBanner } from '$lib/components/shared/error-banner';
   import { IconBox } from '$lib/components/shared/icon-box';
   import { LoadingState } from '$lib/components/shared/loading-state';
+  import { InteractiveCard, SurfaceCard } from '$lib/components/shared/surface';
   import { UnderlineTabs } from '$lib/components/shared/underline-tabs';
+  import * as Collapsible from '$lib/components/ui/collapsible';
   import * as ContextMenu from '$lib/components/ui/context-menu';
   import { toast } from 'svelte-sonner';
   import { t } from '$lib/i18n';
@@ -18,6 +20,7 @@
   } from '$lib/contextCopy';
   import { changesRefreshTrigger } from '$lib/state/appData.svelte.ts';
   import { commandPreferencesStore } from '$lib/state/commandPreferences.svelte.ts';
+  import { layoutStore } from '$lib/state/layout.svelte.ts';
   import type { Change } from '$lib/types/api';
   import { getChangeCommands } from '$lib/commandShortcuts';
   import MarkdownRenderer from '$lib/components/shared/MarkdownRenderer.svelte';
@@ -25,6 +28,7 @@
   import CommandShortcutBar from '$lib/components/shared/CommandShortcutBar.svelte';
   import { formatChangeName, formatDate } from '$lib/utils';
   import { FIXED_LABELS } from '$lib/uiText';
+  import { tabStore } from '$lib/state/tabs.svelte.ts';
 
   interface Props {
     changeName: string;
@@ -32,12 +36,15 @@
 
   let { changeName }: Props = $props();
 
+  let tabId = $derived(`change:${changeName}`);
+
   let change = $state<Change | null>(null);
   let loading = $state(true);
   let error = $state<string | null>(null);
 
-  let activeGroupIndex = $state(0);
+  let activeGroupIndex = $state(tabStore.getViewerState<number>(tabId) ?? 0);
   let activeFileIndex = $state(0);
+  let deltaOpenStates = $state<Record<number, boolean>>({});
 
   function commandPreferencesSnapshot() {
     return {
@@ -52,14 +59,26 @@
   let showDeltasTab = $derived((change?.specDeltas.length ?? 0) > 0);
   let isDeltasActive = $derived(activeGroupIndex === (change?.fileGroups.length ?? 0));
   let changeCommands = $derived(change ? getChangeCommands(change, commandPreferencesSnapshot()) : []);
+  const GROUP_ORDER = ['proposal', 'design', 'tasks', 'specs'];
+
+  function groupSortIndex(name: string): number {
+    const lower = name.toLowerCase();
+    for (let i = 0; i < GROUP_ORDER.length; i++) {
+      if (lower.includes(GROUP_ORDER[i])) return i;
+    }
+    return GROUP_ORDER.length;
+  }
+
   let primaryTabs = $derived(
     change
       ? [
-        ...change.fileGroups.map((group, index) => ({
-          id: `group-${index}`,
-          label: group.name,
-          badge: group.files.length > 1 ? group.files.length : undefined,
-        })),
+        ...[...change.fileGroups]
+          .sort((a, b) => groupSortIndex(a.name) - groupSortIndex(b.name))
+          .map((group) => ({
+            id: `group-${change!.fileGroups.indexOf(group)}`,
+            label: group.name,
+            badge: group.files.length > 1 ? group.files.length : undefined,
+          })),
         ...(showDeltasTab
           ? [{ id: 'spec-deltas', label: FIXED_LABELS.viewer.specDeltas, badge: change.specDeltas.length }]
           : []),
@@ -124,13 +143,20 @@
     try {
       change = await getChange(changeName);
 
-      if (preserveState && change) {
+      if (change) {
+        const persistedState = tabStore.getViewerState<{ groupIndex: number; fileIndex: number }>(tabId);
         const maxGroupIndex = change.fileGroups.length + (change.specDeltas.length > 0 ? 1 : 0) - 1;
-        activeGroupIndex = Math.min(savedGroupIndex, maxGroupIndex);
+        const nextGroupIndex = persistedState?.groupIndex ?? (preserveState ? savedGroupIndex : 0);
+        activeGroupIndex = Math.min(Math.max(nextGroupIndex, 0), Math.max(0, maxGroupIndex));
 
-        const currentGroup = change.fileGroups[activeGroupIndex];
-        const maxFileIndex = currentGroup ? currentGroup.files.length - 1 : 0;
-        activeFileIndex = Math.min(savedFileIndex, Math.max(0, maxFileIndex));
+        if (activeGroupIndex === change.fileGroups.length && change.specDeltas.length > 0) {
+          activeFileIndex = 0;
+        } else {
+          const currentGroup = change.fileGroups[activeGroupIndex];
+          const maxFileIndex = currentGroup ? currentGroup.files.length - 1 : 0;
+          const nextFileIndex = persistedState?.fileIndex ?? (preserveState ? savedFileIndex : 0);
+          activeFileIndex = Math.min(Math.max(nextFileIndex, 0), Math.max(0, maxFileIndex));
+        }
       } else {
         activeGroupIndex = 0;
         activeFileIndex = 0;
@@ -182,6 +208,17 @@
     void untrack(() => loadChange(preserveState));
   });
 
+  $effect(() => {
+    if (!change || change.name !== changeName) {
+      return;
+    }
+
+    const current = tabStore.getViewerState<{ groupIndex: number; fileIndex: number }>(tabId);
+    if (current?.groupIndex !== activeGroupIndex || current?.fileIndex !== activeFileIndex) {
+      tabStore.setViewerState(tabId, { groupIndex: activeGroupIndex, fileIndex: activeFileIndex });
+    }
+  });
+
 </script>
 
 <div class="space-y-6">
@@ -209,7 +246,7 @@
             <span class="flex items-center gap-1"><Calendar class="h-3.5 w-3.5" />{formatDate(change.lastModified)}</span>
           {/if}
           <span class="flex items-center gap-1"><FileText class="h-3.5 w-3.5" />{change.specDeltas.length}</span>
-          <span class="flex items-center gap-1"><CheckSquare class="h-3.5 w-3.5" />{change.taskProgress.done}/{change.taskProgress.total}</span>
+          <span class="flex items-center gap-1"><CircleCheckBig class="h-3.5 w-3.5" />{change.taskProgress.done}/{change.taskProgress.total}</span>
           <div class="w-32">
             <Progress value={change.taskProgress.percentage} />
           </div>
@@ -251,40 +288,60 @@
     {/if}
 
     <!-- Content area -->
-    <div class="rounded-lg border border-border bg-card p-6 shadow-lg">
+    <SurfaceCard shadow="lg" class="p-6">
       {#if isDeltasActive}
         <!-- Spec Deltas -->
         <div class="flex flex-col gap-3">
-          {#each change.specDeltas as delta}
-            <ContextMenu.Root onOpenChange={handleMenuOpenChange}>
-              <div class="h-full rounded-xl border border-border/70 bg-background/70 p-0 text-left shadow-sm">
-                <div class="px-5 py-4 text-left">
-                  <h3 class="flex items-center gap-2 text-2xl font-bold text-foreground">
-                    <IconBox icon={FileText} variant="success" />
-                    {delta.capability}
-                  </h3>
-                </div>
-                <div class="border-t border-border/60 px-5 py-4">
-                  <MarkdownRenderer content={delta.content} highlightDiff={true} />
-                </div>
-              </div>
-              <ContextMenu.Content>
-                <ContextMenu.Item disabled={!hasSelection} onSelect={handleCopy}>
-                  <Clipboard class="h-4 w-4" />
-                  {t(m.common_copy)}
-                </ContextMenu.Item>
-                <ContextMenu.Item
-                  disabled={!hasSelection}
-                  onSelect={() =>
-                    handleQuoteCopy(
-                      getChangeViewerContextLabel({ deltaCapability: delta.capability }),
-                    )}
-                >
-                  <Quote class="h-4 w-4" />
-                  {t(m.common_quote_copy)}
-                </ContextMenu.Item>
-              </ContextMenu.Content>
-            </ContextMenu.Root>
+          {#each change.specDeltas as delta, i}
+            <Collapsible.Root open={deltaOpenStates[i] ?? false} onOpenChange={(open) => (deltaOpenStates[i] = open)}>
+              <ContextMenu.Root onOpenChange={handleMenuOpenChange}>
+                <InteractiveCard tone="inset" radius="xl" class="h-full overflow-hidden text-left hover:translate-y-0 hover:shadow-sm hover:border-border/70">
+                  <Collapsible.Trigger class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left">
+                    <h3 class="flex items-center gap-2 text-2xl font-bold text-foreground">
+                      <IconBox icon={FileText} variant="success" />
+                      {delta.capability}
+                    </h3>
+                    <div class="flex shrink-0 items-center gap-2">
+                      <button
+                        type="button"
+                        class="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
+                        title={FIXED_LABELS.search.relatedChanges}
+                        onclick={(e: MouseEvent) => { e.stopPropagation(); layoutStore.openOverlay('search', { initialQuery: delta.capability }); }}
+                      >
+                        <Search class="h-4 w-4" />
+                      </button>
+                      {#if deltaOpenStates[i] ?? false}
+                        <ChevronDown class="h-5 w-5 text-muted-foreground" />
+                      {:else}
+                        <ChevronRight class="h-5 w-5 text-muted-foreground" />
+                      {/if}
+                    </div>
+                  </Collapsible.Trigger>
+                  <Collapsible.Content>
+                    <div class="border-t border-border/60 px-5 py-4">
+                      <MarkdownRenderer content={delta.content} highlightDiff={true} />
+                    </div>
+                  </Collapsible.Content>
+                </InteractiveCard>
+                <ContextMenu.Content>
+                  <ContextMenu.Item disabled={!hasSelection} onSelect={handleCopy}>
+                    <Clipboard class="h-4 w-4" />
+                    {t(m.common_copy)}
+                  </ContextMenu.Item>
+                  <ContextMenu.Item
+                    disabled={!hasSelection}
+                    onSelect={() =>
+                      handleQuoteCopy(
+                        getChangeViewerContextLabel({ deltaCapability: delta.capability }),
+                      )}
+                    }
+                  >
+                    <Quote class="h-4 w-4" />
+                    {t(m.common_quote_copy)}
+                  </ContextMenu.Item>
+                </ContextMenu.Content>
+              </ContextMenu.Root>
+            </Collapsible.Root>
           {/each}
         </div>
       {:else if activeFile}
@@ -312,6 +369,6 @@
           </ContextMenu.Content>
         </ContextMenu.Root>
       {/if}
-    </div>
+    </SurfaceCard>
   {/if}
 </div>

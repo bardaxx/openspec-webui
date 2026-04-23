@@ -32,7 +32,7 @@
   aria-selected={select.selectedValue() === value}
   disabled={disabled}
   class={cn(
-    'relative flex w-full cursor-default select-none items-center rounded-md px-2 py-1.5 text-sm outline-none transition-colors hover:bg-primary/5 hover:text-foreground focus:bg-primary/5 disabled:pointer-events-none disabled:opacity-50',
+    'relative flex w-full cursor-default select-none items-center rounded-md px-2 py-1.5 text-sm text-card-foreground outline-none transition-colors hover:bg-secondary/40 hover:text-foreground focus:bg-secondary/40 disabled:pointer-events-none disabled:opacity-50',
     select.selectedValue() === value && 'bg-primary/5 text-foreground',
     className,
   )}

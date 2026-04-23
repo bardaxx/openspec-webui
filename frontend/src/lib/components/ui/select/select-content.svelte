@@ -69,7 +69,7 @@
     {...restProps}
     role="listbox"
     class={cn(
-      'absolute z-50 min-w-full rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg',
+      'absolute z-50 min-w-full rounded-lg border border-border bg-card p-1 text-card-foreground shadow-lg',
       sideClasses[side],
       alignClasses[align],
       className,

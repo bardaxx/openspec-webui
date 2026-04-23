@@ -125,6 +125,7 @@ export function createTabsStore() {
   const state = $state({
     tabs: initialTabs,
     activeTabId: initialTab.id,
+    viewerStates: {} as Record<string, unknown>,
   });
 
   function syncBrowserPath(path: string, history: HistoryMode) {
@@ -330,6 +331,7 @@ export function createTabsStore() {
       const nextTabs = state.tabs.filter((_, tabIndex) => tabIndex !== index);
 
       state.tabs = nextTabs;
+      delete state.viewerStates[closingTab.id];
 
       if (!wasActive) {
         return getTab(state.activeTabId);
@@ -410,6 +412,14 @@ export function createTabsStore() {
       );
 
       return getTab(tabIdOrPath);
+    },
+
+    getViewerState<T = unknown>(tabId: string): T | undefined {
+      return state.viewerStates[tabId] as T | undefined;
+    },
+
+    setViewerState(tabId: string, data: unknown) {
+      state.viewerStates[tabId] = data;
     },
   };
 }

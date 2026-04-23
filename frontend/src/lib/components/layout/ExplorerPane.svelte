@@ -1,11 +1,11 @@
 <script lang="ts">
   import { Folder, FolderPen } from '@lucide/svelte';
-  import { Button } from '$lib/components/ui/button';
   import {
     ActiveChangesExplorerSection,
     ArchiveExplorerSection,
     SpecsExplorerSection,
   } from '$lib/components/shared/explorer-section';
+  import { InteractiveCard } from '$lib/components/shared/surface';
   import * as ScrollArea from '$lib/components/ui/scroll-area';
   import { getWorkspaceCommands } from '$lib/commandShortcuts';
   import { activeChanges, archivedChanges, project, specs } from '$lib/state/appData.svelte.ts';
@@ -39,27 +39,10 @@
   function openProjectSelector() {
     layoutStore.openOverlay('project-selector');
   }
+
 </script>
 
 <aside class="flex h-full min-h-0 flex-col bg-card">
-  <div class={`gap-3 border-b border-border px-3 py-2 ${!temporary ? 'bg-secondary/70' : ''}`}>
-    <div class="flex min-w-0 items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-        <Folder class="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-        <span class="truncate">{FIXED_LABELS.common.currentProject}</span>
-    </div>
-    <div class="mt-1 flex min-w-0 items-center gap-1 rounded-md border border-border px-2 py-1 bg-background" >
-      <span class="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{project.value?.name ?? FIXED_LABELS.appName}</span>
-      <Button
-        variant="ghost"
-        size="icon"
-        class="ml-auto size-7 shrink-0 text-muted-foreground hover:text-foreground"
-        aria-label={FIXED_LABELS.activityBar.openProjectSelector}
-        onclick={openProjectSelector}
-      >
-        <FolderPen class="h-4 w-4" />
-      </Button>
-    </div>
-  </div>
 
   <ScrollArea.Root class="min-h-0 flex-1" viewportClass="h-full">
     <div class="space-y-4 p-3">
@@ -86,4 +69,25 @@
       />
     </div>
   </ScrollArea.Root>
+  <div class={`gap-3 border-b border-border px-3 py-2 ${!temporary ? 'bg-secondary/70' : ''}`}>
+    <div class="flex min-w-0 items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        <Folder class="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        <span class="truncate">{FIXED_LABELS.common.currentProject}</span>
+    </div>
+    <InteractiveCard
+      tone="card"
+      class="mt-2 gap-1 rounded-md px-3 py-2 cursor-pointer"
+      onclick={openProjectSelector}
+      role="button"
+      tabindex="0"
+      aria-label={FIXED_LABELS.activityBar.openProjectSelector}
+      title={FIXED_LABELS.activityBar.openProjectSelector}
+    >
+      <div class="flex min-w-0 items-center">
+        <span class="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{project.value?.name ?? FIXED_LABELS.appName}</span>
+        <FolderPen class="ml-auto h-4 w-4 shrink-0 text-muted-foreground" />
+      </div>
+    </InteractiveCard>
+  </div>
+
 </aside>
