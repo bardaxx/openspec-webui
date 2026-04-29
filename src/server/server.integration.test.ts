@@ -512,6 +512,108 @@ test('startup bootstraps a valid cwd openspec directory and removes stale persis
   }
 });
 
+test('startup with existing registered projects suppresses cwd bootstrap and preserves the global default', async () => {
+  const configHome = await createTempDir('openspec-webui-server-config-');
+  process.env.XDG_CONFIG_HOME = configHome;
+  const existingRoot = await createProjectFixture('existing-project');
+  const cwdRoot = await createProjectFixture('cwd-project');
+
+  await mkdir(join(configHome, 'openspec-webui'), { recursive: true });
+  await writeFile(
+    join(configHome, 'openspec-webui', 'projects.json'),
+    JSON.stringify(
+      {
+        version: 1,
+        projects: [
+          {
+            id: 'existing-project',
+            path: existingRoot,
+            label: 'Existing Project',
+            addedAt: 1,
+            lastOpenedAt: 1,
+          },
+        ],
+        activeProjectId: 'existing-project',
+      },
+      null,
+      2
+    ) + '\n',
+    'utf8'
+  );
+
+  const runtime = await startServer({ cwd: join(cwdRoot, 'openspec') });
+
+  try {
+    const projects = await apiJson(runtime.baseUrl, '/api/projects');
+    assert.equal(projects.response.status, 200);
+    assert.equal(projects.body.projects.length, 1);
+    assert.equal(projects.body.projects[0].id, 'existing-project');
+    assert.equal(projects.body.projects[0].path, existingRoot);
+    assert.equal(projects.body.activeProjectId, 'existing-project');
+
+    const project = await apiJson(runtime.baseUrl, '/api/project');
+    assert.equal(project.response.status, 200);
+    assert.equal(project.body.project.name, 'Existing Project');
+
+    const registry = await readRegistry(configHome);
+    assert.equal(registry.projects.length, 1);
+    assert.equal(registry.projects[0]?.id, 'existing-project');
+    assert.equal(registry.projects[0]?.path, existingRoot);
+    assert.equal(registry.activeProjectId, 'existing-project');
+  } finally {
+    await runtime.close();
+  }
+});
+
+test('startup with registered projects but no active default still suppresses cwd bootstrap', async () => {
+  const configHome = await createTempDir('openspec-webui-server-config-');
+  process.env.XDG_CONFIG_HOME = configHome;
+  const existingRoot = await createProjectFixture('existing-project');
+  const cwdRoot = await createProjectFixture('cwd-project');
+
+  await mkdir(join(configHome, 'openspec-webui'), { recursive: true });
+  await writeFile(
+    join(configHome, 'openspec-webui', 'projects.json'),
+    JSON.stringify(
+      {
+        version: 1,
+        projects: [
+          {
+            id: 'existing-project',
+            path: existingRoot,
+            label: 'Existing Project',
+            addedAt: 1,
+            lastOpenedAt: 1,
+          },
+        ],
+        activeProjectId: null,
+      },
+      null,
+      2
+    ) + '\n',
+    'utf8'
+  );
+
+  const runtime = await startServer({ cwd: join(cwdRoot, 'openspec') });
+
+  try {
+    const projects = await apiJson(runtime.baseUrl, '/api/projects');
+    assert.equal(projects.response.status, 200);
+    assert.equal(projects.body.projects.length, 1);
+    assert.equal(projects.body.projects[0].id, 'existing-project');
+    assert.equal(projects.body.projects[0].path, existingRoot);
+    assert.equal(projects.body.activeProjectId, null);
+
+    const registry = await readRegistry(configHome);
+    assert.equal(registry.projects.length, 1);
+    assert.equal(registry.projects[0]?.id, 'existing-project');
+    assert.equal(registry.projects[0]?.path, existingRoot);
+    assert.equal(registry.activeProjectId, null);
+  } finally {
+    await runtime.close();
+  }
+});
+
 test('startup from a non-project cwd succeeds without auto-adding a project or bootstrap warnings', async () => {
   const configHome = await createTempDir('openspec-webui-server-config-');
   const nonProjectRoot = await createTempDir('openspec-webui-non-project-cwd-');

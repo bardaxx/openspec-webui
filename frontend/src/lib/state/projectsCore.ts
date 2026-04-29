@@ -1,6 +1,6 @@
 import type { ProjectListResponse } from '../types/api';
 
-export const ACTIVE_PROJECT_SESSION_STORAGE_KEY = 'openspec-active-project-id';
+export const ACTIVE_PROJECT_LOCAL_STORAGE_KEY = 'openspec-active-project-id';
 
 export interface StorageLike {
   getItem(key: string): string | null;
@@ -20,16 +20,16 @@ export interface ProjectBindResolution {
   force?: boolean;
 }
 
-function getSessionStorage(storage?: StorageLike | null): StorageLike | null {
+function getPreferredProjectStorage(storage?: StorageLike | null): StorageLike | null {
   if (storage !== undefined) {
     return storage;
   }
 
-  if (typeof globalThis.sessionStorage === 'undefined') {
+  if (typeof globalThis.localStorage === 'undefined') {
     return null;
   }
 
-  return globalThis.sessionStorage;
+  return globalThis.localStorage;
 }
 
 function hasProject(snapshot: Pick<ProjectListResponse, 'projects'>, projectId: string | null): projectId is string {
@@ -37,14 +37,14 @@ function hasProject(snapshot: Pick<ProjectListResponse, 'projects'>, projectId: 
 }
 
 export function loadPreferredProjectId(storage?: StorageLike | null): string | null {
-  const targetStorage = getSessionStorage(storage);
+  const targetStorage = getPreferredProjectStorage(storage);
 
   if (!targetStorage) {
     return null;
   }
 
   try {
-    const storedValue = targetStorage.getItem(ACTIVE_PROJECT_SESSION_STORAGE_KEY);
+    const storedValue = targetStorage.getItem(ACTIVE_PROJECT_LOCAL_STORAGE_KEY);
     return storedValue && storedValue.trim() ? storedValue : null;
   } catch {
     return null;
@@ -52,7 +52,7 @@ export function loadPreferredProjectId(storage?: StorageLike | null): string | n
 }
 
 export function persistPreferredProjectId(projectId: string | null, storage?: StorageLike | null): void {
-  const targetStorage = getSessionStorage(storage);
+  const targetStorage = getPreferredProjectStorage(storage);
 
   if (!targetStorage) {
     return;
@@ -60,11 +60,11 @@ export function persistPreferredProjectId(projectId: string | null, storage?: St
 
   try {
     if (projectId) {
-      targetStorage.setItem(ACTIVE_PROJECT_SESSION_STORAGE_KEY, projectId);
+      targetStorage.setItem(ACTIVE_PROJECT_LOCAL_STORAGE_KEY, projectId);
       return;
     }
 
-    targetStorage.removeItem(ACTIVE_PROJECT_SESSION_STORAGE_KEY);
+    targetStorage.removeItem(ACTIVE_PROJECT_LOCAL_STORAGE_KEY);
   } catch {
     // Ignore storage errors.
   }

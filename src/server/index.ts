@@ -94,7 +94,9 @@ export async function createServer(options: ServerOptions): Promise<Server> {
 
   await projectRegistry.initialize();
 
-  const startupProject = resolveStartupProject();
+  const startupProject = shouldBootstrapStartupProject(projectRegistry)
+    ? resolveStartupProject()
+    : { path: null, source: null };
 
   if (startupProject.path) {
     try {
@@ -257,6 +259,12 @@ function resolveStartupProject(): { path: string | null; source: 'cwd' | null } 
   } catch {
     return { path: null, source: null };
   }
+}
+
+function shouldBootstrapStartupProject(
+  projectRegistry: Pick<ReturnType<typeof createProjectRegistry>, 'listProjects' | 'getActiveProject'>
+): boolean {
+  return projectRegistry.getActiveProject() === null && projectRegistry.listProjects().length === 0;
 }
 
 function shouldIgnoreStartupProjectError(source: 'cwd' | null, error: unknown): boolean {

@@ -42,7 +42,7 @@
   let loading = $state(true);
   let error = $state<string | null>(null);
 
-  let activeGroupIndex = $state(tabStore.getViewerState<number>(tabId) ?? 0);
+  let activeGroupIndex = $state(0);
   let activeFileIndex = $state(0);
   let deltaOpenStates = $state<Record<number, boolean>>({});
 

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import { afterEach, test } from 'node:test';
 
 import {
-  ACTIVE_PROJECT_SESSION_STORAGE_KEY,
+  ACTIVE_PROJECT_LOCAL_STORAGE_KEY,
   loadPreferredProjectId,
   persistPreferredProjectId,
   resolveProjectSelection,
@@ -32,25 +32,56 @@ class MockStorage {
   }
 }
 
-test('loadPreferredProjectId reads the tab-local project override from session storage', () => {
+afterEach(() => {
+  delete (globalThis as { localStorage?: Storage }).localStorage;
+});
+
+test('loadPreferredProjectId reads the browser-local project override from localStorage', () => {
   const storage = new MockStorage({
-    [ACTIVE_PROJECT_SESSION_STORAGE_KEY]: 'project-b',
+    [ACTIVE_PROJECT_LOCAL_STORAGE_KEY]: 'project-b',
   });
 
   assert.equal(loadPreferredProjectId(storage), 'project-b');
 });
 
-test('persistPreferredProjectId clears the stored override when no tab-local project remains', () => {
+test('loadPreferredProjectId uses globalThis.localStorage by default', () => {
+  Object.assign(globalThis, {
+    localStorage: new MockStorage({
+      [ACTIVE_PROJECT_LOCAL_STORAGE_KEY]: 'project-b',
+    }),
+  });
+
+  assert.equal(loadPreferredProjectId(), 'project-b');
+});
+
+test('persistPreferredProjectId stores the browser-local override in localStorage', () => {
+  const storage = new MockStorage();
+
+  persistPreferredProjectId('project-b', storage);
+
+  assert.equal(storage.getItem(ACTIVE_PROJECT_LOCAL_STORAGE_KEY), 'project-b');
+});
+
+test('persistPreferredProjectId uses globalThis.localStorage by default', () => {
+  const localStorage = new MockStorage();
+  Object.assign(globalThis, { localStorage });
+
+  persistPreferredProjectId('project-b');
+
+  assert.equal(localStorage.getItem(ACTIVE_PROJECT_LOCAL_STORAGE_KEY), 'project-b');
+});
+
+test('persistPreferredProjectId clears the stored override when no browser-local project remains', () => {
   const storage = new MockStorage({
-    [ACTIVE_PROJECT_SESSION_STORAGE_KEY]: 'project-b',
+    [ACTIVE_PROJECT_LOCAL_STORAGE_KEY]: 'project-b',
   });
 
   persistPreferredProjectId(null, storage);
 
-  assert.equal(storage.getItem(ACTIVE_PROJECT_SESSION_STORAGE_KEY), null);
+  assert.equal(storage.getItem(ACTIVE_PROJECT_LOCAL_STORAGE_KEY), null);
 });
 
-test('resolveProjectSelection prefers the stored tab-local project when it still exists', () => {
+test('resolveProjectSelection prefers the stored browser-local project when it still exists', () => {
   assert.deepEqual(
     resolveProjectSelection(
       {
@@ -85,7 +116,7 @@ test('resolveProjectSelection falls back to the server default and clears the st
   );
 });
 
-test('shouldRestoreProjectBinding only rebinds websocket context for a stored tab-local override', () => {
+test('shouldRestoreProjectBinding only rebinds websocket context for a stored browser-local override', () => {
   assert.equal(shouldRestoreProjectBinding('project-b', 'project-a'), true);
   assert.equal(shouldRestoreProjectBinding('project-a', 'project-a'), false);
   assert.equal(shouldRestoreProjectBinding(null, 'project-a'), false);
