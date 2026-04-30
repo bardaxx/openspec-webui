@@ -5,13 +5,14 @@ Define the Explorer Pane that organizes active changes, archives, and specs besi
 
 ## Requirements
 ### Requirement: Explorer Pane renders collapsible sections
-The system SHALL render an Explorer Pane between the Activity Bar and the Main Viewer. The Explorer Pane SHALL use the `ExplorerSection` component for each of its three sections (ACTIVE CHANGES, ARCHIVE, SPECS). Each section SHALL pass its title, item count, collapse state, focused state, and header icon as props, and SHALL render section-specific content via slots. The ACTIVE CHANGES section SHALL use the `headerExtra` slot to render `CommandShortcutBar` when workspace commands are available. Explorer list items SHALL NOT render leading per-item icons on the first line. No inline collapsible section header markup SHALL remain in `ExplorerPane.svelte` outside of the `ExplorerSection` component usage. Each list item SHALL use the `ExplorerSectionItem` component, which internally uses `ItemContextMenu` to provide context menu actions and handles click interactions. Each section SHALL pass `emptyMessage` props to `ExplorerSection` to handle empty states internally; the `emptyIcon` is determined internally by each ExplorerSection component reusing its section header icon.
+The system SHALL render an Explorer Pane between the Activity Bar and the Main Viewer. The Explorer Pane SHALL use the `ExplorerSection` component for each of its three sections (ACTIVE CHANGES, ARCHIVE, SPECS). Each section SHALL pass its title, item count, collapse state, focused state, and header icon as props, and SHALL render section-specific content via slots. The ACTIVE CHANGES section SHALL use the `headerExtra` slot to render `CommandShortcutBar` when workspace commands exist and SHALL render a sort control that lets the operator choose `Date` or `Name` ordering. The ARCHIVE and SPECS sections SHALL also render the same `Date` / `Name` sort control in their section headers. Explorer list items SHALL NOT render leading per-item icons on the first line. No inline collapsible section header markup SHALL remain in `ExplorerPane.svelte` outside of the `ExplorerSection` component usage. Each list item SHALL use the `ExplorerSectionItem` component, which internally uses `ItemContextMenu` to provide context menu actions and handles click interactions. Each section SHALL pass `emptyMessage` props to `ExplorerSection` to handle empty states internally; the `emptyIcon` is determined internally by each ExplorerSection component reusing its section header icon.
 
 #### Scenario: Explorer Pane uses ExplorerSection for ACTIVE CHANGES
 - **WHEN** the Explorer Pane renders the ACTIVE CHANGES section
 - **THEN** it renders an ExplorerSection with `title="Active Changes"`, `count` from the active changes store, and `open` from the layout store
 - **AND** the section header icon is shown by the ExplorerSection component
 - **AND** the `headerExtra` slot includes the CommandShortcutBar when workspace commands exist
+- **AND** the section header includes a sort control with `Date` and `Name` options
 - **AND** the section passes `emptyMessage="No active changes"` to ExplorerSection
 - **AND** the ExplorerSection internally reuses its section header icon as the empty icon
 - **AND** the default slot renders `ExplorerSectionItem` components for each active change
@@ -21,6 +22,7 @@ The system SHALL render an Explorer Pane between the Activity Bar and the Main V
 - **WHEN** the Explorer Pane renders the ARCHIVE section
 - **THEN** it renders an ExplorerSection with `title="Archive"`, `count` from the archived changes store
 - **AND** the section header icon is shown by the ExplorerSection component
+- **AND** the section header includes a sort control with `Date` and `Name` options
 - **AND** the section passes `emptyMessage="No archived changes"` to ExplorerSection
 - **AND** the ExplorerSection internally reuses its section header icon as the empty icon
 - **AND** the default slot renders `ExplorerSectionItem` components for each archived change
@@ -31,35 +33,12 @@ The system SHALL render an Explorer Pane between the Activity Bar and the Main V
 - **WHEN** the Explorer Pane renders the SPECS section
 - **THEN** it renders an ExplorerSection with `title="Specs"`, `count` from the specs store
 - **AND** the section header icon is shown by the ExplorerSection component
+- **AND** the section header includes a sort control with `Date` and `Name` options
 - **AND** the section passes `emptyMessage="No specs found"` to ExplorerSection
 - **AND** the ExplorerSection internally reuses its section header icon as the empty icon
 - **AND** the default slot renders `ExplorerSectionItem` components for each spec
-- **AND** each `ExplorerSectionItem` shows a Calendar icon and last modification date on the second line
+- **AND** each `ExplorerSectionItem` shows a Calendar icon and last modification datetime on the second line
 - **AND** no design-specific badge or marker is shown for spec entries
-
-#### Scenario: Empty section displays placeholder via ExplorerSection
-- **WHEN** a section has no items
-- **THEN** the ExplorerSection internally shows an EmptyState with the provided `emptyMessage` and its section header icon reused as the empty icon
-- **AND** no separate `{#if}` empty state check exists in ExplorerPane for that section
-
-#### Scenario: No independent list item icons remain
-- **WHEN** `ExplorerPane.svelte` is inspected
-- **THEN** no `IconBox` or other decorative icon is rendered inside ExplorerPane list items
-
-#### Scenario: No inline section header markup in ExplorerPane
-- **WHEN** `ExplorerPane.svelte` is inspected
-- **THEN** no `<Collapsible.Root>` with inline header classes exists outside of the `ExplorerSection` component
-
-#### Scenario: Explorer list items use ExplorerSectionItem
-- **WHEN** `ExplorerPane.svelte` is inspected
-- **THEN** no inline `ContextMenu.Root` usage exists
-- **AND** no inline `ItemContextMenu` usage exists
-- **AND** each list item uses the `ExplorerSectionItem` component
-
-#### Scenario: No click handler helpers in ExplorerPane
-- **WHEN** `ExplorerPane.svelte` is inspected
-- **THEN** no `handleItemClick`, `itemClass`, `openItemPreview`, or `openItemConfirmed` function definitions exist
-- **AND** these concerns are handled internally by `ExplorerSectionItem`
 
 ### Requirement: Explorer sections are collapsible
 The system SHALL allow each Explorer Pane section to be collapsed and expanded independently. The collapsed/expanded state SHALL be preserved during the current session.
@@ -158,3 +137,31 @@ The system SHALL allow the operator to collapse the entire Explorer Pane by clic
 - **WHEN** the Explorer Pane is collapsed
 - **THEN** no expand button is rendered in the Main Viewer area
 - **AND** the Main Viewer fills the available space without any explorer-related controls
+
+### Requirement: Explorer section headers scroll into view on programmatic focus
+The system SHALL scroll the focused explorer section header to the top of the explorer pane when the `focusedSection` state changes programmatically. This SHALL apply when focus is triggered by dashboard card clicks, dashboard summary card clicks, and activity bar preset selection. The scroll SHALL use smooth behavior and align the header to the top of the scroll area (`block: 'start'`). The scroll SHALL be deferred until after the section expansion DOM update completes.
+
+#### Scenario: Dashboard card click scrolls section header into view
+- **WHEN** the operator clicks a dashboard card that calls `focusSection()` for a specific section
+- **THEN** the target explorer section expands (if collapsed)
+- **AND** the section header scrolls smoothly to the top of the explorer pane
+
+#### Scenario: Activity bar preset click scrolls section header into view
+- **WHEN** the operator clicks an activity bar button that calls `setActivityPreset()`
+- **THEN** the target explorer section expands (if collapsed)
+- **AND** the section header scrolls smoothly to the top of the explorer pane
+
+#### Scenario: Dashboard summary card scrolls section header into view
+- **WHEN** the operator clicks a dashboard summary card that calls `setActivityPreset()`
+- **THEN** the target explorer section expands (if collapsed)
+- **AND** the section header scrolls smoothly to the top of the explorer pane
+
+#### Scenario: Section already visible does not disrupt
+- **WHEN** the focused section header is already at or near the top of the explorer pane
+- **THEN** the scroll call is a no-op or produces minimal visual movement
+- **AND** no layout shift or flicker occurs
+
+#### Scenario: Direct user toggle still scrolls as before
+- **WHEN** the operator clicks a section header directly in the explorer pane to expand it
+- **THEN** the existing `scrollIntoView` behavior in the toggle handler continues to work
+- **AND** the new reactive scroll does not produce a double-scroll

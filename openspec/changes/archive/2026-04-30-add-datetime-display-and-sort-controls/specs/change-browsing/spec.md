@@ -1,9 +1,5 @@
-# change-browsing Specification
+## MODIFIED Requirements
 
-## Purpose
-Expose active and archived changes through the Explorer Pane so operators can move from current work to historical reference within the three-pane layout.
-
-## Requirements
 ### Requirement: List active and archived changes
 The system SHALL list active changes in the Explorer Pane's ACTIVE CHANGES collapsible section, sorted by last modification datetime descending by default. The system SHALL list archived changes in the Explorer Pane's ARCHIVE collapsible section, also sorted by last modification datetime descending by default rather than by archive-date prefix. The operator SHALL be able to switch both ACTIVE CHANGES and ARCHIVE between `Date` ordering and `Name` ordering from the section header. When `Name` ordering is selected for archived changes, the comparison key SHALL be the visible archived change name with the leading `YYYY-MM-DD-` prefix removed. The ACTIVE CHANGES section SHALL be rendered before the ARCHIVE section so the workflow reads from active work to historical reference. Each entry SHALL display the change name and task progress. The Activity Bar SHALL align with these sections as `Home -> ACTIVE CHANGES` and `Archive -> ARCHIVE`.
 

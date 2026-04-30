@@ -12,6 +12,7 @@ export const FIXED_LABELS = {
     close: 'Close',
     copy: 'Copy',
     currentProject: 'Current Project',
+    date: 'Date',
     dashboard: 'Dashboard',
     design: 'Design',
     error: 'Error',
@@ -161,6 +162,7 @@ export const FIXED_LABELS = {
     activeChanges: 'Active Changes',
     archive: 'Archive',
     specs: 'Specs',
+    sortBy: 'Sort by',
   },
   viewer: {
     specification: 'Specification',

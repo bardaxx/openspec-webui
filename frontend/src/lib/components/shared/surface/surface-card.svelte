@@ -23,7 +23,7 @@
 <Card
   {...restProps}
   data-slot="surface-card"
-  class={cn('gap-0 rounded-lg border border-border bg-card py-0', shadowClasses[shadow], className)}
+  class={cn('gap-0 rounded-lg border border-border bg-card py-0 scroll-mt-3', shadowClasses[shadow], className)}
 >
   {@render children?.()}
 </Card>

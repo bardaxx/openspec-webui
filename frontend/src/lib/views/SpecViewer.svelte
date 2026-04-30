@@ -130,7 +130,11 @@
       </h1>
       <p class="text-muted-foreground">
         {#if spec?.lastModified}
-          <span class="flex items-center gap-1"><Calendar class="h-3.5 w-3.5" />{formatDate(spec.lastModified)}</span>
+          {@const lastModifiedLabel = formatDate(spec.lastModified)}
+          <span class="inline-flex min-w-0 max-w-full items-center gap-1" title={lastModifiedLabel}>
+            <Calendar class="h-3.5 w-3.5 shrink-0" />
+            <span class="truncate whitespace-nowrap">{lastModifiedLabel}</span>
+          </span>
         {:else}
           {FIXED_LABELS.viewer.specification}
         {/if}

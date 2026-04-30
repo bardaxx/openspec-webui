@@ -15,8 +15,10 @@ test('formatChangeName only removes a leading archive date prefix', () => {
   assert.equal(formatChangeName('refactor-2026-04-10-tabbar'), 'refactor-2026-04-10-tabbar');
 });
 
-test('formatDate returns locale-aware text for valid ISO strings', () => {
-  assert.equal(formatDate('2026-04-10T12:34:56.000Z', 'en-US'), 'Apr 10, 2026');
+test('formatDate returns canonical local text for valid ISO strings', () => {
+  const d = new Date('2026-04-10T12:34:56.000Z');
+  const expected = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  assert.equal(formatDate('2026-04-10T12:34:56.000Z'), expected);
 });
 
 test('formatDate returns empty string for nullish input', () => {
@@ -27,6 +29,12 @@ test('formatDate returns empty string for nullish input', () => {
 test('formatDate returns empty string for malformed input', () => {
   assert.equal(formatDate('not-a-date'), '');
   assert.equal(formatDate('2026-99-99'), '');
+});
+
+test('formatDate zero-pads canonical local date and time parts', () => {
+  const d = new Date('2026-01-02T03:04:56.000Z');
+  const expected = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  assert.equal(formatDate('2026-01-02T03:04:56.000Z'), expected);
 });
 
 test('copyToClipboard writes text to navigator clipboard', async () => {

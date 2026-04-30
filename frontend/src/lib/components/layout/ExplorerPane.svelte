@@ -3,7 +3,9 @@
   import {
     ActiveChangesExplorerSection,
     ArchiveExplorerSection,
+    ExplorerSortControl,
     SpecsExplorerSection,
+    type ExplorerSortMode,
   } from '$lib/components/shared/explorer-section';
   import { InteractiveCard } from '$lib/components/shared/surface';
   import * as ScrollArea from '$lib/components/ui/scroll-area';
@@ -40,6 +42,10 @@
     layoutStore.openOverlay('project-selector');
   }
 
+  let activeChangesSortMode = $state<ExplorerSortMode>('date');
+  let archiveSortMode = $state<ExplorerSortMode>('date');
+  let specsSortMode = $state<ExplorerSortMode>('name');
+
 </script>
 
 <aside class="flex h-full min-h-0 flex-col bg-card">
@@ -52,20 +58,38 @@
         {/if}
       {/snippet}
 
+      {#snippet activeChangesRight()}
+        <ExplorerSortControl value={activeChangesSortMode} onValueChange={(value) => (activeChangesSortMode = value)} ariaLabel={`${FIXED_LABELS.explorer.activeChanges} ${FIXED_LABELS.explorer.sortBy}`} />
+      {/snippet}
+
+      {#snippet archiveRight()}
+        <ExplorerSortControl value={archiveSortMode} onValueChange={(value) => (archiveSortMode = value)} ariaLabel={`${FIXED_LABELS.explorer.archive} ${FIXED_LABELS.explorer.sortBy}`} />
+      {/snippet}
+
+      {#snippet specsRight()}
+        <ExplorerSortControl value={specsSortMode} onValueChange={(value) => (specsSortMode = value)} ariaLabel={`${FIXED_LABELS.explorer.specs} ${FIXED_LABELS.explorer.sortBy}`} />
+      {/snippet}
+
       <ActiveChangesExplorerSection
         changes={activeChanges.value}
         {onItemSelected}
+        headerRight={activeChangesRight}
         headerExtra={activeChangesExtra}
+        sortMode={activeChangesSortMode}
       />
 
       <ArchiveExplorerSection
         changes={archivedChanges.value}
         {onItemSelected}
+        headerRight={archiveRight}
+        sortMode={archiveSortMode}
       />
 
       <SpecsExplorerSection
         specs={specs.value}
         {onItemSelected}
+        headerRight={specsRight}
+        sortMode={specsSortMode}
       />
     </div>
   </ScrollArea.Root>

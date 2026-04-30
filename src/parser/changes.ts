@@ -197,10 +197,13 @@ export async function parseChanges(openspecPath: string): Promise<ParseResult<{ 
     // Sort active changes alphabetically
     active.sort((a, b) => a.name.localeCompare(b.name));
 
-    // Sort archived by date (newest first)
+    // Sort archived by lastModified (newest first)
     archived.sort((a, b) => {
-      if (a.archivedDate && b.archivedDate) {
-        return b.archivedDate.localeCompare(a.archivedDate);
+      if (a.lastModified && b.lastModified) {
+        const timestampDiff = new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime();
+        if (!Number.isNaN(timestampDiff) && timestampDiff !== 0) {
+          return timestampDiff;
+        }
       }
       return a.name.localeCompare(b.name);
     });

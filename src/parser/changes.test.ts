@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, rm, utimes, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
-import { parseChangeByName } from './changes.js';
+import { parseChangeByName, parseChanges } from './changes.js';
 
 const tempDirs: string[] = [];
 
@@ -64,4 +64,32 @@ test('parseChangeByName includes files under changes/<name>/specs in lastModifie
   assert.equal(result.errors.length, 0);
   assert.equal(result.data?.specDeltas.length, 1);
   assert.equal(result.data?.lastModified, '2026-04-12T07:45:00.000Z');
+});
+
+test('parseChanges sorts archived changes by newest lastModified first', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'openspec-webui-archive-sort-'));
+  tempDirs.push(root);
+
+  const olderPath = join(root, 'changes', 'archive', '2026-04-10-older-change');
+  const newerPath = join(root, 'changes', 'archive', '2026-04-10-newer-change');
+
+  await mkdir(olderPath, { recursive: true });
+  await mkdir(newerPath, { recursive: true });
+
+  const olderTasksPath = join(olderPath, 'tasks.md');
+  const newerTasksPath = join(newerPath, 'tasks.md');
+
+  await writeFile(olderTasksPath, '- [x] done\n');
+  await writeFile(newerTasksPath, '- [x] done\n');
+
+  await setFileMtime(olderTasksPath, '2026-04-10T08:00:00.000Z');
+  await setFileMtime(newerTasksPath, '2026-04-10T09:00:00.000Z');
+
+  const result = await parseChanges(root);
+
+  assert.equal(result.errors.length, 0);
+  assert.deepEqual(result.data?.archived.map((change) => change.name), [
+    '2026-04-10-newer-change',
+    '2026-04-10-older-change',
+  ]);
 });

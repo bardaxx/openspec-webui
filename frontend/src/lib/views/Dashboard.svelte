@@ -20,6 +20,7 @@
   import { layoutStore } from '$lib/state/layout.svelte.ts';
   import { tabStore } from '$lib/state/tabs.svelte.ts';
   import MarkdownRenderer from '$lib/components/shared/MarkdownRenderer.svelte';
+  import VersionBadge from '$lib/components/shared/VersionBadge.svelte';
   import { Progress } from '$lib/components/ui/progress';
   import CommandShortcutBar from '$lib/components/shared/CommandShortcutBar.svelte';
   import { formatChangeName, formatDate } from '$lib/utils';
@@ -28,7 +29,6 @@
   type TimestampedChange = {
     name: string;
     isArchived?: boolean;
-    archivedDate: string | null;
     lastModified?: string | null;
     specDeltaCount: number;
     hasProposal?: boolean;
@@ -84,7 +84,7 @@
   }
 
   function changeArchivedOrUpdatedAt(change: TimestampedChange) {
-    return change.archivedDate ?? change.lastModified ?? null;
+    return change.lastModified ?? null;
   }
 
   function specUpdatedAt(spec: TimestampedSpec) {
@@ -242,6 +242,7 @@
           <FolderPen class="h-4 w-4" />
         </Button>
       </h1>
+      <VersionBadge />
     </div>
 
     <div>
@@ -365,7 +366,11 @@
                       </div>
                       <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground">
                         {#if changeUpdatedAt(change)}
-                          <span class="flex items-center gap-1"><Calendar class="h-3.5 w-3.5" />{formatDashboardDate(changeUpdatedAt(change))}</span>
+                          {@const updatedAtLabel = formatDashboardDate(changeUpdatedAt(change))}
+                          <span class="inline-flex min-w-0 max-w-full items-center gap-1" title={updatedAtLabel}>
+                            <Calendar class="h-3.5 w-3.5 shrink-0" />
+                            <span class="truncate whitespace-nowrap">{updatedAtLabel}</span>
+                          </span>
                         {/if}
                         <span class="flex items-center gap-1"><FileText class="h-3.5 w-3.5" />{getSpecDeltaCountLabel(change.specDeltaCount)}</span>
                         <span class="flex items-center gap-1"><CircleCheckBig class="h-3.5 w-3.5" />{getChangeTaskCountLabel(change.taskProgress.done, change.taskProgress.total)}</span>
@@ -445,7 +450,11 @@
                   <div class="truncate font-medium text-foreground" title={item.title}>{item.title}</div>
                   <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     {#if item.date}
-                      <span class="flex items-center gap-1"><Calendar class="h-3 w-3" />{formatDashboardDate(item.date)}</span>
+                      {@const itemDateLabel = formatDashboardDate(item.date)}
+                      <span class="inline-flex min-w-0 max-w-full items-center gap-1" title={itemDateLabel}>
+                        <Calendar class="h-3 w-3 shrink-0" />
+                        <span class="truncate whitespace-nowrap">{itemDateLabel}</span>
+                      </span>
                     {/if}
                     {#if item.specDeltaCount != null}
                       <span class="flex items-center gap-1"><FileText class="h-3 w-3" />{item.specDeltaCount}</span>

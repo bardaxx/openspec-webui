@@ -17,6 +17,7 @@
     focused?: boolean;
     onToggle?: () => void;
     icon?: IconComponent;
+    headerRight?: Snippet;
     headerExtra?: Snippet;
     emptyMessage?: string;
     emptyIcon?: IconComponent;
@@ -33,6 +34,7 @@
     focused: focusedProp = undefined,
     onToggle: onToggleProp = undefined,
     icon = undefined,
+    headerRight,
     headerExtra,
     emptyMessage = undefined,
     emptyIcon = undefined,
@@ -40,6 +42,9 @@
     class: className = '',
     ...restProps
   }: Props = $props();
+
+  let headerRef: HTMLDivElement | undefined = $state(undefined);
+  let lastToggleScrollTime = $state(0);
 
   const resolvedEmptyIcon = $derived(emptyIcon ?? icon);
 
@@ -55,6 +60,21 @@
       : (focusedProp ?? false)
   );
 
+  // Scroll section header into view when focusedSection changes programmatically.
+  // Guard against double-fire when handleToggle already scrolled.
+  $effect(() => {
+    const currentSection = section;
+    const focusedSec = layoutStore.focusedSection;
+    if (!currentSection || focusedSec !== currentSection || !open) return;
+
+    // Skip if handleToggle just scrolled (< 150ms ago)
+    if (Date.now() - lastToggleScrollTime < 150) return;
+
+    requestAnimationFrame(() => {
+      headerRef?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
   function handleToggle(nextOpen?: boolean) {
     if (onToggleProp) {
       onToggleProp();
@@ -67,6 +87,10 @@
 
     if (shouldOpen) {
       layoutStore.focusSection(section);
+      lastToggleScrollTime = Date.now();
+      requestAnimationFrame(() => {
+        headerRef?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
       return;
     }
 
@@ -80,29 +104,41 @@
   onOpenChange={handleToggle}
   class={cn('overflow-hidden rounded-lg border border-border/70 bg-card', focused && 'ring-1 ring-ring/40', className)}
 >
-  <div class="border-b border-border/70 bg-secondary/40 px-3 py-2 transition-colors hover:bg-secondary/70">
-    <Collapsible.Trigger class="flex w-full items-center justify-between px-1 py-1 text-left">
-      <span class="flex min-w-0 items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+  <div bind:this={headerRef} class="border-b border-border/70 bg-secondary/40 px-1 py-1 transition-colors hover:bg-secondary/70 scroll-mt-3">
+    <div class="flex items-center gap-2 px-1 py-1">
+      <Collapsible.Trigger class="flex min-w-0 flex-1 items-center gap-1.5 text-left">
         {#if icon}
           {@const Icon = icon}
-          <Icon class="h-3.5 w-3.5 shrink-0" />
+          <Icon class="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         {/if}
 
-        <span class="truncate">{title}</span>
-      </span>
+        <span class="truncate text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{title}</span>
 
-      <span class="flex items-center gap-2">
-        <Badge variant="secondary" class="min-w-5 justify-center px-2 py-0.5 text-[11px] font-medium">
-          {count}
-        </Badge>
+        <span class="ml-auto">
+          <Badge variant="secondary" class="min-w-5 justify-center px-2 py-0.5 text-[11px] font-medium">
+            {count}
+          </Badge>
+        </span>
+      </Collapsible.Trigger>
 
+      {#if headerRight}
+        <div class="shrink-0">
+          {@render headerRight()}
+        </div>
+      {/if}
+
+      <button
+        class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border/50 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        onclick={() => handleToggle()}
+        aria-label={open ? 'Collapse section' : 'Expand section'}
+      >
         {#if open}
-          <ChevronDown class="h-4 w-4 text-muted-foreground" />
+          <ChevronDown class="h-3.5 w-3.5" />
         {:else}
-          <ChevronRight class="h-4 w-4 text-muted-foreground" />
+          <ChevronRight class="h-3.5 w-3.5" />
         {/if}
-      </span>
-    </Collapsible.Trigger>
+      </button>
+    </div>
 
     {#if headerExtra && open}
       <div class="mt-2">

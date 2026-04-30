@@ -239,11 +239,13 @@
         {/if}
       </div>
       {#if change}
-        <div class="flex items-center gap-3 mt-2 text-muted-foreground">
-          {#if change.isArchived && change.archivedDate}
-            <span class="flex items-center gap-1"><Calendar class="h-3.5 w-3.5" />{change.archivedDate}</span>
-          {:else if change.lastModified}
-            <span class="flex items-center gap-1"><Calendar class="h-3.5 w-3.5" />{formatDate(change.lastModified)}</span>
+        <div class="mt-2 flex flex-wrap items-center gap-3 text-muted-foreground">
+          {#if change.lastModified}
+            {@const lastModifiedLabel = formatDate(change.lastModified)}
+            <span class="inline-flex min-w-0 max-w-full items-center gap-1" title={lastModifiedLabel}>
+              <Calendar class="h-3.5 w-3.5 shrink-0" />
+              <span class="truncate whitespace-nowrap">{lastModifiedLabel}</span>
+            </span>
           {/if}
           <span class="flex items-center gap-1"><FileText class="h-3.5 w-3.5" />{change.specDeltas.length}</span>
           <span class="flex items-center gap-1"><CircleCheckBig class="h-3.5 w-3.5" />{change.taskProgress.done}/{change.taskProgress.total}</span>

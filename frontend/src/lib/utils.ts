@@ -1,6 +1,5 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { getLocale } from './paraglide/runtime.js';
 import * as m from './paraglide/messages.js';
 
 interface ToastLike {
@@ -41,11 +40,15 @@ export function formatChangeName(name: string): string {
   return name.replace(/^\d{4}-\d{2}-\d{2}-/, '');
 }
 
+function padDatePart(value: number): string {
+  return value.toString().padStart(2, '0');
+}
+
 /**
- * Format an ISO date string to YYYY-MM-DD.
+ * Format an ISO date string to canonical UTC `YYYY-MM-DD HH:mm`.
  * Returns empty string if the input is null/undefined or invalid.
  */
-export function formatDate(iso: string | null | undefined, locale: string = getLocale()): string {
+export function formatDate(iso: string | null | undefined): string {
   if (!iso) return '';
 
   const date = new Date(iso);
@@ -53,12 +56,13 @@ export function formatDate(iso: string | null | undefined, locale: string = getL
     return '';
   }
 
-  return new Intl.DateTimeFormat(locale, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    timeZone: 'UTC',
-  }).format(date);
+  const year = date.getFullYear();
+  const month = padDatePart(date.getMonth() + 1);
+  const day = padDatePart(date.getDate());
+  const hour = padDatePart(date.getHours());
+  const minute = padDatePart(date.getMinutes());
+
+  return `${year}-${month}-${day} ${hour}:${minute}`;
 }
 
 async function loadToast(): Promise<ToastLike> {

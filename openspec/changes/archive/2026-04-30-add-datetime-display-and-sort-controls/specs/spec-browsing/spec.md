@@ -1,8 +1,5 @@
-# spec-browsing Specification
+## MODIFIED Requirements
 
-## Purpose
-Expose capability specs through the Explorer Pane and open spec content in the tabbed Main Viewer.
-## Requirements
 ### Requirement: Catalog capability specs
 The system SHALL discover capability directories under `specs/`, sort them alphabetically by default, and display them in the Explorer Pane's SPECS collapsible section. The operator SHALL be able to switch the SPECS section between `Name` ordering and `Date` ordering from the section header. When `Date` ordering is selected, specs SHALL be sorted by last modification datetime descending.
 
