@@ -29,6 +29,26 @@
             return 'ja';
           }
 
+          if (normalized === 'pt-br' || normalized.startsWith('pt-')) {
+            return 'pt-BR';
+          }
+
+          if (normalized === 'es' || normalized.startsWith('es-')) {
+            return 'es';
+          }
+
+          if (normalized === 'zh-cn' || normalized.startsWith('zh-')) {
+            return 'zh-CN';
+          }
+
+          if (normalized === 'fr' || normalized.startsWith('fr-')) {
+            return 'fr';
+          }
+
+          if (normalized === 'de' || normalized.startsWith('de-')) {
+            return 'de';
+          }
+
           return null;
         };
 

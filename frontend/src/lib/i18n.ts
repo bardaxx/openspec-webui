@@ -2,6 +2,7 @@ import { defineCustomClientStrategy } from '$lib/paraglide/runtime.js';
 
 import {
   LOCALE_LABELS,
+  isAppLocale,
   loadStoredLocale,
   saveStoredLocale,
   type AppLocale,
@@ -20,7 +21,7 @@ export function defineAppLocaleStrategy() {
   defineCustomClientStrategy(CUSTOM_LOCALE_STRATEGY, {
     getLocale: () => loadStoredLocale() ?? undefined,
     setLocale: (locale) => {
-      if (locale === 'en' || locale === 'ja') {
+      if (isAppLocale(locale)) {
         saveStoredLocale(locale);
       }
     },

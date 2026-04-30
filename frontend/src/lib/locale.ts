@@ -1,6 +1,6 @@
 export const LOCALE_STORAGE_KEY = 'openspec-locale';
 
-export const SUPPORTED_LOCALES = ['en', 'ja'] as const;
+export const SUPPORTED_LOCALES = ['en', 'ja', 'pt-BR', 'es', 'zh-CN', 'fr', 'de'] as const;
 export type AppLocale = (typeof SUPPORTED_LOCALES)[number];
 
 export const DEFAULT_LOCALE: AppLocale = 'en';
@@ -8,6 +8,11 @@ export const DEFAULT_LOCALE: AppLocale = 'en';
 export const LOCALE_LABELS: Record<AppLocale, string> = {
   en: 'English',
   ja: '日本語',
+  'pt-BR': 'Português (Brasil)',
+  es: 'Español',
+  'zh-CN': '简体中文',
+  fr: 'Français',
+  de: 'Deutsch',
 };
 
 export function isAppLocale(value: unknown): value is AppLocale {
@@ -27,6 +32,26 @@ export function normalizeLocaleTag(value: string | null | undefined): AppLocale 
 
   if (normalized === 'ja' || normalized.startsWith('ja-')) {
     return 'ja';
+  }
+
+  if (normalized === 'pt-br' || normalized.startsWith('pt-')) {
+    return 'pt-BR';
+  }
+
+  if (normalized === 'es' || normalized.startsWith('es-')) {
+    return 'es';
+  }
+
+  if (normalized === 'zh-cn' || normalized.startsWith('zh-')) {
+    return 'zh-CN';
+  }
+
+  if (normalized === 'fr' || normalized.startsWith('fr-')) {
+    return 'fr';
+  }
+
+  if (normalized === 'de' || normalized.startsWith('de-')) {
+    return 'de';
   }
 
   return null;

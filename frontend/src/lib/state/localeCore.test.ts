@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import { afterEach, test } from 'node:test';
 
-import { createLocaleStoreWithAdapter, type LocaleAdapter, type LocaleRuntimeAdapter } from './localeCore';
+import {
+  createLocaleStoreWithAdapter,
+  type AppLocale,
+  type LocaleAdapter,
+  type LocaleRuntimeAdapter,
+} from './localeCore';
 
 class MockDocumentElement {
   #attributes = new Map<string, string>();
@@ -23,7 +28,7 @@ function installDocumentMock() {
   return documentElement;
 }
 
-function createTestAdapter(initialLocale: 'en' | 'ja' = 'en'): LocaleAdapter {
+function createTestAdapter(initialLocale: AppLocale = 'en'): LocaleAdapter {
   let locale = initialLocale;
   let version = 0;
 
@@ -43,10 +48,26 @@ afterEach(() => {
   delete (globalThis as { document?: Document }).document;
 });
 
-test('initialize falls back to en when runtime locale is unsupported', () => {
+test('initialize normalizes supported runtime regional variants', () => {
   const documentElement = installDocumentMock();
   const runtime: LocaleRuntimeAdapter = {
     getLocale: () => 'fr-FR',
+    setLocale: () => undefined,
+    getTextDirection: () => 'ltr',
+  };
+
+  const store = createLocaleStoreWithAdapter(createTestAdapter(), runtime);
+
+  assert.equal(store.initialize(), 'fr');
+  assert.equal(store.value, 'fr');
+  assert.equal(documentElement.getAttribute('lang'), 'fr');
+  assert.equal(documentElement.getAttribute('dir'), 'ltr');
+});
+
+test('initialize falls back to en when runtime locale is unsupported', () => {
+  const documentElement = installDocumentMock();
+  const runtime: LocaleRuntimeAdapter = {
+    getLocale: () => 'it-IT',
     setLocale: () => undefined,
     getTextDirection: () => 'ltr',
   };

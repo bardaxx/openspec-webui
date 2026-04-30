@@ -52,7 +52,7 @@ test('saveStoredLocale and loadStoredLocale persist supported locales', () => {
 test('resolveBootstrapLocale prefers stored locale over browser locale', () => {
   Object.assign(globalThis, {
     localStorage: new MockStorage({
-      [LOCALE_STORAGE_KEY]: 'ja-JP',
+      [LOCALE_STORAGE_KEY]: 'fr-FR',
     }),
   });
   installNavigatorMock({
@@ -60,13 +60,58 @@ test('resolveBootstrapLocale prefers stored locale over browser locale', () => {
     languages: ['en-US'],
   });
 
-  assert.equal(resolveBootstrapLocale(), 'ja');
+  assert.equal(resolveBootstrapLocale(), 'fr');
 });
 
-test('resolvePreferredLocale falls back from browser preferences to en', () => {
+test('resolvePreferredLocale normalizes supported regional browser variants', () => {
+  const cases = [
+    { input: 'es-MX', expected: 'es' },
+    { input: 'fr-FR', expected: 'fr' },
+    { input: 'zh-Hans-CN', expected: 'zh-CN' },
+    { input: 'de-DE', expected: 'de' },
+    { input: 'pt-PT', expected: 'pt-BR' },
+    { input: 'pt-BR', expected: 'pt-BR' },
+  ] as const;
+
+  for (const { input, expected } of cases) {
+    installNavigatorMock({
+      language: input,
+      languages: [input],
+    });
+
+    assert.equal(resolvePreferredLocale(), expected);
+  }
+});
+
+test('resolveBootstrapLocale normalizes supported stored regional variants', () => {
+  const cases = [
+    { input: 'es-MX', expected: 'es' },
+    { input: 'fr-FR', expected: 'fr' },
+    { input: 'zh-Hans-CN', expected: 'zh-CN' },
+    { input: 'de-DE', expected: 'de' },
+    { input: 'pt-PT', expected: 'pt-BR' },
+    { input: 'pt-BR', expected: 'pt-BR' },
+  ] as const;
+
+  for (const { input, expected } of cases) {
+    Object.assign(globalThis, {
+      localStorage: new MockStorage({
+        [LOCALE_STORAGE_KEY]: input,
+      }),
+    });
+    installNavigatorMock({
+      language: 'en-US',
+      languages: ['en-US'],
+    });
+
+    assert.equal(resolveBootstrapLocale(), expected);
+  }
+});
+
+test('resolvePreferredLocale falls back from unsupported browser preferences to en', () => {
   installNavigatorMock({
-    language: 'fr-FR',
-    languages: ['fr-FR', 'de-DE'],
+    language: 'it-IT',
+    languages: ['it-IT', 'nl-NL'],
   });
 
   assert.equal(resolvePreferredLocale(), 'en');

@@ -45,7 +45,7 @@ function padDatePart(value: number): string {
 }
 
 /**
- * Format an ISO date string to canonical UTC `YYYY-MM-DD HH:mm`.
+ * Format an ISO date string in the browser's local timezone as `YYYY-MM-DD HH:mm`.
  * Returns empty string if the input is null/undefined or invalid.
  */
 export function formatDate(iso: string | null | undefined): string {
