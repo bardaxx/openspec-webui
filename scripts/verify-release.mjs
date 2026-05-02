@@ -156,7 +156,7 @@ async function main() {
   const packageLock = JSON.parse(await readFile(join(repoRoot, 'package-lock.json'), 'utf8'));
 
   console.log('Running release verification...');
-  run(npmCommand, ['run', 'licenses:generate']);
+  run(process.execPath, ['./scripts/generate-licenses.mjs']);
   run(npmCommand, ['run', 'build']);
   run(npmCommand, ['run', 'test']);
   run(npmCommand, ['run', 'typecheck']);

@@ -7,12 +7,14 @@ import {
   waitForExit,
   withFlag,
 } from './dev-utils.mjs';
+import { collectServerArgs, resolveDevHost, resolveDevPort } from './dev-args.mjs';
 
 ensureLocalBins(['tsx', 'vite']);
 
 const forwardedArgs = process.argv.slice(2);
 const serverArgs = withFlag(collectServerArgs(forwardedArgs), '--no-open');
 const devPort = resolveDevPort(forwardedArgs);
+const devHost = resolveDevHost(forwardedArgs);
 
 console.log('Building frontend once before starting dev watchers...');
 const initialFrontendBuild = spawnInRepo(resolveLocalBin('vite'), ['build', '--config', 'frontend/vite.config.ts']);
@@ -22,7 +24,7 @@ if (initialBuildResult.code !== 0) {
   process.exit(initialBuildResult.code);
 }
 
-console.log(`Development mode: server serves dist-frontend on http://127.0.0.1:${devPort}`);
+console.log(`Development mode: server serves dist-frontend on http://${devHost}:${devPort}`);
 console.log('Frontend source changes trigger rebuilds. Refresh the browser after UI edits.');
 
 const children = [
@@ -32,50 +34,15 @@ const children = [
   },
   {
     label: 'dev server',
-    child: spawnInRepo(process.execPath, ['--watch', '--import', 'tsx', 'src/cli/index.ts', ...serverArgs]),
+    child: spawnInRepo(process.execPath, [
+      '--watch',
+      '--import',
+      'tsx',
+      'src/cli/index.ts',
+      ...serverArgs,
+    ]),
   },
 ];
-
-function resolveDevPort(args) {
-  for (let index = 0; index < args.length; index += 1) {
-    const arg = args[index];
-
-    if ((arg === '--port' || arg === '-p') && index + 1 < args.length) {
-      return args[index + 1];
-    }
-
-    if (arg.startsWith('--port=')) {
-      return arg.slice('--port='.length);
-    }
-  }
-
-  return '3001';
-}
-
-function collectServerArgs(args) {
-  const collectedArgs = [];
-
-  for (let index = 0; index < args.length; index += 1) {
-    const arg = args[index];
-
-    if ((arg === '--port' || arg === '-p') && index + 1 < args.length) {
-      collectedArgs.push(arg, args[index + 1]);
-      index += 1;
-      continue;
-    }
-
-    if (arg.startsWith('--port=')) {
-      collectedArgs.push(arg);
-      continue;
-    }
-
-    if (arg.startsWith('-')) {
-      collectedArgs.push(arg);
-    }
-  }
-
-  return collectedArgs;
-}
 
 let shuttingDown = false;
 
