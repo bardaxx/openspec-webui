@@ -55,7 +55,7 @@ test('invalid-project init guidance only appears for missing OpenSpec initializa
 test('project onboarding components share docs links and keep onboarding actions wired', async () => {
   const addProjectDialogSource = await readFile(new URL('./AddProjectDialog.svelte', import.meta.url), 'utf8');
   const emptyProjectStateSource = await readFile(new URL('./EmptyProjectState.svelte', import.meta.url), 'utf8');
-  const settingsModalSource = await readFile(new URL('./SettingsModal.svelte', import.meta.url), 'utf8');
+  const settingsViewSource = await readFile(new URL('./SettingsView.svelte', import.meta.url), 'utf8');
 
   assert.equal(OPENSPEC_INSTALL_DOCS_URL, 'https://github.com/Fission-AI/OpenSpec#quick-start');
   assert.equal(OPENSPEC_SETUP_DOCS_URL, 'https://github.com/Fission-AI/OpenSpec/blob/main/docs/cli.md#setup-commands');
@@ -70,7 +70,7 @@ test('project onboarding components share docs links and keep onboarding actions
     assert.match(source, /t\(m\.docs_intro\)/);
   }
 
-  for (const source of [settingsModalSource]) {
+  for (const source of [settingsViewSource]) {
     assert.match(source, /OPENSPEC_OPSX_REFERENCE_DOCS_URL/);
     assert.match(source, /OPENSPEC_SUPPORTED_TOOLS_DOCS_URL/);
     assert.match(source, /OPENSPEC_COMMANDS_DOCS_URL/);
@@ -84,8 +84,8 @@ test('project onboarding components share docs links and keep onboarding actions
   assert.match(addProjectDialogSource, /projectStore\.clearError\(\)/);
   assert.match(emptyProjectStateSource, /t\(m\.empty_project_init_hint\)/);
   assert.match(emptyProjectStateSource, /layoutStore\.openOverlay\('add-project'\)/);
-  assert.match(settingsModalSource, /FIXED_LABELS\.settings\.docs\.opsxReference/);
-  assert.match(settingsModalSource, /FIXED_LABELS\.settings\.docs\.supportedTools/);
-  assert.match(settingsModalSource, /FIXED_LABELS\.settings\.docs\.commands/);
-  assert.match(settingsModalSource, /FIXED_LABELS\.settings\.docs\.workflows/);
+  assert.match(settingsViewSource, /FIXED_LABELS\.settings\.docs\.opsxReference/);
+  assert.match(settingsViewSource, /FIXED_LABELS\.settings\.docs\.supportedTools/);
+  assert.match(settingsViewSource, /FIXED_LABELS\.settings\.docs\.commands/);
+  assert.match(settingsViewSource, /FIXED_LABELS\.settings\.docs\.workflows/);
 });

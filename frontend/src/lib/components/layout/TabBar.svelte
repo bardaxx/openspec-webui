@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Pin, X, LayoutDashboard, FileText, Archive, SquarePen, Clipboard, ClipboardCopy } from '@lucide/svelte';
+  import { Pin, X, LayoutDashboard, FileText, Archive, SquarePen, Clipboard, ClipboardCopy, Settings } from '@lucide/svelte';
   import * as ContextMenu from '$lib/components/ui/context-menu';
   import * as ScrollArea from '$lib/components/ui/scroll-area';
   import { t } from '$lib/i18n';
@@ -15,6 +15,7 @@
     dashboard: { icon: LayoutDashboard, color: 'text-muted-foreground' },
     spec: { icon: FileText, color: 'text-success' },
     change: { icon: SquarePen, color: 'text-info' },
+    settings: { icon: Settings, color: 'text-muted-foreground' },
   };
 
   const ARCHIVED_CHANGE_ICON = { icon: Archive, color: 'text-muted-foreground' };

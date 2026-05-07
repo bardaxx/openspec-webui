@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ArrowRight } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
-  import { layoutStore } from '$lib/state/layout.svelte.ts';
+  import { tabStore } from '$lib/state/tabs.svelte.ts';
   import { versionStatusStore } from '$lib/state/versionStatus.svelte.ts';
   import { FIXED_LABELS } from '$lib/uiText';
 
@@ -33,7 +33,7 @@
   });
 
   function handleClick() {
-    layoutStore.openOverlay('settings', { settingsSection: 'versions' });
+    tabStore.openSettings({ initialSection: 'versions' });
   }
 </script>
 

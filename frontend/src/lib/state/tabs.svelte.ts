@@ -1,4 +1,4 @@
-export type TabType = 'dashboard' | 'spec' | 'change';
+export type TabType = 'dashboard' | 'spec' | 'change' | 'settings';
 
 import { FIXED_LABELS } from '$lib/uiText';
 
@@ -23,16 +23,29 @@ function createHomeTab(): Tab {
   };
 }
 
+function createSettingsTab(): Tab {
+  return {
+    id: 'settings:home',
+    type: 'settings',
+    name: FIXED_LABELS.common.settings,
+    path: '/settings',
+    pinned: false,
+    preview: false,
+  };
+}
+
 function isHomeTab(tab: Tab) {
   const homeTab = createHomeTab();
   return tab.id === homeTab.id || tab.path === homeTab.path;
 }
 
-function normalizePath(path: string) {
+function normalizePath(path: string, options?: { preserveSettings?: boolean }) {
   const trimmed = (path || '/').trim();
   const [pathname] = trimmed.split(/[?#]/, 1);
   const withLeadingSlash = pathname.startsWith('/') ? pathname : `/${pathname}`;
-  const normalizedSectionPath = withLeadingSlash === '/specs' || withLeadingSlash === '/changes'
+  const normalizedSectionPath = withLeadingSlash === '/specs'
+    || withLeadingSlash === '/changes'
+    || (!options?.preserveSettings && withLeadingSlash === '/settings')
     ? createHomeTab().path
     : withLeadingSlash;
 
@@ -116,6 +129,17 @@ function getLookupKeys(tabIdOrPath: string) {
   return normalizedPath === canonicalPath ? [canonicalPath] : [normalizedPath, canonicalPath];
 }
 
+export type SettingsSection = 'general' | 'workflow' | 'commands' | 'versions';
+
+interface OpenSettingsOptions {
+  initialSection?: SettingsSection;
+}
+
+interface SettingsViewerState {
+  initialSection?: SettingsSection;
+  requestKey?: number;
+}
+
 export function createTabsStore() {
   const initialTab = createTabForPath(getCurrentBrowserPath());
   const initialTabs = isHomeTab(initialTab)
@@ -175,10 +199,12 @@ export function createTabsStore() {
   }
 
   function upsertTab(tabInput: string | Tab, history: HistoryMode = 'push') {
-    const requestedPath = typeof tabInput === 'string' ? normalizePath(tabInput) : normalizePath(tabInput.path);
+    const requestedPath = typeof tabInput === 'string'
+      ? normalizePath(tabInput)
+      : normalizePath(tabInput.path, { preserveSettings: tabInput.type === 'settings' });
     const normalizedTab = typeof tabInput === 'string' ? createTabForPath(requestedPath) : {
       ...tabInput,
-      path: normalizePath(tabInput.path),
+      path: normalizePath(tabInput.path, { preserveSettings: tabInput.type === 'settings' }),
     };
 
     const existingIndex = state.tabs.findIndex((tab) => tab.path === normalizedTab.path);
@@ -227,13 +253,33 @@ export function createTabsStore() {
       return upsertTab(pathOrTab, 'push');
     },
 
+    openSettings(options?: OpenSettingsOptions) {
+      const settingsTab = createSettingsTab();
+      if (options?.initialSection) {
+        state.viewerStates[settingsTab.id] = {
+          ...(state.viewerStates[settingsTab.id] as SettingsViewerState | undefined),
+          initialSection: options.initialSection,
+          requestKey: Date.now(),
+        };
+      }
+
+      const existing = getTab(settingsTab.id);
+      if (existing) {
+        return this.focus(settingsTab.id);
+      }
+
+      return upsertTab(settingsTab, 'push');
+    },
+
     openPreview(pathOrTab: string | Tab) {
-      const requestedPath = typeof pathOrTab === 'string' ? normalizePath(pathOrTab) : normalizePath(pathOrTab.path);
+      const requestedPath = typeof pathOrTab === 'string'
+        ? normalizePath(pathOrTab)
+        : normalizePath(pathOrTab.path, { preserveSettings: pathOrTab.type === 'settings' });
       const normalizedTab = typeof pathOrTab === 'string'
         ? createTabForPath(requestedPath)
         : {
             ...pathOrTab,
-            path: normalizePath(pathOrTab.path),
+            path: normalizePath(pathOrTab.path, { preserveSettings: pathOrTab.type === 'settings' }),
           };
       const previewTab: Tab = {
         ...normalizedTab,
@@ -420,6 +466,10 @@ export function createTabsStore() {
 
     setViewerState(tabId: string, data: unknown) {
       state.viewerStates[tabId] = data;
+    },
+
+    clearViewerState(tabId: string) {
+      delete state.viewerStates[tabId];
     },
   };
 }

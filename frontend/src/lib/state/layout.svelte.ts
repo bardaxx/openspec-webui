@@ -1,7 +1,7 @@
 export type ActivityPreset = 'home' | 'archive' | 'specs';
 export type ExplorerSection = 'active-changes' | 'archive' | 'specs';
 export type ResponsiveMode = 'narrow' | 'wide';
-export type LayoutOverlay = 'search' | 'settings' | 'project-selector' | 'add-project' | null;
+export type LayoutOverlay = 'search' | 'project-selector' | 'add-project' | null;
 
 const STORAGE_KEY = 'openspec-layout';
 const DEFAULT_EXPLORER_WIDTH = 280;
@@ -131,7 +131,6 @@ function createLayoutStore() {
     narrowDrawerOpen: false,
     overlay: null as LayoutOverlay,
     searchInitialQuery: '',
-    settingsInitialSection: null as string | null,
   });
 
   let initialized = false;
@@ -213,10 +212,6 @@ function createLayoutStore() {
       return state.searchInitialQuery;
     },
 
-    get settingsInitialSection() {
-      return state.settingsInitialSection;
-    },
-
     initialize,
 
     setExplorerCollapsed(collapsed: boolean) {
@@ -285,16 +280,14 @@ function createLayoutStore() {
       this.setNarrowDrawerOpen(!state.narrowDrawerOpen);
     },
 
-    openOverlay(overlay: Exclude<LayoutOverlay, null>, options?: { initialQuery?: string; settingsSection?: string }) {
+    openOverlay(overlay: Exclude<LayoutOverlay, null>, options?: { initialQuery?: string }) {
       state.overlay = overlay;
       state.searchInitialQuery = options?.initialQuery ?? '';
-      state.settingsInitialSection = overlay === 'settings' ? (options?.settingsSection ?? null) : null;
     },
 
     closeOverlay() {
       state.overlay = null;
       state.searchInitialQuery = '';
-      state.settingsInitialSection = null;
     },
 
     toggleOverlay(overlay: Exclude<LayoutOverlay, null>) {

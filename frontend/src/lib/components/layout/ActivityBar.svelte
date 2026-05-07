@@ -50,7 +50,7 @@
       return 'search';
     }
 
-    if (layoutStore.overlay === 'settings') {
+    if (tabStore.activeTab.type === 'settings') {
       return 'settings';
     }
 
@@ -179,7 +179,7 @@
       <Tooltip.Trigger
         class={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${buttonClass('settings')}`}
         aria-label={FIXED_LABELS.common.settings}
-        onclick={() => layoutStore.toggleOverlay('settings')}
+        onclick={() => tabStore.openSettings()}
       >
         <Settings class="h-5 w-5" />
       </Tooltip.Trigger>

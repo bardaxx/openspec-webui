@@ -4,7 +4,6 @@
   import { layoutStore } from '$lib/state/layout.svelte.ts';
   import { projectStore } from '$lib/state/projects.svelte.ts';
   import { FIXED_LABELS } from '$lib/uiText';
-  import SettingsModal from './SettingsModal.svelte';
   import ActivityBar from './ActivityBar.svelte';
   import ExplorerPane from './ExplorerPane.svelte';
   import MainViewer from './MainViewer.svelte';
@@ -30,10 +29,6 @@
   function handleDrag(detail: { deltaX: number }) {
     const nextWidth = Math.min(Math.max(dragStartWidth + detail.deltaX, 180), getExplorerMaxWidth());
     layoutStore.setExplorerWidth(nextWidth);
-  }
-
-  function closeOverlay() {
-    layoutStore.closeOverlay();
   }
 </script>
 
@@ -84,8 +79,7 @@
     </div>
   {/if}
 
-  <SearchDialog open={layoutStore.overlay === 'search'} onClose={closeOverlay} />
-  <SettingsModal open={layoutStore.overlay === 'settings'} onClose={closeOverlay} />
-  <ProjectSelector open={layoutStore.overlay === 'project-selector'} onClose={closeOverlay} />
-  <AddProjectDialog open={layoutStore.overlay === 'add-project'} onClose={closeOverlay} />
+  <SearchDialog open={layoutStore.overlay === 'search'} onClose={() => layoutStore.closeOverlay()} />
+  <ProjectSelector open={layoutStore.overlay === 'project-selector'} onClose={() => layoutStore.closeOverlay()} />
+  <AddProjectDialog open={layoutStore.overlay === 'add-project'} onClose={() => layoutStore.closeOverlay()} />
 </div>

@@ -25,6 +25,7 @@ const testFiles = [
   'frontend/src/lib/projectPlanningContext.test.ts',
   'frontend/src/lib/components/layout/activityBarController.test.ts',
   'frontend/src/lib/components/layout/AddProjectDialog.test.ts',
+  'frontend/src/lib/components/layout/settingsTab.test.ts',
   'scripts/dev-utils.test.mjs',
 ];
 
