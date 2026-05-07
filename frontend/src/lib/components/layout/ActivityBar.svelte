@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Archive, FileText, LayoutDashboard, PanelLeftClose, PanelLeftOpen, Search, Settings } from '@lucide/svelte';
+  import { Archive, FileText, FlaskConical, LayoutDashboard, PanelLeftClose, PanelLeftOpen, Search, Settings } from '@lucide/svelte';
   import * as Tooltip from '$lib/components/ui/tooltip';
   import { decodeName } from '$lib/utils';
   import { archivedChanges, project } from '$lib/state/appData.svelte.ts';
@@ -7,6 +7,9 @@
   import { layoutStore, type ActivityPreset } from '$lib/state/layout.svelte.ts';
   import { searchStore } from '$lib/state/search.svelte.ts';
   import { tabStore } from '$lib/state/tabs.svelte.ts';
+  import { validationStore } from '$lib/state/validation.svelte.ts';
+  import { t } from '$lib/i18n';
+  import * as m from '$lib/paraglide/messages.js';
   import { FIXED_LABELS } from '$lib/uiText';
   import {
     isActivityBarExplorerOpen,
@@ -108,6 +111,33 @@
     searchStore.open();
   }
 
+  function openValidate() {
+    if (!projectStore.activeProjectId) {
+      return;
+    }
+
+    layoutStore.closeOverlay();
+
+    if (shouldToggleCurrentPreset({
+      preset: 'validate',
+      activeSection,
+      hasActiveProject: Boolean(projectStore.activeProjectId),
+      responsiveMode: layoutStore.responsiveMode,
+      explorerCollapsed: layoutStore.explorerCollapsed,
+      narrowDrawerOpen: layoutStore.narrowDrawerOpen,
+    })) {
+      if (layoutStore.responsiveMode === 'narrow') {
+        layoutStore.toggleNarrowDrawer();
+      } else {
+        layoutStore.toggleExplorerCollapsed();
+      }
+
+      return;
+    }
+
+    layoutStore.setActivityPreset('validate');
+  }
+
   function buttonClass(section: string) {
     return activeSection === section
       ? 'bg-primary text-primary-foreground shadow-sm'
@@ -195,6 +225,22 @@
         <Search class="h-5 w-5" />
       </Tooltip.Trigger>
       <Tooltip.Content side="right">{FIXED_LABELS.common.search}</Tooltip.Content>
+    </Tooltip.Root>
+
+    <Tooltip.Root>
+      <Tooltip.Trigger
+        class={`relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${buttonClass('validate')}`}
+        aria-label={t(m.validation_activity_label)}
+        onclick={openValidate}
+      >
+        <FlaskConical class="h-5 w-5" />
+        {#if validationStore.failedCount > 0}
+          <span class="absolute bottom-1 right-1 inline-flex min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold leading-4 text-white">
+            {Math.min(validationStore.failedCount, 99)}
+          </span>
+        {/if}
+      </Tooltip.Trigger>
+      <Tooltip.Content side="right">{t(m.validation_activity_label)}</Tooltip.Content>
     </Tooltip.Root>
   </div>
 

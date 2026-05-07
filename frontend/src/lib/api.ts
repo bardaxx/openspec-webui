@@ -14,6 +14,7 @@ import {
   type SpecSummary,
   type Stats,
   type StructuredApiError,
+  type ValidationResult,
   type VersionStatusResponse,
 } from './types/api';
 const API_BASE = '/api';
@@ -42,6 +43,13 @@ export type {
   StructuredApiError,
   Task,
   TaskProgress,
+  ValidationErrorContext,
+  ValidationIssue,
+  ValidationItem,
+  ValidationItemSeverity,
+  ValidationItemType,
+  ValidationResult,
+  ValidationSummary,
   VersionStatusResponse,
 } from './types/api';
 
@@ -122,6 +130,7 @@ function shouldAttachProjectHeader(path: string): boolean {
     path.startsWith('/changes') ||
     path === '/stats' ||
     path.startsWith('/search') ||
+    path === '/validate' ||
     path === '/commands/availability'
   );
 }
@@ -223,6 +232,12 @@ export async function getCommandAvailability(): Promise<CommandAvailability> {
 
 export async function getVersionStatus(): Promise<VersionStatusResponse> {
   return fetchApi<VersionStatusResponse>('/version-status');
+}
+
+export async function runValidation(): Promise<ValidationResult> {
+  return fetchApi<ValidationResult>('/validate', {
+    method: 'POST',
+  });
 }
 
 export async function browseDirectory(dirPath?: string): Promise<BrowseResult> {

@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import { execFile } from 'child_process';
 import type { OpenSpecData } from '../../parser/index.js';
 import { parseSpec, parseChangeByName, searchOpenSpec } from '../../parser/index.js';
 import {
@@ -12,6 +13,13 @@ import {
   type ProjectRegistry,
 } from '../project-registry.js';
 import type { VersionSnapshotService } from '../version-status.js';
+import type {
+  ValidationItem,
+  ValidationItemSeverity,
+  ValidationItemType,
+  ValidationResult,
+  ValidationErrorContext,
+} from '../../shared/types.js';
 import { readdirSync, statSync, existsSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { homedir } from 'os';
@@ -303,6 +311,17 @@ export async function registerApiRoutes(
     return { results };
   });
 
+  // Run validation for the active project
+  fastify.post('/api/validate', async (request, reply) => {
+    const context = await resolveProjectContext(request, reply);
+    if (!context) {
+      return reply;
+    }
+
+    const result = await runValidation(context.projectRoot);
+    return result;
+  });
+
   // Browse filesystem directories
   fastify.get<{ Querystring: { path?: string } }>('/api/fs/browse', async (request) => {
     const requestedPath = request.query.path?.trim() || homedir();
@@ -336,6 +355,135 @@ export async function registerApiRoutes(
       return { path: absolutePath, parent: null, dirs: [], error: 'Permission denied' };
     }
   });
+}
+
+/**
+ * Execute `openspec validate --all --strict --json` in the project root and
+ * normalize the output into a ValidationResult.
+ *
+ * Three outcome paths:
+ * 1. CLI exits 0 with valid JSON → status 'passed' or 'failed' (from JSON)
+ * 2. CLI exits non-0 with valid JSON → status 'passed' or 'failed' (from JSON)
+ * 3. CLI exits non-0 with unparseable output → structured API error thrown
+ */
+async function runValidation(
+  projectRoot: string
+): Promise<ValidationResult> {
+  const { stdout, stderr, exitCode } = await execValidate(projectRoot);
+
+  const parsed = tryParseValidationJson(stdout);
+
+  if (parsed) {
+    return normalizeValidationResult(parsed, stderr, exitCode);
+  }
+
+  // True execution failure — cannot normalize CLI output
+  throw createStructuredApiError(
+    'ACTIVATION_FAILED',
+    `Validation command failed with exit code ${exitCode ?? 'null'}: ${stderr || stdout || 'unknown error'}`,
+    {
+      command: 'openspec validate --all --strict --json',
+      exitCode: exitCode ?? null,
+      stderr,
+    } satisfies ValidationErrorContext as Record<string, unknown>,
+  );
+}
+
+function execValidate(
+  projectRoot: string
+): Promise<{ stdout: string; stderr: string; exitCode: number | null }> {
+  return new Promise((resolve) => {
+    execFile(
+      'openspec',
+      ['validate', '--all', '--strict', '--json'],
+      { cwd: projectRoot, timeout: 120_000 },
+      (error, stdout, stderr) => {
+        if (error && error.code === 'ENOENT') {
+          resolve({ stdout: '', stderr: 'openspec command not found', exitCode: null });
+          return;
+        }
+        resolve({
+          stdout: stdout ?? '',
+          stderr: (stderr ?? '').trim(),
+          exitCode: error ? 1 : 0,
+        });
+      }
+    );
+  });
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function tryParseValidationJson(stdout: string): any | null {
+  try {
+    return JSON.parse(stdout);
+  } catch {
+    return null;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeValidationResult(
+  raw: any,
+  stderr: string,
+  exitCode: number | null
+): ValidationResult {
+  const rawItems = Array.isArray(raw.items) ? raw.items : [];
+  const items: ValidationItem[] = rawItems.map(normalizeValidationItem);
+
+  const failedItems = items.filter((item) => !item.valid);
+  const summary = {
+    totalItems: items.length,
+    passed: items.length - failedItems.length,
+    failed: failedItems.length,
+  };
+
+  return {
+    status: failedItems.length > 0 ? 'failed' : 'passed',
+    items,
+    failedItems,
+    summary,
+    runAt: new Date().toISOString(),
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeValidationItem(raw: any): ValidationItem {
+  const rawIssues = Array.isArray(raw.issues) ? raw.issues : [];
+  const issues = rawIssues.map(normalizeValidationIssue);
+
+  return {
+    id: typeof raw.id === 'string' ? raw.id : 'unknown',
+    name: typeof raw.id === 'string' && raw.id.length > 0 ? raw.id : 'unknown',
+    type: normalizeValidationItemType(raw.type),
+    valid: raw.valid === true,
+    issueCount: issues.length,
+    issues,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeValidationIssue(raw: any) {
+  return {
+    level: normalizeValidationSeverity(raw.level),
+    path: typeof raw.path === 'string' ? raw.path : '',
+    message: typeof raw.message === 'string' ? raw.message : '',
+  };
+}
+
+function normalizeValidationSeverity(value: unknown): ValidationItemSeverity {
+  if (typeof value === 'string') {
+    const upper = value.toUpperCase();
+    if (upper === 'ERROR' || upper === 'WARNING' || upper === 'INFO') {
+      return upper;
+    }
+  }
+  return 'ERROR';
+}
+
+function normalizeValidationItemType(value: unknown): ValidationItemType {
+  if (value === 'spec' || value === 'change') return value;
+  if (value === 'project') return 'project';
+  return 'unknown';
 }
 
 /**

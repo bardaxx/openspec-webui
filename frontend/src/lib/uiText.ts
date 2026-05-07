@@ -1,4 +1,4 @@
-import type { SearchResult } from './types/api';
+import type { SearchResult, ValidationItemType } from './types/api';
 import type { WorkflowCommand } from './types/commandTypes';
 
 export const FIXED_LABELS = {
@@ -27,6 +27,7 @@ export const FIXED_LABELS = {
     search: 'Search',
     settings: 'Settings',
     specs: 'Specs',
+    validate: 'Validate',
     yes: 'Yes',
   },
   activityBar: {
@@ -168,7 +169,31 @@ export const FIXED_LABELS = {
     activeChanges: 'Active Changes',
     archive: 'Archive',
     specs: 'Specs',
+    validate: 'Validation',
     sortBy: 'Sort by',
+  },
+  validation: {
+    title: 'Validation',
+    description: 'Run strict validation for the active project and keep failures visible here while opening related specs and changes in the main tabs.',
+    run: 'Run Validate',
+    running: 'Running validation…',
+    start: 'Run validation for the active project.',
+    passed: 'Validation passed',
+    failed: 'Validation failed',
+    failedItems: 'Failed Items',
+    summary: 'Summary',
+    lastRun: 'Last run',
+    commandError: 'Command Error',
+    noFailedItems: 'No failed validation items.',
+    nonNavigable: 'This item is visible for review but does not open a spec or change tab.',
+    issueCount: (count: number) => `${count} issue${count === 1 ? '' : 's'}`,
+    summaryCounts: (passed: number, failed: number, total: number) => `${passed} passed • ${failed} failed • ${total} total`,
+    typeLabels: {
+      spec: 'Spec',
+      change: 'Change',
+      project: 'Project',
+      unknown: 'Other',
+    },
   },
   viewer: {
     specification: 'Specification',
@@ -214,6 +239,19 @@ export function getSearchResultTypeLabel(type: SearchResult['type']): string {
       return FIXED_LABELS.search.types.change;
     case 'project':
       return FIXED_LABELS.search.types.project;
+  }
+}
+
+export function getValidationItemTypeLabel(type: ValidationItemType): string {
+  switch (type) {
+    case 'spec':
+      return FIXED_LABELS.validation.typeLabels.spec;
+    case 'change':
+      return FIXED_LABELS.validation.typeLabels.change;
+    case 'project':
+      return FIXED_LABELS.validation.typeLabels.project;
+    case 'unknown':
+      return FIXED_LABELS.validation.typeLabels.unknown;
   }
 }
 

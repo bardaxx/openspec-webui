@@ -3,6 +3,7 @@ export interface ProjectSyncActions {
   closeOverlay: () => void;
   prepareProjectScopedRefresh?: () => void;
   clearProjectScopedSearchState: () => void;
+  clearProjectScopedValidationState?: () => void;
   resetTabsToDashboard: () => void;
   initializeData: () => Promise<void>;
   refreshCommandAvailability: () => Promise<void>;
@@ -30,6 +31,7 @@ export async function reinitializeProjectScopedState(actions: ProjectSyncActions
 
   actions.prepareProjectScopedRefresh?.();
   actions.clearProjectScopedSearchState();
+  actions.clearProjectScopedValidationState?.();
   actions.resetTabsToDashboard();
   await actions.initializeData();
   await actions.refreshCommandAvailability();

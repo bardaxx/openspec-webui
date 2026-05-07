@@ -225,3 +225,44 @@ export interface ParseResult<T> {
   errors: string[];
   warnings: string[];
 }
+
+// Validation types
+
+export type ValidationItemSeverity = 'ERROR' | 'WARNING' | 'INFO';
+
+export interface ValidationIssue {
+  level: ValidationItemSeverity;
+  path: string;
+  message: string;
+}
+
+export type ValidationItemType = 'spec' | 'change' | 'project' | 'unknown';
+
+export interface ValidationItem {
+  id: string;
+  name: string;
+  type: ValidationItemType;
+  valid: boolean;
+  issueCount: number;
+  issues: ValidationIssue[];
+}
+
+export interface ValidationSummary {
+  totalItems: number;
+  passed: number;
+  failed: number;
+}
+
+export interface ValidationResult {
+  status: 'passed' | 'failed';
+  items: ValidationItem[];
+  failedItems: ValidationItem[];
+  summary: ValidationSummary;
+  runAt: string;
+}
+
+export interface ValidationErrorContext {
+  command: string;
+  exitCode: number | null;
+  stderr: string;
+}

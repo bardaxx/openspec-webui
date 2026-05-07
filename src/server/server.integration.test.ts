@@ -91,6 +91,11 @@ if (process.argv.includes('--version')) {
   process.exit(0);
 }
 
+if (process.argv[2] === 'validate') {
+  process.stdout.write(process.env.VALIDATE_OUTPUT || '{"items":[],"summary":{"totals":{"items":0,"passed":0,"failed":0},"byType":{}},"version":"1.0"}');
+  process.exit(Number(process.env.VALIDATE_EXIT_CODE || '0'));
+}
+
 if (unavailableRoots.has(cwd)) {
   process.stderr.write('workflow unavailable');
   process.exit(1);
@@ -118,6 +123,7 @@ process.exit(1);
   );
   await chmod(scriptPath, 0o755);
   process.env.PATH = `${binDir}:${process.env.PATH ?? ''}`;
+  return binDir;
 }
 
 async function startServer(options: {
@@ -1110,6 +1116,228 @@ test('filesystem browse endpoint excludes hidden directories and reports hasOpen
       ],
     });
   } finally {
+    await runtime.close();
+  }
+});
+
+// ── Validation endpoint tests ──────────────────────────────────────────────
+
+const PASSING_VALIDATION_OUTPUT = JSON.stringify({
+  items: [
+    { id: 'my-spec', type: 'spec', valid: true, issues: [] },
+    { id: 'my-change', type: 'change', valid: true, issues: [] },
+  ],
+  summary: { totals: { items: 2, passed: 2, failed: 0 }, byType: {} },
+  version: '1.0',
+});
+
+const FAILING_VALIDATION_OUTPUT = JSON.stringify({
+  items: [
+    {
+      id: 'bad-spec',
+      type: 'spec',
+      valid: false,
+      issues: [
+        { level: 'ERROR', path: 'file', message: 'Missing required section' },
+        { level: 'WARNING', path: 'requirements[0]', message: 'Long text' },
+      ],
+    },
+    { id: 'good-change', type: 'change', valid: true, issues: [] },
+  ],
+  summary: { totals: { items: 2, passed: 1, failed: 1 }, byType: {} },
+  version: '1.0',
+});
+
+test('validate returns passed result when CLI reports all items valid', async () => {
+  const configHome = await createTempDir('openspec-webui-validate-pass-cfg-');
+  process.env.XDG_CONFIG_HOME = configHome;
+  const projectRoot = await createProjectFixture('valid-project');
+  await installFakeOpenSpecCommand({ readyProjectRoots: new Set([projectRoot]) });
+
+  process.env.VALIDATE_OUTPUT = PASSING_VALIDATION_OUTPUT;
+  process.env.VALIDATE_EXIT_CODE = '0';
+
+  const runtime = await startServer();
+
+  try {
+    await apiJson(runtime.baseUrl, '/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: projectRoot }),
+    });
+
+    const result = await apiJson(runtime.baseUrl, '/api/validate', { method: 'POST' });
+    assert.equal(result.response.status, 200);
+    assert.equal(result.body.status, 'passed');
+    assert.equal(result.body.summary.totalItems, 2);
+    assert.equal(result.body.summary.passed, 2);
+    assert.equal(result.body.summary.failed, 0);
+    assert.equal(result.body.failedItems.length, 0);
+    assert.equal(result.body.items.length, 2);
+    assert.equal(typeof result.body.runAt, 'string');
+  } finally {
+    delete process.env.VALIDATE_OUTPUT;
+    delete process.env.VALIDATE_EXIT_CODE;
+    await runtime.close();
+  }
+});
+
+test('validate returns failed result when CLI reports validation errors (non-zero exit with valid JSON)', async () => {
+  const configHome = await createTempDir('openspec-webui-validate-fail-cfg-');
+  process.env.XDG_CONFIG_HOME = configHome;
+  const projectRoot = await createProjectFixture('fail-project');
+  await installFakeOpenSpecCommand({ readyProjectRoots: new Set([projectRoot]) });
+
+  process.env.VALIDATE_OUTPUT = FAILING_VALIDATION_OUTPUT;
+  process.env.VALIDATE_EXIT_CODE = '1';
+
+  const runtime = await startServer();
+
+  try {
+    await apiJson(runtime.baseUrl, '/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: projectRoot }),
+    });
+
+    const result = await apiJson(runtime.baseUrl, '/api/validate', { method: 'POST' });
+    assert.equal(result.response.status, 200);
+    assert.equal(result.body.status, 'failed');
+    assert.equal(result.body.summary.totalItems, 2);
+    assert.equal(result.body.summary.passed, 1);
+    assert.equal(result.body.summary.failed, 1);
+    assert.equal(result.body.failedItems.length, 1);
+    assert.equal(result.body.failedItems[0].id, 'bad-spec');
+    assert.equal(result.body.failedItems[0].name, 'bad-spec');
+    assert.equal(result.body.failedItems[0].type, 'spec');
+    assert.equal(result.body.failedItems[0].valid, false);
+    assert.equal(result.body.failedItems[0].issueCount, 2);
+    assert.equal(result.body.failedItems[0].issues[0].level, 'ERROR');
+    assert.equal(result.body.failedItems[0].issues[0].message, 'Missing required section');
+    assert.equal(result.body.failedItems[0].issues[1].level, 'WARNING');
+  } finally {
+    delete process.env.VALIDATE_OUTPUT;
+    delete process.env.VALIDATE_EXIT_CODE;
+    await runtime.close();
+  }
+});
+
+test('validate returns API error when CLI output is malformed', async () => {
+  const configHome = await createTempDir('openspec-webui-validate-malformed-cfg-');
+  process.env.XDG_CONFIG_HOME = configHome;
+  const projectRoot = await createProjectFixture('malformed-project');
+  await installFakeOpenSpecCommand({ readyProjectRoots: new Set([projectRoot]) });
+
+  process.env.VALIDATE_OUTPUT = 'this is not json';
+  process.env.VALIDATE_EXIT_CODE = '1';
+
+  const runtime = await startServer();
+
+  try {
+    await apiJson(runtime.baseUrl, '/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: projectRoot }),
+    });
+
+    const result = await apiJson(runtime.baseUrl, '/api/validate', { method: 'POST' });
+    assert.equal(result.response.status, 500);
+    assert.equal(result.body.code, 'ACTIVATION_FAILED');
+  } finally {
+    delete process.env.VALIDATE_OUTPUT;
+    delete process.env.VALIDATE_EXIT_CODE;
+    await runtime.close();
+  }
+});
+
+test('validate returns API error when command cannot execute', async () => {
+  const configHome = await createTempDir('openspec-webui-validate-execfail-cfg-');
+  process.env.XDG_CONFIG_HOME = configHome;
+  const projectRoot = await createProjectFixture('execfail-project');
+
+  // Install a fake command that only handles config, not validate — set env
+  // to produce garbage output that cannot be parsed as JSON.
+  await installFakeOpenSpecCommand({ readyProjectRoots: new Set([projectRoot]) });
+
+  process.env.VALIDATE_OUTPUT = 'GARBAGE NOT JSON';
+  process.env.VALIDATE_EXIT_CODE = '1';
+
+  const runtime = await startServer();
+
+  try {
+    await apiJson(runtime.baseUrl, '/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: projectRoot }),
+    });
+
+    const result = await apiJson(runtime.baseUrl, '/api/validate', { method: 'POST' });
+    assert.equal(result.response.status, 500);
+    assert.equal(result.body.code, 'ACTIVATION_FAILED');
+  } finally {
+    delete process.env.VALIDATE_OUTPUT;
+    delete process.env.VALIDATE_EXIT_CODE;
+    await runtime.close();
+  }
+});
+
+test('validate returns 503 when no project is active', async () => {
+  const configHome = await createTempDir('openspec-webui-validate-noproj-cfg-');
+  process.env.XDG_CONFIG_HOME = configHome;
+  const nonProjectRoot = await createTempDir('openspec-webui-validate-noproj-cwd-');
+
+  const runtime = await startServer({ cwd: nonProjectRoot });
+
+  try {
+    const result = await apiJson(runtime.baseUrl, '/api/validate', { method: 'POST' });
+    assert.equal(result.response.status, 503);
+    assert.equal(result.body.code, 'NO_ACTIVE_PROJECT');
+  } finally {
+    await runtime.close();
+  }
+});
+
+test('validate honors X-Project-Id header for project scoping', async () => {
+  const configHome = await createTempDir('openspec-webui-validate-scoped-cfg-');
+  process.env.XDG_CONFIG_HOME = configHome;
+  const alphaRoot = await createProjectFixture('alpha-val');
+  const betaRoot = await createProjectFixture('beta-val');
+  await installFakeOpenSpecCommand({ readyProjectRoots: new Set([alphaRoot, betaRoot]) });
+
+  process.env.VALIDATE_OUTPUT = JSON.stringify({
+    items: [{ id: 'alpha-spec', type: 'spec', valid: true, issues: [] }],
+    summary: { totals: { items: 1, passed: 1, failed: 0 }, byType: {} },
+    version: '1.0',
+  });
+  process.env.VALIDATE_EXIT_CODE = '0';
+
+  const runtime = await startServer();
+
+  try {
+    let result = await apiJson(runtime.baseUrl, '/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: alphaRoot }),
+    });
+    const alphaId = result.body.project.id as string;
+
+    result = await apiJson(runtime.baseUrl, '/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: betaRoot }),
+    });
+
+    // beta is now active; validate with X-Project-Id for alpha
+    result = await apiJson(runtime.baseUrl, '/api/validate', {
+      method: 'POST',
+      headers: { 'X-Project-Id': alphaId },
+    });
+    assert.equal(result.response.status, 200);
+    assert.equal(result.body.status, 'passed');
+    assert.equal(result.body.summary.totalItems, 1);
+  } finally {
+    delete process.env.VALIDATE_OUTPUT;
+    delete process.env.VALIDATE_EXIT_CODE;
     await runtime.close();
   }
 });

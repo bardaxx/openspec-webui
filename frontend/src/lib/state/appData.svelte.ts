@@ -20,6 +20,7 @@ import { projectStore } from './projects.svelte.ts';
 import { shouldRestoreProjectBinding } from './projectsCore';
 import { handleProjectBoundMessage, handleProjectContextMessage } from './projectSync';
 import { tabStore } from './tabs.svelte.ts';
+import { validationStore } from './validation.svelte.ts';
 
 function createBox<T>(read: () => T, write: (value: T) => void) {
   return {
@@ -165,6 +166,7 @@ async function reinitializeProjectScopedState(
     closeOverlay: () => layoutStore.closeOverlay(),
     prepareProjectScopedRefresh: clearLoadedWorkspaceState,
     clearProjectScopedSearchState,
+    clearProjectScopedValidationState: () => validationStore.reset(announcedActiveProjectId),
     resetTabsToDashboard: () => {
       tabStore.closeAll();
     },
@@ -269,6 +271,7 @@ async function handleProjectBound(activeProjectId: string | null) {
     closeOverlay: () => layoutStore.closeOverlay(),
     prepareProjectScopedRefresh: clearLoadedWorkspaceState,
     clearProjectScopedSearchState,
+    clearProjectScopedValidationState: () => validationStore.reset(activeProjectId),
     resetTabsToDashboard: () => {
       tabStore.closeAll();
     },

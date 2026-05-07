@@ -1,5 +1,5 @@
-export type ActivityPreset = 'home' | 'archive' | 'specs' | 'search';
-export type ExplorerSection = 'active-changes' | 'archive' | 'specs' | 'search';
+export type ActivityPreset = 'home' | 'archive' | 'specs' | 'search' | 'validate';
+export type ExplorerSection = 'active-changes' | 'archive' | 'specs' | 'search' | 'validate';
 export type ResponsiveMode = 'narrow' | 'wide';
 export type LayoutOverlay = 'project-selector' | 'add-project' | null;
 
@@ -14,6 +14,7 @@ const PRESET_SECTION_MAP: Record<ActivityPreset, ExplorerSection> = {
   archive: 'archive',
   specs: 'specs',
   search: 'search',
+  validate: 'validate',
 };
 
 const SECTION_PRESET_MAP: Record<ExplorerSection, ActivityPreset> = {
@@ -21,6 +22,7 @@ const SECTION_PRESET_MAP: Record<ExplorerSection, ActivityPreset> = {
   archive: 'archive',
   specs: 'specs',
   search: 'search',
+  validate: 'validate',
 };
 
 type PersistedLayoutState = {
@@ -47,6 +49,7 @@ function createDefaultSectionState() {
     archive: true,
     specs: true,
     search: true,
+    validate: true,
   } as Record<ExplorerSection, boolean>;
 }
 
@@ -56,6 +59,7 @@ function createPresetSectionState(section: ExplorerSection) {
     archive: section !== 'archive',
     specs: section !== 'specs',
     search: section !== 'search',
+    validate: section !== 'validate',
   } as Record<ExplorerSection, boolean>;
 }
 
@@ -253,7 +257,7 @@ function createLayoutStore() {
     },
 
     syncActivityPreset(preset: ActivityPreset) {
-      if (state.activityPreset === 'search') {
+      if (state.activityPreset === 'search' || state.activityPreset === 'validate') {
         return;
       }
 

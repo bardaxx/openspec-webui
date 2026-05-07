@@ -29,6 +29,9 @@ function createActions(options: {
       clearProjectScopedSearchState: () => {
         calls.push('clearProjectScopedSearchState');
       },
+      clearProjectScopedValidationState: () => {
+        calls.push('clearProjectScopedValidationState');
+      },
       resetTabsToDashboard: () => {
         calls.push('resetTabsToDashboard');
       },
@@ -58,6 +61,7 @@ test('project bound reinitialization closes the selector, resets tabs to Dashboa
     'closeOverlay',
     'prepareProjectScopedRefresh',
     'clearProjectScopedSearchState',
+    'clearProjectScopedValidationState',
     'resetTabsToDashboard',
     'initializeData',
     'refreshCommandAvailability',
@@ -77,6 +81,7 @@ test('connection:init reinitializes project-scoped state when the active project
   assert.deepEqual(calls, [
     'prepareProjectScopedRefresh',
     'clearProjectScopedSearchState',
+    'clearProjectScopedValidationState',
     'resetTabsToDashboard',
     'initializeData',
     'refreshCommandAvailability',
@@ -135,6 +140,9 @@ test('project:bound completes pending bind only after project-scoped refresh fin
     clearProjectScopedSearchState: () => {
       calls.push('clearProjectScopedSearchState');
     },
+    clearProjectScopedValidationState: () => {
+      calls.push('clearProjectScopedValidationState');
+    },
     resetTabsToDashboard: () => {
       calls.push('resetTabsToDashboard');
     },
@@ -152,6 +160,7 @@ test('project:bound completes pending bind only after project-scoped refresh fin
     'closeOverlay',
     'prepareProjectScopedRefresh',
     'clearProjectScopedSearchState',
+    'clearProjectScopedValidationState',
     'resetTabsToDashboard',
     'initializeData',
     'refreshCommandAvailability',
@@ -181,6 +190,9 @@ test('project:bound still completes pending bind when refresh fails', async () =
       clearProjectScopedSearchState: () => {
         calls.push('clearProjectScopedSearchState');
       },
+      clearProjectScopedValidationState: () => {
+        calls.push('clearProjectScopedValidationState');
+      },
       resetTabsToDashboard: () => {
         calls.push('resetTabsToDashboard');
       },
@@ -198,6 +210,7 @@ test('project:bound still completes pending bind when refresh fails', async () =
     'applyProjectBound',
     'prepareProjectScopedRefresh',
     'clearProjectScopedSearchState',
+    'clearProjectScopedValidationState',
     'resetTabsToDashboard',
     'initializeData',
     'completeProjectBound',

@@ -6,6 +6,7 @@
     ExplorerSortControl,
     SearchExplorerSection,
     SpecsExplorerSection,
+    ValidationExplorerSection,
     type ExplorerSortMode,
   } from '$lib/components/shared/explorer-section';
   import { InteractiveCard } from '$lib/components/shared/surface';
@@ -70,6 +71,8 @@
 
   {#if layoutStore.activityPreset === 'search'}
     <SearchExplorerSection {onItemSelected} />
+  {:else if layoutStore.activityPreset === 'validate'}
+    <ValidationExplorerSection {onItemSelected} />
   {:else}
     <ScrollArea.Root class="min-h-0 flex-1" viewportClass="h-full">
       <div class="space-y-4 p-3">

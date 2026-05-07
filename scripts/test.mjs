@@ -14,6 +14,7 @@ const testFiles = [
   'frontend/src/lib/state/theme.test.ts',
   'frontend/src/lib/state/uiPreferences.test.ts',
   'frontend/src/lib/state/projectSync.test.ts',
+  'frontend/src/lib/state/validationCore.test.ts',
   'frontend/src/lib/state/projectsCore.test.ts',
   'frontend/src/lib/state/commandPreferencesCore.test.ts',
   'frontend/src/lib/state/localeCore.test.ts',
@@ -26,6 +27,7 @@ const testFiles = [
   'frontend/src/lib/components/layout/activityBarController.test.ts',
   'frontend/src/lib/components/layout/AddProjectDialog.test.ts',
   'frontend/src/lib/components/layout/settingsTab.test.ts',
+  'frontend/src/lib/components/layout/validationPanel.test.ts',
   'scripts/dev-utils.test.mjs',
 ];
 
