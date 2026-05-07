@@ -1,9 +1,12 @@
 import { getApiErrorMessage, runValidation } from '$lib/api';
+import { t } from '$lib/i18n';
+import * as m from '$lib/paraglide/messages.js';
 import { projectStore } from '$lib/state/projects.svelte.ts';
 import { tabStore } from '$lib/state/tabs.svelte.ts';
+import { formatDate } from '$lib/utils';
 import type { ValidationItem } from '$lib/types/api';
 
-import { createDefaultValidationState, createValidationController } from './validationCore';
+import { createDefaultValidationState, createValidationController, deriveValidationDashboardSummary } from './validationCore';
 
 const reactiveState = $state(createDefaultValidationState());
 
@@ -33,6 +36,30 @@ export const validationStore = {
 
   get failedCount() {
     return controller.state.result?.summary.failed ?? 0;
+  },
+
+  get dashboardSummary() {
+    return deriveValidationDashboardSummary(controller.state, {
+      copy: {
+        notRunPrimaryValue: t(m.dashboard_validation_not_run_value),
+        notRunDescription: t(m.dashboard_validation_not_run_description),
+        runningPrimaryValue: t(m.dashboard_validation_running_value),
+        runningDescription: t(m.dashboard_validation_running_description),
+        passedPrimaryValue: t(m.dashboard_validation_passed_value),
+        passedDescription: (lastRun) =>
+          lastRun
+            ? t(m.dashboard_validation_last_run_description, { lastRun })
+            : t(m.dashboard_validation_passed_description),
+        failedPrimaryValue: (failedCount) => t(m.dashboard_validation_failed_value, { count: failedCount }),
+        failedDescription: (_failedCount, lastRun) =>
+          lastRun
+            ? t(m.dashboard_validation_last_run_description, { lastRun })
+            : t(m.dashboard_validation_failed_description),
+        unknownPrimaryValue: t(m.dashboard_validation_unknown_value),
+        unknownDescription: () => t(m.dashboard_validation_unknown_description),
+      },
+      formatLastRun: (runAt) => (runAt ? formatDate(runAt) : null),
+    });
   },
 
   reset(projectId?: string | null) {

@@ -8,6 +8,35 @@ export interface ValidationState {
   latestRunAt: string | null;
 }
 
+export type ValidationDashboardState = 'not-run' | 'running' | 'passed' | 'failed' | 'unknown';
+export type ValidationDashboardIconVariant = 'info' | 'success' | 'muted' | 'warning' | 'danger';
+
+export interface ValidationDashboardCopy {
+  notRunPrimaryValue: string;
+  notRunDescription: string;
+  runningPrimaryValue: string;
+  runningDescription: string;
+  passedPrimaryValue: string;
+  passedDescription: (lastRun: string | null) => string;
+  failedPrimaryValue: (failedCount: number) => string;
+  failedDescription: (failedCount: number, lastRun: string | null) => string;
+  unknownPrimaryValue: string;
+  unknownDescription: (error: string | null) => string;
+}
+
+export interface ValidationDashboardSummary {
+  state: ValidationDashboardState;
+  primaryValue: string;
+  description: string;
+  failedCount: number;
+  iconVariant: ValidationDashboardIconVariant;
+}
+
+export interface ValidationDashboardSummaryOptions {
+  copy: ValidationDashboardCopy;
+  formatLastRun?: (runAt: string | null) => string | null;
+}
+
 export interface ValidationControllerDependencies {
   /** Optional external state object. When provided (e.g. a Svelte $state proxy), mutations trigger reactivity. */
   state?: ValidationState;
@@ -53,6 +82,64 @@ export function createValidationRequestTracker() {
 
 export function shouldResetValidationState(currentProjectId: string | null, nextProjectId: string | null): boolean {
   return currentProjectId !== nextProjectId;
+}
+
+export function deriveValidationDashboardSummary(
+  state: Pick<ValidationState, 'loading' | 'result' | 'error' | 'latestRunAt'>,
+  options: ValidationDashboardSummaryOptions,
+): ValidationDashboardSummary {
+  const { copy, formatLastRun } = options;
+  const failedCount = state.result?.summary.failed ?? 0;
+  const lastRunSource = state.latestRunAt ?? state.result?.runAt ?? null;
+  const lastRun = formatLastRun ? formatLastRun(lastRunSource) : lastRunSource;
+
+  if (state.loading) {
+    return {
+      state: 'running',
+      primaryValue: copy.runningPrimaryValue,
+      description: copy.runningDescription,
+      failedCount: 0,
+      iconVariant: 'warning',
+    };
+  }
+
+  if (!state.result) {
+    if (state.error) {
+      return {
+        state: 'unknown',
+        primaryValue: copy.unknownPrimaryValue,
+        description: copy.unknownDescription(state.error),
+        failedCount: 0,
+        iconVariant: 'warning',
+      };
+    }
+
+    return {
+      state: 'not-run',
+      primaryValue: copy.notRunPrimaryValue,
+      description: copy.notRunDescription,
+      failedCount: 0,
+      iconVariant: 'muted',
+    };
+  }
+
+  if (state.result.status === 'failed' || failedCount > 0) {
+    return {
+      state: 'failed',
+      primaryValue: copy.failedPrimaryValue(failedCount),
+      description: copy.failedDescription(failedCount, lastRun),
+      failedCount,
+      iconVariant: 'danger',
+    };
+  }
+
+  return {
+    state: 'passed',
+    primaryValue: copy.passedPrimaryValue,
+    description: copy.passedDescription(lastRun),
+    failedCount: 0,
+    iconVariant: 'success',
+  };
 }
 
 export function createValidationController(

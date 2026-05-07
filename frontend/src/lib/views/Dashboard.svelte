@@ -1,6 +1,6 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { Archive, ArrowRight, Bookmark, ChevronDown, ChevronRight, LayoutDashboard, Calendar, CircleCheckBig, FileText, FolderPen, History, SquarePen } from '@lucide/svelte';
+  import { Archive, ArrowRight, Bookmark, ChevronDown, ChevronRight, LayoutDashboard, Calendar, CircleCheckBig, FileText, FolderPen, History, SquarePen, FlaskConical } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
   import { Button } from '$lib/components/ui/button';
   import { Callout } from '$lib/components/shared/callout';
@@ -21,6 +21,7 @@
   import { layoutStore } from '$lib/state/layout.svelte.ts';
   import { searchStore } from '$lib/state/search.svelte.ts';
   import { tabStore } from '$lib/state/tabs.svelte.ts';
+  import { validationStore } from '$lib/state/validation.svelte.ts';
   import MarkdownRenderer from '$lib/components/shared/MarkdownRenderer.svelte';
   import VersionBadge from '$lib/components/shared/VersionBadge.svelte';
   import { Progress } from '$lib/components/ui/progress';
@@ -182,6 +183,10 @@
     layoutStore.setActivityPreset('home');
   }
 
+  function openValidationPanel() {
+    layoutStore.setActivityPreset('validate');
+  }
+
   function focusSpecsSection() {
     layoutStore.setActivityPreset('specs');
   }
@@ -262,7 +267,7 @@
   </div>
 
   <!-- Summary Cards -->
-  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
     <InteractiveCard tone="card" class="overflow-hidden p-0">
       <button type="button" class="w-full p-4 text-left" onclick={openHomeSurface}>
         <div class="flex items-start justify-between gap-3">
@@ -298,6 +303,21 @@
             <div class="mt-1 text-sm text-muted-foreground">{t(m.dashboard_specs_summary)}</div>
           </div>
           <IconBox icon={FileText} variant="success" />
+        </div>
+      </button>
+    </InteractiveCard>
+
+    <InteractiveCard tone="card" class="overflow-hidden p-0">
+      <button type="button" class="w-full p-4 text-left" onclick={openValidationPanel}>
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0 flex-1">
+            <div class="text-sm font-medium text-muted-foreground">{FIXED_LABELS.validation.title}</div>
+            <div class="mt-2 flex items-end gap-2">
+              <span class="truncate text-2xl font-semibold text-foreground">{validationStore.dashboardSummary.primaryValue}</span>
+            </div>
+            <div class="mt-1 text-sm text-muted-foreground">{validationStore.dashboardSummary.description}</div>
+          </div>
+          <IconBox icon={FlaskConical} variant={validationStore.dashboardSummary.iconVariant} />
         </div>
       </button>
     </InteractiveCard>

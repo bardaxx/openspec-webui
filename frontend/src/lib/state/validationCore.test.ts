@@ -7,8 +7,23 @@ import {
   createDefaultValidationState,
   createValidationController,
   createValidationRequestTracker,
+  deriveValidationDashboardSummary,
   shouldResetValidationState,
 } from './validationCore';
+
+const dashboardCopy = {
+  notRunPrimaryValue: 'Not run',
+  notRunDescription: 'Run validation from the panel.',
+  runningPrimaryValue: 'Running…',
+  runningDescription: 'Checking the latest workspace state.',
+  passedPrimaryValue: 'Passed',
+  passedDescription: (lastRun: string | null) => lastRun ? `Last run ${lastRun}` : 'All checks passed.',
+  failedPrimaryValue: (failedCount: number) => `${failedCount} failed`,
+  failedDescription: (failedCount: number, lastRun: string | null) =>
+    lastRun ? `${failedCount} items failed • ${lastRun}` : `${failedCount} items failed`,
+  unknownPrimaryValue: 'Unknown',
+  unknownDescription: (error: string | null) => error ? `Validation unavailable: ${error}` : 'Validation unavailable.',
+} as const;
 
 function createValidationResult(status: ValidationResult['status'], runAt: string): ValidationResult {
   return {
@@ -81,6 +96,111 @@ test('validation result shape can represent pass and fail runs', () => {
   assert.equal(passed.runAt, '2026-05-08T00:00:00.000Z');
   assert.equal(failed.status, 'failed');
   assert.equal(failed.summary.failed, 1);
+});
+
+test('validation dashboard summary derives not-run, running, passed, failed, and unknown states', () => {
+  const notRun = deriveValidationDashboardSummary(
+    {
+      loading: false,
+      result: null,
+      error: null,
+      latestRunAt: null,
+    },
+    { copy: dashboardCopy },
+  );
+
+  assert.deepEqual(notRun, {
+    state: 'not-run',
+    primaryValue: 'Not run',
+    description: 'Run validation from the panel.',
+    failedCount: 0,
+    iconVariant: 'muted',
+  });
+
+  const running = deriveValidationDashboardSummary(
+    {
+      loading: true,
+      result: createValidationResult('failed', '2026-05-08T00:00:00.000Z'),
+      error: null,
+      latestRunAt: '2026-05-08T00:00:00.000Z',
+    },
+    { copy: dashboardCopy },
+  );
+
+  assert.deepEqual(running, {
+    state: 'running',
+    primaryValue: 'Running…',
+    description: 'Checking the latest workspace state.',
+    failedCount: 0,
+    iconVariant: 'warning',
+  });
+
+  const passed = deriveValidationDashboardSummary(
+    {
+      loading: false,
+      result: createValidationResult('passed', '2026-05-08T00:01:00.000Z'),
+      error: null,
+      latestRunAt: '2026-05-08T00:01:00.000Z',
+    },
+    {
+      copy: dashboardCopy,
+      formatLastRun: (value) => value === '2026-05-08T00:01:00.000Z' ? 'May 8' : value,
+    },
+  );
+
+  assert.deepEqual(passed, {
+    state: 'passed',
+    primaryValue: 'Passed',
+    description: 'Last run May 8',
+    failedCount: 0,
+    iconVariant: 'success',
+  });
+
+  const failed = deriveValidationDashboardSummary(
+    {
+      loading: false,
+      result: {
+        ...createValidationResult('failed', '2026-05-08T00:02:00.000Z'),
+        summary: {
+          totalItems: 7,
+          passed: 4,
+          failed: 3,
+        },
+      },
+      error: null,
+      latestRunAt: '2026-05-08T00:02:00.000Z',
+    },
+    {
+      copy: dashboardCopy,
+      formatLastRun: () => 'just now',
+    },
+  );
+
+  assert.deepEqual(failed, {
+    state: 'failed',
+    primaryValue: '3 failed',
+    description: '3 items failed • just now',
+    failedCount: 3,
+    iconVariant: 'danger',
+  });
+
+  const unknown = deriveValidationDashboardSummary(
+    {
+      loading: false,
+      result: null,
+      error: 'CLI unavailable',
+      latestRunAt: null,
+    },
+    { copy: dashboardCopy },
+  );
+
+  assert.deepEqual(unknown, {
+    state: 'unknown',
+    primaryValue: 'Unknown',
+    description: 'Validation unavailable: CLI unavailable',
+    failedCount: 0,
+    iconVariant: 'warning',
+  });
 });
 
 test('validation controller handles loading, success, failure, project change, and stale responses', async () => {

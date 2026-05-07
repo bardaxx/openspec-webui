@@ -27,6 +27,39 @@ test('ExplorerPane renders ValidationExplorerSection when validate preset is act
   assert.match(source, /layoutStore\.activityPreset === 'validate'/);
 });
 
+test('Dashboard renders a validation summary card in the five-card top grid and opens the validate preset', async () => {
+  const source = await readFile(new URL('../../views/Dashboard.svelte', import.meta.url), 'utf8');
+
+  assert.match(source, /xl:grid-cols-5/);
+  assert.match(source, /FIXED_LABELS\.validation\.title/);
+  assert.match(source, /validationStore\.dashboardSummary\.primaryValue/);
+  assert.match(source, /validationStore\.dashboardSummary\.description/);
+  assert.match(source, /validationStore\.dashboardSummary\.failedCount > 0/);
+  assert.match(source, /layoutStore\.setActivityPreset\('validate'\)/);
+  assert.match(source, /IconBox icon=\{FlaskConical\} variant=\{validationStore\.dashboardSummary\.iconVariant\}/);
+});
+
+test('Dashboard validation card uses validation store summary and does not run validation or open viewer tabs', async () => {
+  const source = await readFile(new URL('../../views/Dashboard.svelte', import.meta.url), 'utf8');
+
+  assert.equal(source.includes('validationStore.refresh('), false);
+  assert.equal(source.includes("tabStore.open('/validate'"), false);
+  assert.equal(source.includes('tabStore.open(`/validate'), false);
+  assert.match(source, /function openValidationPanel\(\) \{[\s\S]*setActivityPreset\('validate'\);[\s\S]*\}/);
+});
+
+test('validation store exposes localized dashboard summary copy', async () => {
+  const source = await readFile(new URL('../../state/validation.svelte.ts', import.meta.url), 'utf8');
+  const messages = await readFile(new URL('../../../../messages/en.json', import.meta.url), 'utf8');
+
+  assert.match(source, /deriveValidationDashboardSummary/);
+  assert.match(source, /dashboard_validation_not_run_value/);
+  assert.match(source, /dashboard_validation_running_description/);
+  assert.match(source, /dashboard_validation_last_run_description/);
+  assert.match(messages, /"dashboard_validation_not_run_value"/);
+  assert.match(messages, /"dashboard_validation_failed_value"/);
+});
+
 test('validation panel wiring keeps navigation in existing tabs and shows non-navigable items safely', async () => {
   const source = await readFile(new URL('../shared/explorer-section/validation-explorer-section.svelte', import.meta.url), 'utf8');
   const storeSource = await readFile(new URL('../../state/validation.svelte.ts', import.meta.url), 'utf8');
