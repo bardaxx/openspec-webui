@@ -3,7 +3,8 @@
   import type { Snippet } from 'svelte';
   import type { SpecSummary } from '$lib/types/api';
   import { formatDate } from '$lib/utils';
-  import type { ExplorerSortMode } from './explorer-sort-control.svelte';
+  import type { ExplorerSortMode } from './sort-utils';
+  import { timestampValue } from './sort-utils';
   import ExplorerSection from './explorer-section.svelte';
   import ExplorerSectionItem from './explorer-section-item.svelte';
   import * as m from '$lib/paraglide/messages.js';
@@ -25,14 +26,10 @@
     sortMode = 'name',
   }: Props = $props();
 
-  function timestampValue(value: string | null | undefined) {
-    if (!value) return 0;
-    const timestamp = new Date(value).getTime();
-    return Number.isNaN(timestamp) ? 0 : timestamp;
-  }
-
   let sortedSpecs = $derived.by(() => {
     return [...specs].sort((left, right) => {
+      // Specs default to name ordering and only apply date ordering in date mode;
+      // compareBySortMode's name/date branching would obscure that behavior.
       if (sortMode === 'date') {
         const timestampDiff = timestampValue(right.lastModified) - timestampValue(left.lastModified);
         if (timestampDiff !== 0) {

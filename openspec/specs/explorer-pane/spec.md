@@ -40,6 +40,12 @@ The system SHALL render an Explorer Pane between the Activity Bar and the Main V
 - **AND** each `ExplorerSectionItem` shows a Calendar icon and last modification datetime on the second line
 - **AND** no design-specific badge or marker is shown for spec entries
 
+#### Scenario: Explorer sorting uses shared sorting base
+- **WHEN** an explorer section sorts items by Date or Name
+- **THEN** the ordering behavior is provided by the shared sorting base used by dashboard sorting
+- **AND** the ACTIVE CHANGES and ARCHIVE sections still default to Date sorting
+- **AND** the SPECS section still defaults to Name sorting
+
 ### Requirement: Explorer sections are collapsible
 The system SHALL allow each Explorer Pane section to be collapsed and expanded independently. The collapsed/expanded state SHALL be preserved during the current session.
 

@@ -5,6 +5,7 @@
   import { Button } from '$lib/components/ui/button';
   import { Callout } from '$lib/components/shared/callout';
   import { InteractiveCard, InsetPanel, SectionHeader, SurfaceCard } from '$lib/components/shared/surface';
+  import { ExplorerSortControl, type ExplorerSortMode, compareBySortMode, timestampValue } from '$lib/components/shared/explorer-section';
   import * as Collapsible from '$lib/components/ui/collapsible';
   import { EmptyState } from '$lib/components/shared/empty-state';
   import { IconBox } from '$lib/components/shared/icon-box';
@@ -59,6 +60,8 @@
 
   const formatDashboardDate = formatDate;
   let legacyProjectDocOpen = $state(false);
+  let activeChangesSortMode = $state<ExplorerSortMode>('date');
+  let recentActivitySortMode = $state<ExplorerSortMode>('date');
 
   function commandPreferencesSnapshot() {
     return {
@@ -69,15 +72,6 @@
   }
 
   let workspaceCommands = $derived(getWorkspaceCommands(activeChanges.value, commandPreferencesSnapshot()));
-
-  function timestampValue(value: string | null | undefined) {
-    if (!value) {
-      return 0;
-    }
-
-    const timestamp = new Date(value).getTime();
-    return Number.isNaN(timestamp) ? 0 : timestamp;
-  }
 
   function changeUpdatedAt(change: TimestampedChange) {
     return change.lastModified ?? null;
@@ -148,6 +142,20 @@
     return [...activeItems, ...archivedItems, ...specItems]
       .sort((left, right) => right.timestamp - left.timestamp)
       .slice(0, 12);
+  });
+
+  let sortedActiveChanges = $derived.by(() => {
+    return [...activeChanges.value].sort(compareBySortMode<TimestampedChange>(activeChangesSortMode));
+  });
+
+  let sortedRecentActivity = $derived.by(() => {
+    if (recentActivitySortMode === 'name') {
+      return [...recentActivity].sort((left, right) => {
+        const nameDiff = left.title.localeCompare(right.title);
+        return nameDiff !== 0 ? nameDiff : right.timestamp - left.timestamp;
+      });
+    }
+    return recentActivity;
   });
 
   function openActiveChange(name: string) {
@@ -313,20 +321,24 @@
   <!-- Active Changes -->
   <SurfaceCard shadow="lg">
     <SectionHeader>
-      <div class="flex flex-wrap items-start justify-between gap-3">
-        <div>
+      <div class="space-y-2">
+        <div class="flex flex-wrap items-start justify-between gap-3">
           <h2 class="flex items-center gap-2 text-lg font-semibold text-foreground">
             <SquarePen class="h-5 w-5 text-muted-foreground" />
             {FIXED_LABELS.dashboard.activeChanges}
           </h2>
-          <p class="mt-1 text-sm text-muted-foreground">{t(m.dashboard_active_changes_description)}</p>
+
+          {#if workspaceCommands.length > 0}
+            <div class="flex max-w-full justify-end lg:max-w-lg">
+              <CommandShortcutBar commands={workspaceCommands} />
+            </div>
+          {/if}
         </div>
 
-        {#if workspaceCommands.length > 0}
-          <div class="flex max-w-full justify-end lg:max-w-lg">
-            <CommandShortcutBar commands={workspaceCommands} />
-          </div>
-        {/if}
+        <div class="flex items-center justify-between gap-3">
+          <p class="text-sm text-muted-foreground">{t(m.dashboard_active_changes_description)}</p>
+          <ExplorerSortControl value={activeChangesSortMode} onValueChange={(value) => (activeChangesSortMode = value)} ariaLabel={`${FIXED_LABELS.dashboard.activeChanges} ${FIXED_LABELS.explorer.sortBy}`} />
+        </div>
       </div>
     </SectionHeader>
 
@@ -336,7 +348,7 @@
       </div>
     {:else}
       <div class="flex flex-col gap-2 p-4">
-        {#each activeChanges.value as change}
+        {#each sortedActiveChanges as change}
           {@const changeCommands = changeCommandsFor(change)}
           <ItemContextMenu
             items={createItemContextMenuItems({
@@ -411,14 +423,19 @@
   {#if recentActivity.length > 0}
     <SurfaceCard shadow="sm">
       <SectionHeader compact={true}>
-        <h2 class="flex items-center gap-2 text-lg font-semibold text-foreground">
-          <History class="h-5 w-5 text-muted-foreground" />
-          {FIXED_LABELS.dashboard.recentActivity}
-        </h2>
-        <p class="mt-1 text-sm text-muted-foreground">{t(m.dashboard_recent_activity_description)}</p>
+        <div class="space-y-2">
+          <h2 class="flex items-center gap-2 text-lg font-semibold text-foreground">
+            <History class="h-5 w-5 text-muted-foreground" />
+            {FIXED_LABELS.dashboard.recentActivity}
+          </h2>
+          <div class="flex items-center justify-between gap-3">
+            <p class="text-sm text-muted-foreground">{t(m.dashboard_recent_activity_description)}</p>
+            <ExplorerSortControl value={recentActivitySortMode} onValueChange={(value) => (recentActivitySortMode = value)} ariaLabel={`${FIXED_LABELS.dashboard.recentActivity} ${FIXED_LABELS.explorer.sortBy}`} />
+          </div>
+        </div>
       </SectionHeader>
       <div class="grid gap-2 p-4 sm:grid-cols-2 xl:grid-cols-3">
-        {#each recentActivity as item}
+        {#each sortedRecentActivity as item}
           <ItemContextMenu
             items={createItemContextMenuItems(
               item.kind === 'spec'

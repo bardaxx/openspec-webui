@@ -3,7 +3,8 @@
   import type { Snippet } from 'svelte';
   import type { ChangeSummary } from '$lib/types/api';
   import { formatChangeName, formatDate } from '$lib/utils';
-  import type { ExplorerSortMode } from './explorer-sort-control.svelte';
+  import type { ExplorerSortMode } from './sort-utils';
+  import { timestampValue } from './sort-utils';
   import ExplorerSection from './explorer-section.svelte';
   import ExplorerSectionItem from './explorer-section-item.svelte';
   import * as m from '$lib/paraglide/messages.js';
@@ -25,16 +26,14 @@
     sortMode = 'date',
   }: Props = $props();
 
-  function timestampValue(value: string | null | undefined) {
-    if (!value) return 0;
-    const timestamp = new Date(value).getTime();
-    return Number.isNaN(timestamp) ? 0 : timestamp;
-  }
-
   let sortedChanges = $derived.by(() => {
     return [...changes].sort((left, right) => {
+      // Archive sorting uses the displayed name with the date prefix stripped;
+      // compareBySortMode compares raw `.name` values.
+      const leftName = formatChangeName(left.name);
+      const rightName = formatChangeName(right.name);
       if (sortMode === 'name') {
-        return formatChangeName(left.name).localeCompare(formatChangeName(right.name));
+        return leftName.localeCompare(rightName);
       }
 
       const timestampDiff = timestampValue(right.lastModified) - timestampValue(left.lastModified);
@@ -42,7 +41,7 @@
         return timestampDiff;
       }
 
-      return formatChangeName(left.name).localeCompare(formatChangeName(right.name));
+      return leftName.localeCompare(rightName);
     });
   });
 </script>

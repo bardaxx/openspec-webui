@@ -2,8 +2,7 @@
   import { ArrowUpAZ, Calendar } from '@lucide/svelte';
   import { cn } from '$lib/utils';
   import { FIXED_LABELS } from '$lib/uiText';
-
-  export type ExplorerSortMode = 'date' | 'name';
+  import type { ExplorerSortMode } from './sort-utils';
 
   interface Props {
     value: ExplorerSortMode;
