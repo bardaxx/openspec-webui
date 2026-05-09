@@ -16,6 +16,7 @@ import type { VersionSnapshotService } from '../version-status.js';
 import type {
   ValidationItem,
   ValidationItemSeverity,
+  ValidationItemStatus,
   ValidationItemType,
   ValidationResult,
   ValidationErrorContext,
@@ -483,17 +484,32 @@ function normalizeValidationResult(
   const rawItems = Array.isArray(raw.items) ? raw.items : [];
   const items: ValidationItem[] = rawItems.map(normalizeValidationItem);
 
-  const failedItems = items.filter((item) => !item.valid);
+  const failedItems = items.filter((item) => item.status === 'failed');
+  const issueItems = items.filter((item) => item.issueCount > 0 || item.issues.length > 0);
+  const statusCounts = createEmptyValidationStatusCounts();
+  const severityCounts = createEmptyValidationSeverityCounts();
+
+  for (const item of items) {
+    statusCounts[item.status] += 1;
+    for (const issue of item.issues) {
+      severityCounts[issue.level] += 1;
+    }
+  }
+
   const summary = {
     totalItems: items.length,
-    passed: items.length - failedItems.length,
+    passed: statusCounts.passed,
     failed: failedItems.length,
+    issueItems: issueItems.length,
+    statusCounts,
+    severityCounts,
   };
 
   return {
     status: failedItems.length > 0 ? 'failed' : 'passed',
     items,
     failedItems,
+    issueItems,
     summary,
     runAt: new Date().toISOString(),
   };
@@ -503,15 +519,53 @@ function normalizeValidationResult(
 function normalizeValidationItem(raw: any): ValidationItem {
   const rawIssues = Array.isArray(raw.issues) ? raw.issues : [];
   const issues = rawIssues.map(normalizeValidationIssue);
+  const valid = raw.valid === true;
 
   return {
     id: typeof raw.id === 'string' ? raw.id : 'unknown',
     name: typeof raw.id === 'string' && raw.id.length > 0 ? raw.id : 'unknown',
     type: normalizeValidationItemType(raw.type),
-    valid: raw.valid === true,
+    valid,
+    status: deriveValidationItemStatus(valid, issues),
     issueCount: issues.length,
     issues,
   };
+}
+
+function createEmptyValidationStatusCounts(): Record<ValidationItemStatus, number> {
+  return {
+    passed: 0,
+    info: 0,
+    warning: 0,
+    failed: 0,
+  };
+}
+
+function createEmptyValidationSeverityCounts(): Record<ValidationItemSeverity, number> {
+  return {
+    ERROR: 0,
+    WARNING: 0,
+    INFO: 0,
+  };
+}
+
+function deriveValidationItemStatus(
+  valid: boolean,
+  issues: Array<{ level: ValidationItemSeverity }>
+): ValidationItemStatus {
+  if (!valid || issues.some((issue) => issue.level === 'ERROR')) {
+    return 'failed';
+  }
+
+  if (issues.some((issue) => issue.level === 'WARNING')) {
+    return 'warning';
+  }
+
+  if (issues.some((issue) => issue.level === 'INFO')) {
+    return 'info';
+  }
+
+  return 'passed';
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

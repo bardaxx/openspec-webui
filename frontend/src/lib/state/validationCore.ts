@@ -1,4 +1,4 @@
-import type { ValidationItem, ValidationItemType, ValidationResult } from '$lib/types/api';
+import type { ValidationItem, ValidationItemStatus, ValidationItemType, ValidationResult } from '$lib/types/api';
 
 export interface ValidationState {
   projectId: string | null;
@@ -37,7 +37,7 @@ export interface ValidationDashboardSummaryOptions {
   formatLastRun?: (runAt: string | null) => string | null;
 }
 
-export type ValidationTargetState = 'not-run' | 'passed' | 'warning' | 'failed' | 'stale' | 'unknown';
+export type ValidationTargetState = 'not-run' | 'passed' | 'info' | 'warning' | 'failed' | 'stale' | 'unknown';
 
 export interface ValidationTarget {
   type: ValidationItemType;
@@ -169,12 +169,20 @@ export function findValidationItemByTypeAndName(
   return result.items.find((item) => item.type === target.type && item.name === target.name) ?? null;
 }
 
-function hasErrorIssue(item: ValidationItem): boolean {
-  return item.issues.some((issue) => issue.level === 'ERROR');
-}
+export function deriveValidationItemStatus(item: Pick<ValidationItem, 'valid' | 'issues'>): ValidationItemStatus {
+  if (!item.valid || item.issues.some((issue) => issue.level === 'ERROR')) {
+    return 'failed';
+  }
 
-function hasNonErrorIssue(item: ValidationItem): boolean {
-  return item.issues.some((issue) => issue.level === 'WARNING' || issue.level === 'INFO');
+  if (item.issues.some((issue) => issue.level === 'WARNING')) {
+    return 'warning';
+  }
+
+  if (item.issues.some((issue) => issue.level === 'INFO')) {
+    return 'info';
+  }
+
+  return 'passed';
 }
 
 export function deriveValidationTargetSummary(
@@ -205,12 +213,10 @@ export function deriveValidationTargetSummary(
   }
 
   const issueCount = Math.max(item.issueCount, item.issues.length);
-  const hasFailures = !item.valid || issueCount > 0;
-  const hasErrors = hasErrorIssue(item);
-  const hasWarningsOnly = !hasErrors && hasNonErrorIssue(item);
+  const derivedStatus = item.status ?? deriveValidationItemStatus(item);
 
   return {
-    state: hasErrors || (hasFailures && !hasWarningsOnly) ? 'failed' : hasWarningsOnly ? 'warning' : 'passed',
+    state: derivedStatus,
     item,
     issueCount,
     issues: item.issues,

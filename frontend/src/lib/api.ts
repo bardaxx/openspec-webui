@@ -47,6 +47,7 @@ export type {
   ValidationIssue,
   ValidationItem,
   ValidationItemSeverity,
+  ValidationItemStatus,
   ValidationItemType,
   ValidationResult,
   ValidationSummary,

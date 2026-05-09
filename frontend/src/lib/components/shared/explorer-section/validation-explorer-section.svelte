@@ -56,6 +56,10 @@
     return item.issues[0] ?? null;
   }
 
+  function attentionItems() {
+    return validationStore.result?.issueItems ?? validationStore.result?.failedItems ?? [];
+  }
+
   function entityKindForItem(type: ValidationItem['type']): EntityKind {
     switch (type) {
       case 'spec':
@@ -174,7 +178,7 @@
         </div>
       </div> -->
 
-      {#if validationStore.result.status === 'passed'}
+      {#if attentionItems().length === 0}
         <div class="p-3">
           <Callout variant="success">
             <div class="flex items-center gap-2 font-medium">
@@ -184,9 +188,9 @@
             <div class="mt-1 text-xs text-success/90">{t(m.validation_no_failed_items)}</div>
           </Callout>
         </div>
-      {:else if validationStore.result.failedItems.length > 0}
+      {:else}
         <div>
-          {#each validationStore.result.failedItems as item}
+          {#each attentionItems() as item}
             {@const issue = primaryIssue(item)}
             <ExplorerListItemButton
               items={contextMenuItems(item)}
@@ -196,7 +200,7 @@
               onclick={(event) => handleSelect(item, event)}
             >
               <div class="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
-                <StatusIndicator state="failed" label={statusLabel('failed')} format="minimal" class="shrink-0" />
+                <StatusIndicator state={item.status} format="minimal" class="shrink-0" />
                 <span class="shrink-0">{t(m.validation_issue_count, { count: item.issueCount })}</span>
               </div>
 

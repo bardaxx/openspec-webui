@@ -64,12 +64,14 @@ test('validation panel wiring keeps navigation in existing tabs and shows non-na
   const source = await readFile(new URL('../shared/explorer-section/validation-explorer-section.svelte', import.meta.url), 'utf8');
   const storeSource = await readFile(new URL('../../state/validation.svelte.ts', import.meta.url), 'utf8');
 
-  assert.match(source, /ItemContextMenu/);
+  assert.match(source, /ExplorerListItemButton/);
   assert.match(source, /validationStore\.openItem/);
   assert.match(source, /copyToClipboard\(item\.name, t\(m\.copy_label_validation_item_name\)\)/);
   assert.match(source, /searchStore\.open\(item\.name\)/);
   assert.match(source, /t\(m\.validation_non_navigable\)/);
   assert.match(source, /t\(m\.validation_run\)/);
+  assert.match(source, /attentionItems\(\)/);
+  assert.match(source, /validationStore\.result\?\.issueItems/);
   assert.match(storeSource, /tabStore\.openConfirmed/);
   assert.match(storeSource, /tabStore\.openPreview/);
   assert.match(storeSource, /item\.type !== 'spec' && item\.type !== 'change'/);
@@ -118,7 +120,8 @@ test('validation core exposes item lookup and target summaries for viewer-local 
 
   assert.match(source, /export function findValidationItemByTypeAndName/);
   assert.match(source, /export function deriveValidationTargetSummary/);
-  assert.match(source, /hasWarningsOnly \? 'warning' : 'passed'/);
+  assert.match(source, /export function deriveValidationItemStatus/);
+  assert.match(source, /return 'info'/);
   assert.match(source, /state: 'stale'/);
   assert.match(source, /state: state\.error \? 'unknown' : 'not-run'/);
 });
@@ -130,9 +133,8 @@ test('shared viewer validation status renders labels, last-run metadata, details
   assert.match(source, /FIXED_LABELS\.validation\.lastRun/);
   assert.match(source, /FIXED_LABELS\.validation\.viewer\.details/);
   assert.match(source, /FIXED_LABELS\.validation\.viewer\.hideDetails/);
-  assert.match(source, /FIXED_LABELS\.validation\.viewer\.labels\.warning/);
-  assert.match(source, /case 'stale':\s*\n\s*case 'not-run':\s*\n\s*return 'secondary'/);
-  assert.match(source, /case 'stale':\s*\n\s*case 'not-run':\s*\n\s*return 'muted'/);
+  assert.match(source, /getValidationStatusVisual\(summary\.state\)\.label/);
+  assert.match(source, /StatusIndicator state=\{summary\.state\} format="icon-box"/);
   assert.match(source, /role="status"/);
   assert.match(source, /aria-label=\{statusAriaLabel\}/);
   assert.match(source, /aria-label=\{hasDetails \? detailsAriaLabel : statusAriaLabel\}/);

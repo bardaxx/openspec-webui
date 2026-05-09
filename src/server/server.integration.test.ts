@@ -1151,6 +1151,26 @@ const FAILING_VALIDATION_OUTPUT = JSON.stringify({
   version: '1.0',
 });
 
+const ATTENTION_VALIDATION_OUTPUT = JSON.stringify({
+  items: [
+    {
+      id: 'warning-spec',
+      type: 'spec',
+      valid: true,
+      issues: [{ level: 'WARNING', path: 'requirements[0]', message: 'Needs review' }],
+    },
+    {
+      id: 'info-spec',
+      type: 'spec',
+      valid: true,
+      issues: [{ level: 'INFO', path: 'requirements[1]', message: 'Long text' }],
+    },
+    { id: 'clean-change', type: 'change', valid: true, issues: [] },
+  ],
+  summary: { totals: { items: 3, passed: 3, failed: 0 }, byType: {} },
+  version: '1.0',
+});
+
 test('validate returns passed result when CLI reports all items valid', async () => {
   const configHome = await createTempDir('openspec-webui-validate-pass-cfg-');
   process.env.XDG_CONFIG_HOME = configHome;
@@ -1175,8 +1195,13 @@ test('validate returns passed result when CLI reports all items valid', async ()
     assert.equal(result.body.summary.totalItems, 2);
     assert.equal(result.body.summary.passed, 2);
     assert.equal(result.body.summary.failed, 0);
+    assert.equal(result.body.summary.issueItems, 0);
+    assert.deepEqual(result.body.summary.statusCounts, { passed: 2, info: 0, warning: 0, failed: 0 });
+    assert.deepEqual(result.body.summary.severityCounts, { ERROR: 0, WARNING: 0, INFO: 0 });
     assert.equal(result.body.failedItems.length, 0);
+    assert.equal(result.body.issueItems.length, 0);
     assert.equal(result.body.items.length, 2);
+    assert.equal(result.body.items[0].status, 'passed');
     assert.equal(typeof result.body.runAt, 'string');
   } finally {
     delete process.env.VALIDATE_OUTPUT;
@@ -1209,15 +1234,58 @@ test('validate returns failed result when CLI reports validation errors (non-zer
     assert.equal(result.body.summary.totalItems, 2);
     assert.equal(result.body.summary.passed, 1);
     assert.equal(result.body.summary.failed, 1);
+    assert.equal(result.body.summary.issueItems, 1);
+    assert.deepEqual(result.body.summary.statusCounts, { passed: 1, info: 0, warning: 0, failed: 1 });
+    assert.deepEqual(result.body.summary.severityCounts, { ERROR: 1, WARNING: 1, INFO: 0 });
     assert.equal(result.body.failedItems.length, 1);
+    assert.equal(result.body.issueItems.length, 1);
     assert.equal(result.body.failedItems[0].id, 'bad-spec');
     assert.equal(result.body.failedItems[0].name, 'bad-spec');
     assert.equal(result.body.failedItems[0].type, 'spec');
     assert.equal(result.body.failedItems[0].valid, false);
+    assert.equal(result.body.failedItems[0].status, 'failed');
     assert.equal(result.body.failedItems[0].issueCount, 2);
     assert.equal(result.body.failedItems[0].issues[0].level, 'ERROR');
     assert.equal(result.body.failedItems[0].issues[0].message, 'Missing required section');
     assert.equal(result.body.failedItems[0].issues[1].level, 'WARNING');
+  } finally {
+    delete process.env.VALIDATE_OUTPUT;
+    delete process.env.VALIDATE_EXIT_CODE;
+    await runtime.close();
+  }
+});
+
+test('validate exposes warning and info issue items without failing the run', async () => {
+  const configHome = await createTempDir('openspec-webui-validate-attention-cfg-');
+  process.env.XDG_CONFIG_HOME = configHome;
+  const projectRoot = await createProjectFixture('attention-project');
+  await installFakeOpenSpecCommand({ readyProjectRoots: new Set([projectRoot]) });
+
+  process.env.VALIDATE_OUTPUT = ATTENTION_VALIDATION_OUTPUT;
+  process.env.VALIDATE_EXIT_CODE = '0';
+
+  const runtime = await startServer();
+
+  try {
+    await apiJson(runtime.baseUrl, '/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: projectRoot }),
+    });
+
+    const result = await apiJson(runtime.baseUrl, '/api/validate', { method: 'POST' });
+    assert.equal(result.response.status, 200);
+    assert.equal(result.body.status, 'passed');
+    assert.equal(result.body.summary.totalItems, 3);
+    assert.equal(result.body.summary.passed, 1);
+    assert.equal(result.body.summary.failed, 0);
+    assert.equal(result.body.summary.issueItems, 2);
+    assert.deepEqual(result.body.summary.statusCounts, { passed: 1, info: 1, warning: 1, failed: 0 });
+    assert.deepEqual(result.body.summary.severityCounts, { ERROR: 0, WARNING: 1, INFO: 1 });
+    assert.equal(result.body.failedItems.length, 0);
+    assert.equal(result.body.issueItems.length, 2);
+    assert.equal(result.body.issueItems[0].status, 'warning');
+    assert.equal(result.body.issueItems[1].status, 'info');
   } finally {
     delete process.env.VALIDATE_OUTPUT;
     delete process.env.VALIDATE_EXIT_CODE;

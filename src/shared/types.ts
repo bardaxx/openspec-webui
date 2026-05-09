@@ -229,6 +229,7 @@ export interface ParseResult<T> {
 // Validation types
 
 export type ValidationItemSeverity = 'ERROR' | 'WARNING' | 'INFO';
+export type ValidationItemStatus = 'passed' | 'info' | 'warning' | 'failed';
 
 export interface ValidationIssue {
   level: ValidationItemSeverity;
@@ -243,6 +244,7 @@ export interface ValidationItem {
   name: string;
   type: ValidationItemType;
   valid: boolean;
+  status: ValidationItemStatus;
   issueCount: number;
   issues: ValidationIssue[];
 }
@@ -251,12 +253,16 @@ export interface ValidationSummary {
   totalItems: number;
   passed: number;
   failed: number;
+  issueItems: number;
+  statusCounts: Record<ValidationItemStatus, number>;
+  severityCounts: Record<ValidationItemSeverity, number>;
 }
 
 export interface ValidationResult {
   status: 'passed' | 'failed';
   items: ValidationItem[];
   failedItems: ValidationItem[];
+  issueItems: ValidationItem[];
   summary: ValidationSummary;
   runAt: string;
 }

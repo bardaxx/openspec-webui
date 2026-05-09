@@ -8,6 +8,7 @@ import {
   createValidationController,
   createValidationRequestTracker,
   deriveValidationDashboardSummary,
+  deriveValidationItemStatus,
   deriveValidationTargetSummary,
   findValidationItemByTypeAndName,
   shouldResetValidationState,
@@ -28,21 +29,65 @@ const dashboardCopy = {
 } as const;
 
 function createValidationResult(status: ValidationResult['status'], runAt: string): ValidationResult {
+  const failed = status === 'failed' ? 1 : 0;
   return {
     status,
     items: [],
     failedItems: [],
+    issueItems: [],
     summary: {
       totalItems: 0,
-      passed: status === 'passed' ? 0 : 0,
-      failed: status === 'failed' ? 1 : 0,
+      passed: 0,
+      failed,
+      issueItems: 0,
+      statusCounts: {
+        passed: 0,
+        info: 0,
+        warning: 0,
+        failed,
+      },
+      severityCounts: {
+        ERROR: 0,
+        WARNING: 0,
+        INFO: 0,
+      },
     },
     runAt,
   };
 }
 
-function createValidationItem(overrides: Partial<ValidationResult['failedItems'][number]> = {}) {
+function createValidationSummary(items: ValidationResult['items']): ValidationResult['summary'] {
+  const statusCounts = {
+    passed: 0,
+    info: 0,
+    warning: 0,
+    failed: 0,
+  };
+  const severityCounts = {
+    ERROR: 0,
+    WARNING: 0,
+    INFO: 0,
+  };
+
+  for (const item of items) {
+    statusCounts[item.status] += 1;
+    for (const issue of item.issues) {
+      severityCounts[issue.level] += 1;
+    }
+  }
+
   return {
+    totalItems: items.length,
+    passed: statusCounts.passed,
+    failed: statusCounts.failed,
+    issueItems: items.filter((item) => item.issueCount > 0 || item.issues.length > 0).length,
+    statusCounts,
+    severityCounts,
+  };
+}
+
+function createValidationItem(overrides: Partial<ValidationResult['failedItems'][number]> = {}) {
+  const item = {
     id: 'activity-bar',
     name: 'activity-bar',
     type: 'spec' as const,
@@ -56,6 +101,11 @@ function createValidationItem(overrides: Partial<ValidationResult['failedItems']
       },
     ],
     ...overrides,
+  };
+
+  return {
+    ...item,
+    status: overrides.status ?? deriveValidationItemStatus(item),
   };
 }
 
@@ -167,6 +217,18 @@ test('validation dashboard summary derives not-run, running, passed, failed, and
           totalItems: 7,
           passed: 4,
           failed: 3,
+          issueItems: 3,
+          statusCounts: {
+            passed: 4,
+            info: 0,
+            warning: 0,
+            failed: 3,
+          },
+          severityCounts: {
+            ERROR: 3,
+            WARNING: 0,
+            INFO: 0,
+          },
         },
       },
       error: null,
@@ -304,11 +366,8 @@ test('validation item lookup matches type and name for specs and changes', () =>
     status: 'failed',
     items: [specItem, changeItem],
     failedItems: [specItem],
-    summary: {
-      totalItems: 2,
-      passed: 1,
-      failed: 1,
-    },
+    issueItems: [specItem],
+    summary: createValidationSummary([specItem, changeItem]),
     runAt: '2026-05-08T00:03:00.000Z',
   };
 
@@ -341,21 +400,28 @@ test('validation target summary supports failed, warning, passed, stale, and not
     id: 'spec-2',
     name: 'signal-parity-rcicombin',
     type: 'spec',
-    valid: false,
+    valid: true,
     issueCount: 1,
     issues: [
       { level: 'WARNING', path: 'overview', message: 'Purpose section is too brief' },
     ],
   });
+  const infoSpec = createValidationItem({
+    id: 'spec-3',
+    name: 'search',
+    type: 'spec',
+    valid: true,
+    issueCount: 1,
+    issues: [
+      { level: 'INFO', path: 'requirements[0]', message: 'Long requirement' },
+    ],
+  });
   const result: ValidationResult = {
     status: 'failed',
-    items: [failedSpec, passedChange, warningSpec],
-    failedItems: [failedSpec, warningSpec],
-    summary: {
-      totalItems: 3,
-      passed: 1,
-      failed: 2,
-    },
+    items: [failedSpec, passedChange, warningSpec, infoSpec],
+    failedItems: [failedSpec],
+    issueItems: [failedSpec, warningSpec, infoSpec],
+    summary: createValidationSummary([failedSpec, passedChange, warningSpec, infoSpec]),
     runAt: '2026-05-08T00:04:00.000Z',
   };
 
@@ -397,6 +463,20 @@ test('validation target summary supports failed, warning, passed, stale, and not
       item: passedChange,
       issueCount: 0,
       issues: [],
+      lastRunAt: '2026-05-08T00:04:00.000Z',
+    },
+  );
+
+  assert.deepEqual(
+    deriveValidationTargetSummary(
+      { result, error: null, latestRunAt: result.runAt },
+      { type: 'spec', name: 'search' },
+    ),
+    {
+      state: 'info',
+      item: infoSpec,
+      issueCount: 1,
+      issues: infoSpec.issues,
       lastRunAt: '2026-05-08T00:04:00.000Z',
     },
   );

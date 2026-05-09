@@ -121,7 +121,7 @@ export function getValidationSeverityVisual(level: string): ValidationSeverityVi
   return validationSeverityVisuals[normalizeValidationSeverity(level)];
 }
 
-export type ValidationStatusKind = 'not-run' | 'running' | 'passed' | 'failed' | 'warning' | 'stale' | 'unknown';
+export type ValidationStatusKind = 'not-run' | 'running' | 'passed' | 'info' | 'failed' | 'warning' | 'stale' | 'unknown';
 
 export interface ValidationStatusVisualMeta {
   icon: IconComponent;
@@ -148,6 +148,12 @@ export const validationStatusVisuals: Record<ValidationStatusKind, ValidationSta
     label: FIXED_LABELS.validation.viewer.labels.passed,
     iconBoxVariant: 'success',
     badgeVariant: 'success',
+  },
+  info: {
+    icon: Info,
+    label: FIXED_LABELS.common.info,
+    iconBoxVariant: 'info',
+    badgeVariant: 'secondary',
   },
   failed: {
     icon: AlertTriangle,
