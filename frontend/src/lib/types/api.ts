@@ -189,12 +189,15 @@ export interface Stats {
   overallTaskProgress: TaskProgress;
 }
 
+export type SearchMatchSource = 'content' | 'name' | 'path';
+
 export interface SearchResult {
   type: 'spec' | 'change' | 'project';
   name: string;
   path: string;
   excerpt: string;
   matchLine: number;
+  matchSource: SearchMatchSource;
 }
 
 export interface CommandAvailability {

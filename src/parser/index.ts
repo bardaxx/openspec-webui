@@ -1,5 +1,13 @@
 import { stat } from 'fs/promises';
-import type { Project, Spec, Change, Stats, SearchResult, ParseResult } from '../shared/types.js';
+import type {
+  Project,
+  Spec,
+  Change,
+  Stats,
+  SearchResult,
+  SearchMatchSource,
+  ParseResult,
+} from '../shared/types.js';
 import { parseProject } from './project.js';
 import { parseSpecs, parseSpec } from './specs.js';
 import { parseChanges, parseChangeByName } from './changes.js';
@@ -12,6 +20,18 @@ export interface OpenSpecData {
     archived: Change[];
   };
   stats: Stats;
+}
+
+interface SearchableDocument {
+  type: SearchResult['type'];
+  name: string;
+  path: string;
+  content: string | null;
+  metadata: Array<{
+    source: Exclude<SearchMatchSource, 'content'>;
+    searchValue: string;
+    previewValue: string;
+  }>;
 }
 
 /**
@@ -101,50 +121,128 @@ function calculateStats(
  */
 export function searchOpenSpec(data: OpenSpecData, query: string): SearchResult[] {
   const results: SearchResult[] = [];
-  const lowerQuery = query.toLowerCase();
+  const normalizedQuery = normalizeSearchText(query);
 
-  // Search project
-  if (data.project.content.toLowerCase().includes(lowerQuery)) {
-    const matchLine = findMatchLine(data.project.content, lowerQuery);
-    results.push({
+  const projectResult = searchDocument(
+    {
       type: 'project',
       name: data.project.name,
       path: data.project.path,
-      excerpt: getExcerpt(data.project.content, lowerQuery),
-      matchLine,
-    });
+      content: data.project.content,
+      metadata: [
+        {
+          source: 'path',
+          searchValue: [data.project.path, 'openspec/config.yaml'].join('\n'),
+          previewValue: 'openspec/config.yaml',
+        },
+      ],
+    },
+    normalizedQuery
+  );
+
+  if (projectResult) {
+    results.push(projectResult);
   }
 
-  // Search specs
   for (const spec of data.specs) {
-    if (spec.specContent.toLowerCase().includes(lowerQuery)) {
-      const matchLine = findMatchLine(spec.specContent, lowerQuery);
-      results.push({
+    const specResult = searchDocument(
+      {
         type: 'spec',
         name: spec.name,
         path: spec.path,
-        excerpt: getExcerpt(spec.specContent, lowerQuery),
-        matchLine,
-      });
+        content: spec.specContent,
+        metadata: [
+          {
+            source: 'path',
+            searchValue: [spec.path, `openspec/specs/${spec.name}/spec.md`].join('\n'),
+            previewValue: `openspec/specs/${spec.name}/spec.md`,
+          },
+        ],
+      },
+      normalizedQuery
+    );
+
+    if (specResult) {
+      results.push(specResult);
     }
   }
 
-  // Search changes
   const allChanges = [...data.changes.active, ...data.changes.archived];
   for (const change of allChanges) {
-    if (change.proposal?.toLowerCase().includes(lowerQuery)) {
-      const matchLine = findMatchLine(change.proposal, lowerQuery);
-      results.push({
+    const relativeProposalPath = change.isArchived
+      ? `openspec/changes/archive/${change.name}/proposal.md`
+      : `openspec/changes/${change.name}/proposal.md`;
+
+    const changeResult = searchDocument(
+      {
         type: 'change',
         name: change.name,
         path: change.path,
-        excerpt: getExcerpt(change.proposal, lowerQuery),
-        matchLine,
-      });
+        content: change.proposal,
+        metadata: [
+          {
+            source: 'path',
+            searchValue: [change.path, relativeProposalPath].join('\n'),
+            previewValue: relativeProposalPath,
+          },
+        ],
+      },
+      normalizedQuery
+    );
+
+    if (changeResult) {
+      results.push(changeResult);
     }
   }
 
   return results;
+}
+
+function searchDocument(document: SearchableDocument, normalizedQuery: string): SearchResult | null {
+  const content = document.content ?? '';
+
+  if (content.length > 0 && normalizeSearchText(content).includes(normalizedQuery)) {
+    return {
+      type: document.type,
+      name: document.name,
+      path: document.path,
+      excerpt: getExcerpt(content, normalizedQuery),
+      matchLine: findMatchLine(content, normalizedQuery),
+      matchSource: 'content',
+    };
+  }
+
+  if (normalizeSearchText(document.name).includes(normalizedQuery)) {
+    return {
+      type: document.type,
+      name: document.name,
+      path: document.path,
+      excerpt: document.name,
+      matchLine: 0,
+      matchSource: 'name',
+    };
+  }
+
+  const metadataMatch = document.metadata.find((candidate) =>
+    normalizeSearchText(candidate.searchValue).includes(normalizedQuery)
+  );
+
+  if (!metadataMatch) {
+    return null;
+  }
+
+  return {
+    type: document.type,
+    name: document.name,
+    path: document.path,
+    excerpt: metadataMatch.previewValue,
+    matchLine: 0,
+    matchSource: metadataMatch.source,
+  };
+}
+
+function normalizeSearchText(value: string): string {
+  return value.toLowerCase().replaceAll('\\', '/');
 }
 
 /**

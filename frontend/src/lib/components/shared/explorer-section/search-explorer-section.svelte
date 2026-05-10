@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Clipboard, FileText, Search, X } from '@lucide/svelte';
+  import { Clipboard, FileText, LoaderCircle, Search, X } from '@lucide/svelte';
   import { tick } from 'svelte';
   import { Badge } from '$lib/components/ui/badge';
   import { Button } from '$lib/components/ui/button';
@@ -83,15 +83,17 @@
     return 'active-change';
   }
 
-  $effect(() => {
-    const focusRequest = searchStore.focusRequest;
-    if (focusRequest === lastFocusRequest) {
-      return;
+  function previewTextForResult(result: SearchResult) {
+    if (result.matchSource === 'name') {
+      return t(m.search_match_name, { value: result.excerpt });
     }
 
-    lastFocusRequest = focusRequest;
-    void tick().then(() => inputRef?.focus());
-  });
+    if (result.matchSource === 'path') {
+      return t(m.search_match_path, { value: result.excerpt });
+    }
+
+    return result.excerpt;
+  }
 </script>
 
 <div class="flex min-h-0 flex-1 flex-col">
@@ -110,8 +112,6 @@
         </Badge>
       {/if}
     </div>
-
-    <p class="mb-3 text-xs leading-relaxed text-muted-foreground">{t(m.search_description)}</p>
 
       <div class="relative">
       <Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -139,13 +139,9 @@
       </div>
 
       <div class="mt-2 text-xs text-muted-foreground">
-        {#if searchStore.query.length < 2}
-          {t(m.search_start_typing)}
-        {:else if searchStore.loading}
+        {#if searchStore.loading}
           {FIXED_LABELS.common.loading}
-        {:else if searchStore.results.length === 0}
-          {t(m.search_no_results, { query: searchStore.query })}
-        {:else}
+        {:else if searchStore.results.length > 0}
         {t(m.search_result_count, { count: searchStore.results.length })}
         {/if}
       </div>
@@ -157,6 +153,7 @@
         {#each searchStore.results as result}
           {@const resultPath = searchStore.pathForResult(result)}
           {@const entityKind = entityKindForResult(result)}
+          {@const previewText = previewTextForResult(result)}
           <ExplorerListItemButton
             items={menuItemsForResult(result)}
             kind={entityKind}
@@ -165,11 +162,35 @@
             // class={entityKind === "archived-change" ? "bg-muted/20" : ""}
             onclick={(event) => handleResultClick(event, result)}
           >
-            <div class="line-clamp-2 text-xs leading-relaxed text-muted-foreground" title={result.excerpt} >
-              {result.excerpt}
+            <div class="line-clamp-2 text-xs leading-relaxed text-muted-foreground" title={previewText}>
+              {previewText}
             </div>
           </ExplorerListItemButton>
         {/each}
+      </div>
+    {:else}
+      <div class="p-3">
+        <div class="rounded-lg border border-dashed border-border bg-secondary/30 p-4 text-center">
+          <div class="mx-auto mb-3 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            {#if searchStore.loading}
+              <LoaderCircle class="h-5 w-5 animate-spin" />
+            {:else}
+              <Search class="h-5 w-5" />
+            {/if}
+          </div>
+
+          {#if searchStore.loading}
+            <div class="text-sm font-medium text-foreground">{FIXED_LABELS.common.loading}</div>
+            <div class="mt-2 text-xs leading-relaxed text-muted-foreground">{t(m.search_description)}</div>
+          {:else if searchStore.query.length < 2}
+            <div class="text-sm font-medium text-foreground">{t(m.search_panel_heading)}</div>
+            <div class="mt-2 text-xs leading-relaxed text-muted-foreground">{t(m.search_description)}</div>
+            <div class="mt-1 text-xs text-muted-foreground">{t(m.search_start_typing)}</div>
+          {:else}
+            <div class="text-sm font-medium text-foreground">{t(m.search_no_results, { query: searchStore.query })}</div>
+            <div class="mt-2 text-xs leading-relaxed text-muted-foreground">{t(m.search_description)}</div>
+          {/if}
+        </div>
       </div>
     {/if}
   </ScrollArea.Root>

@@ -180,35 +180,30 @@ The system SHALL scroll the focused explorer section header to the top of the ex
 - **AND** the new reactive scroll does not produce a double-scroll
 
 ### Requirement: Explorer Pane renders a persistent Search panel
-The system SHALL render Search as a dedicated Explorer Pane panel separate from the Active Changes, Archive, and Specs section group. When Search is active, the Explorer Pane SHALL show only the Search panel above the existing project selector footer. The panel SHALL follow the existing Explorer visual language while using a larger fixed header, localized explanatory description, search input, and persistent result list. The panel SHALL show result counts, loading state, short-query guidance, empty results, and a clear control as appropriate. Search result rows SHALL render as Explorer-style selectable list items using shared entity visual semantics, including distinct active-change and archived-change treatment when change results can be resolved to either state.
+The system SHALL render Search as a dedicated Explorer Pane panel separate from the Active Changes, Archive, and Specs section group. When Search is active, the Explorer Pane SHALL show only the Search panel above the existing project selector footer. The panel SHALL follow the existing Explorer visual language while using a larger fixed header, search input, and persistent result list. Explanatory copy for initial, short-query, and no-results states SHALL render in the list/body area as placeholder content rather than as persistent descriptive prose in the header. The panel SHALL show result counts, loading state, short-query guidance, empty results, and a clear control as appropriate. Search result rows SHALL render as Explorer-style selectable list items using shared entity visual semantics, including distinct active-change and archived-change treatment when change results can be resolved to either state.
 
 #### Scenario: Search panel initial state
 - **WHEN** the Explorer Pane is switched to Search and no search query has been entered
 - **THEN** the Search panel displays a prominent Search header
-- **AND** it displays localized explanatory text describing the search scope
 - **AND** it displays a search input
-- **AND** it displays guidance that at least two characters are required
+- **AND** the list area displays a localized placeholder explaining the search scope and minimum-query guidance
+
+#### Scenario: Search panel no-results placeholder
+- **WHEN** a valid search query returns no matches
+- **THEN** the Search panel displays a no-results placeholder in the list area
+- **AND** the placeholder includes localized explanatory text for the current query state
+- **AND** the sticky header does not repeat that explanation as persistent prose
 
 #### Scenario: Search panel result list
 - **WHEN** a valid search query returns matches
 - **THEN** the Search panel displays the number of matches
-- **AND** it renders each result as a selectable Explorer-style list item with shared type semantics, name, and excerpt
+- **AND** it renders each result as a selectable Explorer-style list item with shared type semantics, name, and preview text
 - **AND** archived change results are visually distinguishable from active change results
-
-#### Scenario: Search result selection preserves panel
-- **WHEN** the operator selects a result in the Search panel
-- **THEN** the corresponding document opens or focuses in the Main Viewer
-- **AND** the Search panel remains visible with the same results so the operator can continue selecting other matches
 
 #### Scenario: Search header remains visible while results scroll
 - **WHEN** the operator scrolls a long Search result list
-- **THEN** the Search header, description, current query, status, and clear control remain visible at the top of the Search panel
+- **THEN** the Search header, current query, status, and clear control remain visible at the top of the Search panel
 - **AND** only the result list scrolls
-
-#### Scenario: Search panel clear control
-- **WHEN** the Search panel has a query or visible results
-- **THEN** the panel provides a clear control
-- **AND** activating the clear control clears the query and visible results without closing the Explorer Pane
 
 ### Requirement: Explorer Pane renders a persistent Validation panel
 The system SHALL render Validation as a dedicated Explorer Pane panel separate from the Active Changes, Archive, and Specs section group. When Validation is active, the Explorer Pane SHALL show only the Validation panel above the existing project selector footer. The panel SHALL follow the existing Explorer visual language while using a compact header, initial list placeholder with prominent Run Validate action, compact post-run reload action, last-run metadata, loading and error states, result-visible compact file-status count filters, validation status, and persistent validation item list. The title row SHALL show the Validation title and a compact action that opens Settings to the Validation section. The title row SHALL NOT show the validation result status badge. Before a result exists, explanatory content and the prominent Run Validate action SHALL live in the list placeholder. After a result exists, the compact reload action SHALL appear in the title-row action cluster beside the Settings action, and file-status count filters SHALL appear in a compact status row below. The panel SHALL keep persistent validation preferences out of the Explorer header, SHALL avoid duplicating summary counts between the header and result list, SHALL place last-run metadata on its own line so the run button loading spinner does not cause horizontal layout shift, and SHALL remain visible after a validation item opens a Main Viewer tab, and SHALL mark the row for the currently active validation document as selected when that item is navigable.

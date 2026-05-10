@@ -12,6 +12,7 @@ function createResult(name: string): SearchResult {
     path: `/specs/${name}`,
     excerpt: `${name} excerpt`,
     matchLine: 1,
+    matchSource: 'content',
   };
 }
 

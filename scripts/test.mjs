@@ -5,6 +5,7 @@ import { ensureLocalBins, spawnInRepo, waitForExit } from './dev-utils.mjs';
 
 const testFiles = [
   'src/parser/changes.test.ts',
+  'src/parser/index.test.ts',
   'src/parser/project.test.ts',
   'src/server/project-registry.test.ts',
   'src/server/server.integration.test.ts',
@@ -27,6 +28,7 @@ const testFiles = [
   'frontend/src/lib/components/layout/activityBarController.test.ts',
   'frontend/src/lib/components/layout/AddProjectDialog.test.ts',
   'frontend/src/lib/components/layout/settingsTab.test.ts',
+  'frontend/src/lib/components/layout/searchPanel.test.ts',
   'frontend/src/lib/components/layout/validationPanel.test.ts',
   'scripts/dev-utils.test.mjs',
 ];
