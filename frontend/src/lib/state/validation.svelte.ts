@@ -9,6 +9,16 @@ import type { ValidationItem } from '$lib/types/api';
 import { createDefaultValidationState, createValidationController, deriveValidationDashboardSummary } from './validationCore';
 import { validationPreferencesStore } from './validationPreferences.svelte.ts';
 
+export function getValidationItemPath(item: ValidationItem) {
+  if ((item.type !== 'spec' && item.type !== 'change') || !item.name) {
+    return null;
+  }
+
+  return item.type === 'spec'
+    ? `/specs/${encodeURIComponent(item.name)}`
+    : `/changes/${encodeURIComponent(item.name)}`;
+}
+
 const reactiveState = $state(createDefaultValidationState());
 
 const controller = createValidationController({
@@ -86,13 +96,11 @@ export const validationStore = {
   openItem(item: ValidationItem, options?: { confirmed?: boolean }) {
     controller.syncProject();
 
-    if ((item.type !== 'spec' && item.type !== 'change') || !item.name) {
+    const path = getValidationItemPath(item);
+
+    if (!path) {
       return false;
     }
-
-    const path = item.type === 'spec'
-      ? `/specs/${encodeURIComponent(item.name)}`
-      : `/changes/${encodeURIComponent(item.name)}`;
 
     if (options?.confirmed) {
       tabStore.openConfirmed(path);

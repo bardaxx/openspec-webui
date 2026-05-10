@@ -73,9 +73,22 @@ test('validation panel wiring keeps navigation in existing tabs and shows non-na
   assert.match(source, /attentionItems\(\)/);
   assert.match(source, /validationStore\.result\?\.items\.filter\(\(item\) => item\.status !== 'passed'\)/);
   assert.match(source, /tabStore\.openSettings\(\{ initialSection: 'validation' \}\)/);
+  assert.match(source, /getValidationItemPath/);
+  assert.match(source, /active=\{itemPath !== null && tabStore\.activeTab\?\.path === itemPath\}/);
   assert.match(storeSource, /tabStore\.openConfirmed/);
   assert.match(storeSource, /tabStore\.openPreview/);
-  assert.match(storeSource, /item\.type !== 'spec' && item\.type !== 'change'/);
+  assert.match(storeSource, /export function getValidationItemPath/);
+  assert.match(storeSource, /const path = getValidationItemPath\(item\);/);
+});
+
+test('shared badge and validation semantics support informational info tone', async () => {
+  const badgeSource = await readFile(new URL('../ui/badge/badge.svelte', import.meta.url), 'utf8');
+  const semanticsSource = await readFile(new URL('../../visualSemantics.ts', import.meta.url), 'utf8');
+
+  assert.match(badgeSource, /type Variant = 'default' \| 'secondary' \| 'outline' \| 'success' \| 'warning' \| 'info' \| 'destructive'/);
+  assert.match(badgeSource, /info: 'border-transparent bg-info-bg text-info'/);
+  assert.match(semanticsSource, /validationSeverityVisuals:[\s\S]*info: \{[\s\S]*badgeVariant: 'info'/);
+  assert.match(semanticsSource, /validationStatusVisuals:[\s\S]*info: \{[\s\S]*badgeVariant: 'info'/);
 });
 
 test('validation panel text is localized through Paraglide messages', async () => {

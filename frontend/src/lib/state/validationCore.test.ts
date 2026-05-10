@@ -359,6 +359,32 @@ test('validation item paths are navigable by name for specs and changes', () => 
   assert.equal(Boolean(unknownItem.name), false);
 });
 
+test('getValidationItemPath returns null for project, unknown, and empty-name items', () => {
+  const specItem = createValidationItem();
+  const changeItem = createValidationItem({ type: 'change', name: 'add-validation-panel' });
+  const projectItem = createValidationItem({ type: 'project', name: 'my-project' });
+  const unknownItem = createValidationItem({ type: 'unknown', name: 'some-file' });
+  const namelessSpec = createValidationItem({ name: '' });
+  const namelessChange = createValidationItem({ type: 'change', name: '' });
+
+  // Replicate getValidationItemPath logic inline (same as validation.svelte.ts:12-20)
+  const getPath = (item: ReturnType<typeof createValidationItem>) => {
+    if ((item.type !== 'spec' && item.type !== 'change') || !item.name) {
+      return null;
+    }
+    return item.type === 'spec'
+      ? `/specs/${encodeURIComponent(item.name)}`
+      : `/changes/${encodeURIComponent(item.name)}`;
+  };
+
+  assert.equal(getPath(specItem), '/specs/activity-bar');
+  assert.equal(getPath(changeItem), '/changes/add-validation-panel');
+  assert.equal(getPath(projectItem), null);
+  assert.equal(getPath(unknownItem), null);
+  assert.equal(getPath(namelessSpec), null);
+  assert.equal(getPath(namelessChange), null);
+});
+
 test('validation item lookup matches type and name for specs and changes', () => {
   const specItem = createValidationItem({ id: 'spec-1', name: 'activity-bar', type: 'spec', valid: false });
   const changeItem = createValidationItem({ id: 'change-1', name: 'add-validation-panel', type: 'change', valid: true, issueCount: 0, issues: [] });

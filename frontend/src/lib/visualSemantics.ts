@@ -15,7 +15,7 @@ import { FIXED_LABELS } from './uiText';
 
 export type IconComponent = Component<{ class?: string }>;
 export type IconBoxVariant = 'info' | 'success' | 'muted' | 'warning' | 'danger';
-export type BadgeVariant = 'default' | 'secondary' | 'outline' | 'success' | 'warning' | 'destructive';
+export type BadgeVariant = 'default' | 'secondary' | 'outline' | 'success' | 'warning' | 'info' | 'destructive';
 
 export type EntityKind = 'spec' | 'active-change' | 'archived-change' | 'project' | 'unknown';
 
@@ -101,7 +101,7 @@ export const validationSeverityVisuals: Record<ValidationSeverityKind, Validatio
     icon: Info,
     label: FIXED_LABELS.common.info,
     iconBoxVariant: 'info',
-    badgeVariant: 'secondary',
+    badgeVariant: 'info',
   },
 };
 
@@ -153,7 +153,7 @@ export const validationStatusVisuals: Record<ValidationStatusKind, ValidationSta
     icon: Info,
     label: FIXED_LABELS.common.info,
     iconBoxVariant: 'info',
-    badgeVariant: 'secondary',
+    badgeVariant: 'info',
   },
   failed: {
     icon: AlertTriangle,

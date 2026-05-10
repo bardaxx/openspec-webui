@@ -8,7 +8,7 @@
   import { projectStore } from '$lib/state/projects.svelte.ts';
   import { searchStore } from '$lib/state/search.svelte.ts';
   import { tabStore } from '$lib/state/tabs.svelte.ts';
-  import { validationStore } from '$lib/state/validation.svelte.ts';
+  import { getValidationItemPath, validationStore } from '$lib/state/validation.svelte.ts';
   import { uiPreferencesStore } from '$lib/state/uiPreferences.svelte.ts';
   import { FIXED_LABELS } from '$lib/uiText';
   import type { MenuItem } from '$lib/components/shared/item-context-menu';
@@ -50,7 +50,7 @@
   });
 
   function isNavigable(item: ValidationItem) {
-    return item.type === 'spec' || item.type === 'change';
+    return getValidationItemPath(item) !== null;
   }
 
   function primaryIssue(item: ValidationItem) {
@@ -304,10 +304,12 @@
         <div>
           {#each filteredAttentionItems() as item}
             {@const issue = primaryIssue(item)}
+            {@const itemPath = getValidationItemPath(item)}
             <ExplorerListItemButton
               items={contextMenuItems(item)}
               kind={entityKindForItem(item.type)}
               name={item.name}
+              active={itemPath !== null && tabStore.activeTab?.path === itemPath}
               interactive={isNavigable(item)}
               onclick={(event) => handleSelect(item, event)}
             >
