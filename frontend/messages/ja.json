@@ -7,6 +7,7 @@
   "common_no_text_selected": "テキストが選択されていません",
   "common_quote_copy": "引用コピー",
   "common_retry": "再試行",
+  "common_search": "検索",
   "search_description": "2文字以上入力して、名前・パス・Spec・Change・プロジェクト文書を検索します。",
   "search_match_name": "名前一致: {value}",
   "search_match_path": "パス一致: {value}",

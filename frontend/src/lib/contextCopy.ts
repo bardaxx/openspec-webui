@@ -47,3 +47,25 @@ export function getChangeViewerContextLabel(options: {
 export function getSpecViewerContextLabel(): string {
   return FIXED_LABELS.viewer.specification;
 }
+
+/**
+ * Validate and normalize a text selection for use as a search keyword.
+ *
+ * Rules:
+ * - Trim outer whitespace.
+ * - Must be 2–80 characters long after trimming.
+ * - Must not contain \n, \r, or \t (single-line only).
+ */
+export function validateSearchKeyword(raw: string | null | undefined): { valid: boolean; keyword: string } {
+  const keyword = (raw ?? '').trim();
+
+  if (keyword.length < 2 || keyword.length > 80) {
+    return { valid: false, keyword };
+  }
+
+  if (keyword.includes('\n') || keyword.includes('\r') || keyword.includes('\t')) {
+    return { valid: false, keyword };
+  }
+
+  return { valid: true, keyword };
+}

@@ -7,6 +7,7 @@
   "common_no_text_selected": "Nenhum texto selecionado",
   "common_quote_copy": "Copiar como citação",
   "common_retry": "Tentar novamente",
+  "common_search": "Pesquisar",
   "search_description": "Digite pelo menos 2 caracteres para pesquisar nomes, caminhos, specs, changes e documentos do projeto.",
   "search_match_name": "Correspondência no nome: {value}",
   "search_match_path": "Correspondência no caminho: {value}",

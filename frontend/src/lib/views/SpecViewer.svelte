@@ -16,6 +16,7 @@
     buildCopySelectionResult,
     buildQuotedCopySelectionResult,
     getSpecViewerContextLabel,
+    validateSearchKeyword,
   } from '$lib/contextCopy';
   import { specsRefreshTrigger } from '$lib/state/appData.svelte.ts';
   import type { SearchNavigationState } from '$lib/state/search.svelte.ts';
@@ -39,6 +40,7 @@
   let previousSpecName: string | null = null;
   let previousRefreshTrigger = -1;
   let hasSelection = $state(false);
+  let snapshotSelection = $state('');
   let contentRef = $state<HTMLDivElement | null>(null);
   let tabId = $derived(`spec:${specName}`);
   let highlightQuery = $derived(
@@ -86,7 +88,17 @@
 
   function handleMenuOpenChange(open: boolean) {
     if (open) {
-      hasSelection = (window.getSelection()?.toString().length ?? 0) > 0;
+      snapshotSelection = window.getSelection()?.toString() ?? '';
+      hasSelection = snapshotSelection.length > 0;
+    }
+  }
+
+  let canSearch = $derived(validateSearchKeyword(snapshotSelection).valid);
+
+  function handleSearchFromSelection() {
+    const { valid, keyword } = validateSearchKeyword(snapshotSelection);
+    if (valid) {
+      searchStore.open(keyword);
     }
   }
 
@@ -210,6 +222,10 @@
         <ContextMenu.Item disabled={!hasSelection} onSelect={handleQuoteCopy}>
           <Quote class="h-4 w-4" />
           {t(m.common_quote_copy)}
+        </ContextMenu.Item>
+        <ContextMenu.Item disabled={!canSearch} onSelect={handleSearchFromSelection}>
+          <Search class="h-4 w-4" />
+          {t(m.common_search)}
         </ContextMenu.Item>
       </ContextMenu.Content>
     </ContextMenu.Root>

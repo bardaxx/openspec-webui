@@ -18,6 +18,7 @@
     buildCopySelectionResult,
     buildQuotedCopySelectionResult,
     getChangeViewerContextLabel,
+    validateSearchKeyword,
   } from '$lib/contextCopy';
   import { changesRefreshTrigger } from '$lib/state/appData.svelte.ts';
   import { commandPreferencesStore } from '$lib/state/commandPreferences.svelte.ts';
@@ -166,6 +167,7 @@
   let previousChangeName: string | null = null;
   let previousRefreshTrigger = -1;
   let hasSelection = $state(false);
+  let snapshotSelection = $state('');
 
   async function copyToClipboard(text: string, label: string) {
     try {
@@ -202,7 +204,17 @@
 
   function handleMenuOpenChange(open: boolean) {
     if (open) {
-      hasSelection = (window.getSelection()?.toString().length ?? 0) > 0;
+      snapshotSelection = window.getSelection()?.toString() ?? '';
+      hasSelection = snapshotSelection.length > 0;
+    }
+  }
+
+  let canSearch = $derived(validateSearchKeyword(snapshotSelection).valid);
+
+  function handleSearchFromSelection() {
+    const { valid, keyword } = validateSearchKeyword(snapshotSelection);
+    if (valid) {
+      searchStore.open(keyword);
     }
   }
 
@@ -494,10 +506,15 @@
                       onSelect={() =>
                         handleQuoteCopy(
                           getChangeViewerContextLabel({ deltaCapability: delta.capability }),
-                        )}
+                        )
+                      }
                     >
                       <Quote class="h-4 w-4" />
                       {t(m.common_quote_copy)}
+                    </ContextMenu.Item>
+                    <ContextMenu.Item disabled={!canSearch} onSelect={handleSearchFromSelection}>
+                      <Search class="h-4 w-4" />
+                      {t(m.common_search)}
                     </ContextMenu.Item>
                   </ContextMenu.Content>
                 </ContextMenu.Root>
@@ -525,6 +542,10 @@
               >
                 <Quote class="h-4 w-4" />
                 {t(m.common_quote_copy)}
+              </ContextMenu.Item>
+              <ContextMenu.Item disabled={!canSearch} onSelect={handleSearchFromSelection}>
+                <Search class="h-4 w-4" />
+                {t(m.common_search)}
               </ContextMenu.Item>
             </ContextMenu.Content>
           </ContextMenu.Root>

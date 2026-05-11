@@ -7,6 +7,7 @@
   "common_no_text_selected": "No text selected",
   "common_quote_copy": "Quote Copy",
   "common_retry": "Retry",
+  "common_search": "Search",
   "search_description": "Type at least 2 characters to search names, paths, specs, changes, and project docs.",
   "search_match_name": "Name match: {value}",
   "search_match_path": "Path match: {value}",

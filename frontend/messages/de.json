@@ -7,6 +7,7 @@
   "common_no_text_selected": "Kein Text ausgewählt",
   "common_quote_copy": "Zitat kopieren",
   "common_retry": "Erneut versuchen",
+  "common_search": "Suchen",
   "search_description": "Gib mindestens 2 Zeichen ein, um Namen, Pfade, Specs, Änderungen und Projektdokumente zu durchsuchen.",
   "search_match_name": "Namens-Treffer: {value}",
   "search_match_path": "Pfad-Treffer: {value}",
