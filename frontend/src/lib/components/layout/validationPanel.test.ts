@@ -195,7 +195,7 @@ test('shared viewer validation status renders labels, last-run metadata, details
   assert.match(source, /aria-label=\{statusAriaLabel\}/);
   assert.match(source, /aria-label=\{hasDetails \? detailsAriaLabel : statusAriaLabel\}/);
   assert.match(source, /<Collapsible\.Trigger/);
-  assert.match(source, /disabled=\{!hasDetails\}/);
+  assert.match(source, /\{#if hasDetails\}\s*\n\s*<span class="flex size-8 shrink-0/);
   assert.match(source, /summary\.issues as issue/);
 });
 
@@ -317,9 +317,9 @@ test('ValidationViewerStatus re-run button is disabled while validation is loadi
 
   // The re-run button must have disabled={validationStore.loading}
   assert.match(source, /disabled=\{validationStore\.loading\}/);
-  // When loading, a spinning icon is shown instead of the RotateCcw icon
+  // When loading, a spinning icon is shown instead of the RefreshCw icon
   assert.match(source, /\{#if validationStore\.loading\}\s*\n\s*<LoaderCircle class="h-3\.5 w-3\.5 animate-spin" \/>/);
-  assert.match(source, /\{:else\}\s*\n\s*<RotateCcw class="h-3\.5 w-3\.5" \/>/);
+  assert.match(source, /\{:else\}\s*\n\s*<RefreshCw class="h-3\.5 w-3\.5" \/>/);
   // The re-run button should call validationStore.refresh() on click
   assert.match(source, /onclick=\{\(\) => validationStore\.refresh\(\)\}/);
   // The aria-label should reflect loading state
