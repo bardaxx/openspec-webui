@@ -38,6 +38,7 @@ npm-debug.log*
 # OpenSpec: exclude active (unarchived) changes, keep archive/
 openspec/changes/*
 !openspec/changes/archive/
+openspec/.temp_assets/
 *.tgz
 openspec/.cache
 .editorconfig

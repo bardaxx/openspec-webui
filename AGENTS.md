@@ -42,4 +42,36 @@ This project is indexed by GitNexus as **openspec-webui** (8354 symbols, 11566 r
 
 <!-- gitnexus:end -->
 
+## OpenSpec Roadmap (PRD -> multiple changes)
+
+Use this layer when a PRD or epic would otherwise become one oversized OpenSpec change.
+
+| Step | What | Where |
+|------|------|--------|
+| 1 | PRD or issue | Issue tracker / `PRD.md` file |
+| 2 | Decompose into prioritized slices | `openspec/roadmap.md` |
+| 3 | Per slice with status `Ready` | `openspec-propose` -> `openspec/changes/<Candidate OpenSpec change id>/` (exact id from roadmap) |
+| 4 | Implement | `openspec-apply-change` (slice -> `Applying` -> `Applied`) |
+| 5 | Complete | `openspec-archive-change` (slice -> `Archived`) |
+
+**Rules**
+
+- `openspec/roadmap.md` is the planning file only — do not copy `proposal.md` / `design.md` / `tasks.md` into it.
+- Implementable slices are **1:1** with OpenSpec changes (`Candidate OpenSpec change id`).
+- On propose, pass the slice's `Candidate OpenSpec change id` verbatim to `openspec-propose` — format `<slice-id-lower>-<slice-title-kebab>`.
+- Slice lifecycle: `Ready` -> `Spec Proposed` -> `Applying` -> `Applied` -> `Archived` (`Blocked` when decisions are pending).
+- Keep `next` atomic (one gate per command) and enforce `Applying` WIP limits from roadmap policy.
+- Run OpenSpec spec verification after each lifecycle gate and fix issues before the next gate.
+- Pick the next slice by priority and recommended execution order in the roadmap.
+- Update the roadmap after every propose, apply, and archive step.
+- Keep roadmap entries concise and operational.
+- Enforce context/token limits via `openspec/config.yaml` (`openspec_roadmap`).
+
+**Skill**
+
+| Task | Skill file |
+|------|------------|
+| Bootstrap roadmap, add slices, update lifecycle | `.agents/skills/openspec-roadmap/SKILL.md` |
+| Roadmap template and checklists | `.agents/skills/openspec-roadmap/REFERENCE.md` |
+
 @RTK.md
