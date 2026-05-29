@@ -239,6 +239,10 @@ export const FIXED_LABELS = {
     roadmap: {
       empty: 'No roadmap file is available for this project.',
       recommendedOrder: 'Recommended Order',
+      recommendedNext: 'Recommended Next',
+      pipeline: 'Pipeline',
+      pipelineEmpty: 'No active pipeline slices.',
+      timelineArchived: 'Archived',
       dependencies: 'Dependencies',
       progressLog: 'Progress Log',
       files: 'Files',

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Archive, FileText, FlaskConical, LayoutDashboard, PanelLeftClose, PanelLeftOpen, Search, Settings } from '@lucide/svelte';
+  import { Archive, FileText, FlaskConical, LayoutDashboard, Map, PanelLeftClose, PanelLeftOpen, Search, Settings } from '@lucide/svelte';
   import * as Tooltip from '$lib/components/ui/tooltip';
   import { decodeName } from '$lib/utils';
   import { archivedChanges, project } from '$lib/state/appData.svelte.ts';
@@ -19,6 +19,10 @@
   } from './activityBarController';
 
   function sectionFromPath(path: string): ActivityPreset {
+    if (path === '/roadmap') {
+      return 'roadmap';
+    }
+
     if (path === '/specs' || path.startsWith('/specs/')) {
       return 'specs';
     }
@@ -83,6 +87,38 @@
     if (preset === 'home') {
       tabStore.focus('/');
     }
+
+    if (preset === 'roadmap') {
+      tabStore.open('/roadmap');
+    }
+  }
+
+  function openRoadmap() {
+    if (!projectStore.activeProjectId || !project.value?.roadmap) {
+      return;
+    }
+
+    layoutStore.closeOverlay();
+
+    if (shouldToggleCurrentPreset({
+      preset: 'roadmap',
+      activeSection,
+      hasActiveProject: Boolean(projectStore.activeProjectId),
+      responsiveMode: layoutStore.responsiveMode,
+      explorerCollapsed: layoutStore.explorerCollapsed,
+      narrowDrawerOpen: layoutStore.narrowDrawerOpen,
+    })) {
+      if (layoutStore.responsiveMode === 'narrow') {
+        layoutStore.toggleNarrowDrawer();
+      } else {
+        layoutStore.toggleExplorerCollapsed();
+      }
+
+      return;
+    }
+
+    layoutStore.setActivityPreset('roadmap');
+    tabStore.open('/roadmap');
   }
 
   function openSearch() {
@@ -216,6 +252,19 @@
       </Tooltip.Trigger>
       <Tooltip.Content side="right">{FIXED_LABELS.common.specs}</Tooltip.Content>
     </Tooltip.Root>
+
+    {#if project.value?.roadmap}
+      <Tooltip.Root>
+        <Tooltip.Trigger
+          class={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${buttonClass('roadmap')}`}
+          aria-label={FIXED_LABELS.common.roadmap}
+          onclick={openRoadmap}
+        >
+          <Map class="h-5 w-5" />
+        </Tooltip.Trigger>
+        <Tooltip.Content side="right">{FIXED_LABELS.common.roadmap}</Tooltip.Content>
+      </Tooltip.Root>
+    {/if}
 
     <div class="px-2">
       <hr class="border-foreground/30" />

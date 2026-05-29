@@ -133,6 +133,18 @@ test('activity bar no longer wires the bottom control to the project selector ov
   assert.match(source, /FIXED_LABELS\.appName/);
 });
 
+test('ActivityBar includes a roadmap control when the project has a roadmap', async () => {
+  const source = await readFile(new URL('./ActivityBar.svelte', import.meta.url), 'utf8');
+
+  assert.match(source, /Map class="h-5 w-5"/);
+  assert.match(source, /onclick=\{openRoadmap\}/);
+  assert.match(source, /FIXED_LABELS\.common\.roadmap/);
+  assert.match(source, /project\.value\?\.roadmap/);
+  assert.match(source, /layoutStore\.setActivityPreset\('roadmap'\)/);
+  assert.match(source, /tabStore\.open\('\/roadmap'\)/);
+  assert.match(source, /path === '\/roadmap'/);
+});
+
 test('ActivityBar shows a search highlight-state dot only while highlight mode is enabled for a valid query', async () => {
   const source = await readFile(new URL('./ActivityBar.svelte', import.meta.url), 'utf8');
 

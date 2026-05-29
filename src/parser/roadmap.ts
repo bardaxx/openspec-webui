@@ -31,8 +31,14 @@ function trimCodeTicks(value: string): string {
 
 function extractSection(content: string, heading: string): string {
   const escapedHeading = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = content.match(new RegExp(`^## ${escapedHeading}\\n([\\s\\S]*?)(?=^## |\\Z)`, 'm'));
-  return match?.[1]?.trim() ?? '';
+  const match = content.match(new RegExp(`^## ${escapedHeading}\\n([\\s\\S]*)`, 'm'));
+  if (!match) {
+    return '';
+  }
+
+  const body = match[1] ?? '';
+  const nextHeading = body.search(/^## /m);
+  return (nextHeading >= 0 ? body.slice(0, nextHeading) : body).trim();
 }
 
 function extractListItems(section: string): string[] {
@@ -52,9 +58,15 @@ function extractValue(block: string, label: string): string {
 }
 
 function extractBulletValues(block: string, label: string): string[] {
-  const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = block.match(new RegExp(`^${escapedLabel}:\\n([\\s\\S]*?)(?=^[A-Z][^\\n]*:|^### |\\Z)`, 'm'));
-  const section = match?.[1] ?? '';
+  const labelPrefix = `${label}:\n`;
+  const labelIndex = block.indexOf(labelPrefix);
+  if (labelIndex < 0) {
+    return [];
+  }
+
+  const tail = block.slice(labelIndex + labelPrefix.length);
+  const boundary = tail.search(/\n(?:[A-Z][^\n]+:|### )/);
+  const section = (boundary >= 0 ? tail.slice(0, boundary) : tail).trimEnd();
   return section
     .split('\n')
     .map((line) => line.match(/^-\s+(.+)$/)?.[1]?.trim() ?? '')
@@ -63,8 +75,14 @@ function extractBulletValues(block: string, label: string): string[] {
 }
 
 function extractProgress(block: string): RoadmapProgressEntry[] {
-  const progressMatch = block.match(/^Progress:\n([\s\S]*?)(?=^[A-Z][^\n]*:|^### |\Z)/m);
-  const section = progressMatch?.[1] ?? '';
+  const progressStart = block.indexOf('Progress:\n');
+  if (progressStart < 0) {
+    return [];
+  }
+
+  const tail = block.slice(progressStart + 'Progress:\n'.length);
+  const boundary = tail.search(/\n(?:### |[A-Z][^\n]+:)/);
+  const section = (boundary >= 0 ? tail.slice(0, boundary) : tail).trimEnd();
 
   return section
     .split('\n')
@@ -129,6 +147,13 @@ function parseDependencyBlock(block: string): RoadmapDependency | null {
   };
 }
 
+function extractSubsections(section: string): string[] {
+  return section
+    .split(/(?=^### )/m)
+    .map((block) => block.trim())
+    .filter((block) => block.startsWith('### '));
+}
+
 function attachDependencies(
   slices: RoadmapSlice[],
   dependencies: RoadmapDependency[],
@@ -152,8 +177,8 @@ export async function parseRoadmap(openspecPath: string): Promise<ParseResult<Ro
     const compactedHistorySection = extractSection(rawContent, 'Compacted history');
     const postImplementationSection = extractSection(rawContent, 'Post-implementation reality check');
 
-    const sliceBlocks = slicesSection.match(/^### [\s\S]*?(?=^### |\Z)/gm) ?? [];
-    const dependencyBlocks = dependenciesSection.match(/^### [\s\S]*?(?=^### |\Z)/gm) ?? [];
+    const sliceBlocks = extractSubsections(slicesSection);
+    const dependencyBlocks = extractSubsections(dependenciesSection);
 
     const slices = sliceBlocks
       .map(parseSliceBlock)

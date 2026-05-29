@@ -91,6 +91,60 @@ Can run in parallel: no
   });
 });
 
+test('parseRoadmap parses multiple slice and dependency blocks', async () => {
+  const openspecPath = await createRoadmapFixture(`# Roadmap
+
+PRD: multi-slice roadmap
+
+## Slices
+
+### F01 - First Slice
+Status: \`Applied\`
+Goal: First goal.
+Candidate OpenSpec change id: \`f01-first\`
+Spec link: \`openspec/changes/f01-first/\`
+Files:
+- \`src/a.ts\`
+Progress:
+- Applied: 2026-05-29
+
+### F02 - Second Slice
+Status: \`Ready\`
+Goal: Second goal.
+Candidate OpenSpec change id: \`f02-second\`
+Spec link: \`openspec/changes/f02-second/\`
+Files:
+- \`src/b.ts\`
+Progress:
+- Proposed: pending
+
+## Dependencies
+
+### F01
+Depends on: none
+Blocks: F02
+Can run in parallel: no
+
+### F02
+Depends on: F01
+Blocks: none
+Can run in parallel: no
+`);
+
+  const result = await parseRoadmap(openspecPath);
+
+  assert.equal(result.errors.length, 0);
+  assert.equal(result.data?.slices.length, 2);
+  assert.deepEqual(
+    result.data?.slices.map((slice) => slice.id),
+    ['F01', 'F02'],
+  );
+  assert.deepEqual(
+    result.data?.dependencies.map((dependency) => dependency.sliceId),
+    ['F01', 'F02'],
+  );
+});
+
 test('parseRoadmap returns null when roadmap.md is absent', async () => {
   const root = await mkdtemp(join(tmpdir(), 'openspec-webui-roadmap-missing-'));
   tempDirs.push(root);

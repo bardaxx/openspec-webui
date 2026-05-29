@@ -8,9 +8,15 @@ test('RoadmapViewer renders roadmap summary, slice panels, and search-driven sli
   assert.match(source, /project\.value\?\.roadmap/);
   assert.match(source, /matchLocation\?\.roadmapSliceId/);
   assert.match(source, /scrollIntoView\(\{ behavior: 'auto', block: 'center' \}\)/);
-  assert.match(source, /FIXED_LABELS\.dashboard\.roadmapSummary/);
-  assert.match(source, /FIXED_LABELS\.viewer\.roadmap\.recommendedOrder/);
+  assert.match(source, /FIXED_LABELS\.viewer\.roadmap\.pipeline/);
+  assert.match(source, /roadmapOverviewItems/);
+  assert.match(source, /InteractiveCard/);
+  assert.match(source, /focusSlice/);
   assert.match(source, /FIXED_LABELS\.viewer\.roadmap\.dependencies/);
   assert.match(source, /FIXED_LABELS\.viewer\.roadmap\.progressLog/);
   assert.match(source, /id=\{`roadmap-slice-\$\{slice\.id\}`\}/);
+  assert.match(source, /min-w-0/);
+  assert.match(source, /truncate/);
+  assert.match(source, /break-words/);
+  assert.match(source, /progressVariant/);
 });

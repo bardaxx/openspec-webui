@@ -28,13 +28,28 @@ test('ExplorerPane renders ValidationExplorerSection when validate preset is act
   assert.match(source, /layoutStore\.activityPreset === 'validate'/);
 });
 
+test('ExplorerPane renders RoadmapExplorerSection when roadmap preset is active', async () => {
+  const source = await readFile(new URL('./ExplorerPane.svelte', import.meta.url), 'utf8');
+  const roadmapSource = await readFile(new URL('../shared/explorer-section/roadmap-explorer-section.svelte', import.meta.url), 'utf8');
+
+  assert.match(source, /RoadmapExplorerSection/);
+  assert.match(source, /layoutStore\.activityPreset === 'roadmap'/);
+  assert.match(roadmapSource, /FIXED_LABELS\.viewer\.roadmap\.recommendedNext/);
+  assert.match(roadmapSource, /FIXED_LABELS\.viewer\.roadmap\.pipeline/);
+  assert.match(roadmapSource, /FIXED_LABELS\.viewer\.roadmap\.timelineArchived/);
+  assert.match(roadmapSource, /timeline\.recommendedNext/);
+  assert.match(roadmapSource, /timeline\.pipeline/);
+  assert.match(roadmapSource, /timeline\.archived/);
+  assert.match(roadmapSource, /ExplorerSection/);
+  assert.match(roadmapSource, /onToggle=\{\(\) =>/);
+});
+
 test('ExplorerPane default sections use a flush list wrapper without card-stack padding', async () => {
   const source = await readFile(new URL('./ExplorerPane.svelte', import.meta.url), 'utf8');
 
   assert.match(source, /<div class="divide-y divide-border\/70">/);
   assert.doesNotMatch(source, /space-y-4 p-3/);
-  assert.match(source, /project\.value\?\.roadmap/);
-  assert.match(source, /tabStore\.open\('\/roadmap'\)/);
+  assert.doesNotMatch(source, /tabStore\.open\('\/roadmap'\)/);
   assert.match(source, /<ActiveChangesExplorerSection/);
   assert.match(source, /<ArchiveExplorerSection/);
   assert.match(source, /<SpecsExplorerSection/);

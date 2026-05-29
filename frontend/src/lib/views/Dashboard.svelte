@@ -30,7 +30,7 @@
   import CommandShortcutBar from '$lib/components/shared/CommandShortcutBar.svelte';
   import { formatChangeName, formatDate } from '$lib/utils';
   import { FIXED_LABELS, getChangeTaskCountLabel, getOtherFileCountLabel, getSpecDeltaCountLabel, getWorkflowSchemaFallbackLabel } from '$lib/uiText';
-  import { getTaskProgressIconVariant } from '$lib/visualSemantics';
+  import { getTaskProgressIconVariant, type BadgeVariant } from '$lib/visualSemantics';
   import { deriveValidationListIconState, deriveValidationTargetSummary } from '$lib/state/validationCore';
 
   type TimestampedChange = {
@@ -62,6 +62,17 @@
     timestamp: number;
     specDeltaCount?: number;
     taskProgress?: { done: number; total: number };
+    open: () => void;
+  };
+
+  type RoadmapActivityItem = {
+    id: string;
+    title: string;
+    status: string;
+    goal: string;
+    executionOrder: number | null;
+    latestProgressLabel: string | null;
+    fileCount: number;
     open: () => void;
   };
 
@@ -268,12 +279,89 @@
     return Array.from(counts.entries()).sort((left, right) => left[0].localeCompare(right[0]));
   });
 
+  function sliceIdFromRecommendedEntry(entry: string): string | null {
+    const match = entry.match(/^([A-Za-z]+\d+)/i);
+    return match?.[1]?.toUpperCase() ?? null;
+  }
+
+  function roadmapStatusVariant(status: string): BadgeVariant {
+    switch (status) {
+      case 'Applied':
+      case 'Archived':
+        return 'success';
+      case 'Applying':
+      case 'Spec Proposed':
+        return 'info';
+      case 'Blocked':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  }
+
+  let roadmapActivityItems = $derived.by((): RoadmapActivityItem[] => {
+    if (!roadmap) {
+      return [];
+    }
+
+    const orderMap = new Map<string, number>();
+
+    for (const [index, entry] of roadmap.recommendedExecutionOrder.entries()) {
+      const sliceId = sliceIdFromRecommendedEntry(entry);
+      if (sliceId) {
+        orderMap.set(sliceId, index + 1);
+      }
+    }
+
+    return [...roadmap.slices]
+      .filter((slice) => slice.status !== 'Archived')
+      .map((slice) => ({
+        id: slice.id,
+        title: slice.title,
+        status: slice.status,
+        goal: slice.goal,
+        executionOrder: orderMap.get(slice.id.toUpperCase()) ?? null,
+        latestProgressLabel: slice.progress.at(-1)?.label ?? null,
+        fileCount: slice.files.length,
+        open: () => openRoadmapSlice(slice.id),
+      }))
+      .sort((left, right) => {
+        if (left.executionOrder != null && right.executionOrder != null) {
+          return left.executionOrder - right.executionOrder;
+        }
+
+        if (left.executionOrder != null) {
+          return -1;
+        }
+
+        if (right.executionOrder != null) {
+          return 1;
+        }
+
+        return left.id.localeCompare(right.id);
+      });
+  });
+
   function getProjectSelectorAriaLabel() {
     return FIXED_LABELS.dashboard.openProjectSelector;
   }
 
   function openRoadmap() {
-    layoutStore.focusSection('roadmap');
+    layoutStore.setActivityPreset('roadmap');
+    tabStore.open('/roadmap');
+  }
+
+  function openRoadmapSlice(sliceId: string) {
+    layoutStore.setActivityPreset('roadmap');
+
+    const currentViewerState = tabStore.getViewerState<Record<string, unknown>>('roadmap:home') ?? {};
+    tabStore.setViewerState('roadmap:home', {
+      ...currentViewerState,
+      searchNavigation: {
+        requestKey: Date.now(),
+        matchLocation: { roadmapSliceId: sliceId },
+      },
+    });
     tabStore.open('/roadmap');
   }
 
@@ -575,54 +663,96 @@
 
   {#if roadmap}
     <SurfaceCard shadow="sm">
-      <SectionHeader>
-        <div class="flex flex-wrap items-start justify-between gap-3">
-          <div class="space-y-2">
+      <SectionHeader compact={true}>
+        <div class="space-y-2">
+          <div class="flex flex-wrap items-start justify-between gap-3">
             <h2 class="flex items-center gap-2 text-lg font-semibold text-foreground">
-              <MapIcon class="h-5 w-5 text-muted-foreground" />
+              <MapIcon class="h-5 w-5 text-info" />
               {FIXED_LABELS.dashboard.roadmapSummary}
             </h2>
-            <p class="text-sm text-muted-foreground">Track slice status, dependencies, and progress from the shared roadmap register.</p>
+            <Button variant="ghost" size="sm" onclick={openRoadmap}>
+              <MapIcon class="h-4 w-4" />
+              {FIXED_LABELS.common.roadmap}
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" onclick={openRoadmap}>
-            <MapIcon class="h-4 w-4" />
-            {FIXED_LABELS.common.roadmap}
-          </Button>
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <p class="text-sm text-muted-foreground">
+              {#if roadmap.prd}
+                {roadmap.prd}
+              {:else}
+                Track slice status, dependencies, and progress from the shared roadmap register.
+              {/if}
+            </p>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <Badge variant="outline">{roadmap.slices.length} slices</Badge>
+              {#each roadmapStatusCounts as [status, count]}
+                <Badge variant={roadmapStatusVariant(status)}>{status}: {count}</Badge>
+              {/each}
+            </div>
+          </div>
         </div>
       </SectionHeader>
 
-      <div class="grid gap-3 p-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)]">
-        <InsetPanel class="space-y-3">
-          <div class="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">{roadmap.slices.length} slices</Badge>
-            {#if roadmap.prd}
-              <span class="text-sm text-muted-foreground">{roadmap.prd}</span>
-            {/if}
+      {#if roadmapActivityItems.length > 0}
+        <div class="border-t border-border/70 px-4 pt-3">
+          <div class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            {FIXED_LABELS.viewer.roadmap.pipeline}
           </div>
-
-          {#if roadmap.recommendedExecutionOrder.length > 0}
-            <div class="space-y-2">
-              <div class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{FIXED_LABELS.viewer.roadmap.recommendedOrder}</div>
-              <ol class="space-y-1 text-sm text-foreground">
-                {#each roadmap.recommendedExecutionOrder as entry}
-                  <li>{entry}</li>
-                {/each}
-              </ol>
-            </div>
-          {/if}
-        </InsetPanel>
-
-        <InsetPanel class="space-y-2">
-          <div class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{FIXED_LABELS.viewer.roadmap.statusModel}</div>
-          <div class="text-sm text-foreground">{roadmap.statusModel}</div>
-
-          <div class="flex flex-wrap gap-2 pt-2">
-            {#each roadmapStatusCounts as [status, count]}
-              <Badge variant="secondary">{status}: {count}</Badge>
-            {/each}
-          </div>
-        </InsetPanel>
-      </div>
+        </div>
+        <div class="grid gap-2 p-4 sm:grid-cols-2 xl:grid-cols-3">
+          {#each roadmapActivityItems as item}
+            <InteractiveCard tone="inset" radius="sm" class="overflow-hidden p-0 shadow-none">
+              <button
+                type="button"
+                class="group flex w-full items-start gap-3 px-4 py-3 text-left"
+                onclick={item.open}
+              >
+                <div
+                  class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-info-bg text-info"
+                  aria-hidden="true"
+                >
+                  {#if item.executionOrder != null}
+                    <span class="text-sm font-semibold">#{item.executionOrder}</span>
+                  {:else}
+                    <span class="px-0.5 text-[10px] font-mono font-semibold">{item.id}</span>
+                  {/if}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex min-w-0 items-start gap-2">
+                    <div class="min-w-0 flex-1 truncate font-medium text-foreground" title={item.title}>
+                      {item.title}
+                    </div>
+                    <Badge variant={roadmapStatusVariant(item.status)} class="shrink-0">{item.status}</Badge>
+                  </div>
+                  {#if item.goal}
+                    <p class="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{item.goal}</p>
+                  {/if}
+                  <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <Badge variant="outline" class="font-mono text-[10px]">{item.id}</Badge>
+                    {#if item.fileCount > 0}
+                      <span class="inline-flex items-center gap-1">
+                        <FileText class="h-3 w-3 shrink-0" />
+                        {item.fileCount}
+                      </span>
+                    {/if}
+                    {#if item.latestProgressLabel}
+                      <span class="truncate" title={item.latestProgressLabel}>{item.latestProgressLabel}</span>
+                    {/if}
+                  </div>
+                </div>
+              </button>
+            </InteractiveCard>
+          {/each}
+        </div>
+      {:else if roadmap.slices.length > 0}
+        <div class="border-t border-border/70 p-4 text-sm text-muted-foreground">
+          {FIXED_LABELS.viewer.roadmap.pipelineEmpty}
+        </div>
+      {:else}
+        <div class="p-4">
+          <EmptyState message={FIXED_LABELS.viewer.roadmap.noSlices} icon={MapIcon} />
+        </div>
+      {/if}
     </SurfaceCard>
   {/if}
 
