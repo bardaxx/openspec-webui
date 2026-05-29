@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Define how the Dashboard summarizes validation state and links operators into the Validation panel.
+
+## Requirements
 
 ### Requirement: Dashboard displays validation summary card
 The system SHALL display a Validation summary card in the Dashboard's top summary card area. The card SHALL show the latest validation health for the active project using the validation state introduced by the Validation panel capability. The card SHALL support at least not-run/unknown, running, passed, and failed states without implying that a project has passed validation before a validation result exists.

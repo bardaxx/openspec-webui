@@ -1,4 +1,7 @@
-## MODIFIED Requirements
+## Purpose
+Define how operators add, select, and initialize projects from the main UI, including onboarding when no project is available.
+
+## Requirements
 
 ### Requirement: Add-project dialog
 The web UI SHALL render a dedicated AddProjectDialog component when `layoutStore.overlay` is set to `'add-project'`. The dialog SHALL prioritize directory browsing, SHALL show which subdirectories contain an `openspec/` folder, SHALL provide a manual path fallback, and SHALL show a concise initialization hint that points to OpenSpec installation and `openspec init` setup documentation. Selecting the current directory or submitting a manual path SHALL add and activate that project. After the API add or reactivate step completes, the client SHALL complete a WebSocket `project:bind` flow for the returned project before treating that project as ready. The manual path fallback SHALL accept any non-empty string without absolute-path validation; the server validates the path.
