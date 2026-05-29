@@ -34,7 +34,7 @@ Keep entries concise. Do not duplicate proposal/design/tasks content.
 ## Slices
 
 ### F01 - Roadmap Register In WebUI
-Status: `Spec Proposed`
+Status: `Applied`
 Goal: Add roadmap support to openspec-webui with structured parsing, explorer/dashboard exposure, dedicated viewer, and search integration.
 Candidate OpenSpec change id: `f01-roadmap-register-in-webui`
 Spec link: `openspec/changes/f01-roadmap-register-in-webui/`
@@ -48,9 +48,9 @@ Notes: Read-only lifecycle in UI; agent skills remain responsible for propose/ap
 Progress:
 - Proposed: 2026-05-29 (`openspec/changes/f01-roadmap-register-in-webui/`)
 - Applying: pending
-- Applied: pending
+- Applied: 2026-05-29 (`openspec validate --all --strict`)
 - Archived: pending
-- Verification: `openspec validate --all --strict` failed due to pre-existing unrelated spec failures (`activity-bar`, `command-preferences`, `dashboard-task-summary`, `project-context`, `project-selector-ui`, `settings-view`, `tabbed-viewer`, `ui-localization`, `validation-dashboard-summary`); change-local validation passed with `openspec validate f01-roadmap-register-in-webui --strict`.
+- Verification: `openspec validate f01-roadmap-register-in-webui --strict` and `openspec validate --all --strict` passed on 2026-05-29 after normalizing legacy spec headers to the current validator format.
 
 ### F02 - Roadmap UX Refinements
 Status: `Ready`
