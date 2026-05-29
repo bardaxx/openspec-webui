@@ -5,8 +5,9 @@ import { test } from 'node:test';
 test('layout state includes validate preset and section wiring', async () => {
   const source = await readFile(new URL('../../state/layout.svelte.ts', import.meta.url), 'utf8');
 
-  assert.match(source, /ActivityPreset = 'home' \| 'archive' \| 'specs' \| 'search' \| 'validate'/);
-  assert.match(source, /ExplorerSection = 'active-changes' \| 'archive' \| 'specs' \| 'search' \| 'validate'/);
+  assert.match(source, /ActivityPreset = 'home' \| 'archive' \| 'specs' \| 'roadmap' \| 'search' \| 'validate'/);
+  assert.match(source, /ExplorerSection = 'active-changes' \| 'archive' \| 'specs' \| 'roadmap' \| 'search' \| 'validate'/);
+  assert.match(source, /roadmap: 'roadmap'/);
   assert.match(source, /validate: 'validate'/);
 });
 
@@ -32,6 +33,8 @@ test('ExplorerPane default sections use a flush list wrapper without card-stack 
 
   assert.match(source, /<div class="divide-y divide-border\/70">/);
   assert.doesNotMatch(source, /space-y-4 p-3/);
+  assert.match(source, /project\.value\?\.roadmap/);
+  assert.match(source, /tabStore\.open\('\/roadmap'\)/);
   assert.match(source, /<ActiveChangesExplorerSection/);
   assert.match(source, /<ArchiveExplorerSection/);
   assert.match(source, /<SpecsExplorerSection/);

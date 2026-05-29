@@ -1,5 +1,5 @@
-export type ActivityPreset = 'home' | 'archive' | 'specs' | 'search' | 'validate';
-export type ExplorerSection = 'active-changes' | 'archive' | 'specs' | 'search' | 'validate';
+export type ActivityPreset = 'home' | 'archive' | 'specs' | 'roadmap' | 'search' | 'validate';
+export type ExplorerSection = 'active-changes' | 'archive' | 'specs' | 'roadmap' | 'search' | 'validate';
 export type ResponsiveMode = 'narrow' | 'wide';
 export type LayoutOverlay = 'project-selector' | 'add-project' | null;
 
@@ -13,6 +13,7 @@ const PRESET_SECTION_MAP: Record<ActivityPreset, ExplorerSection> = {
   home: 'active-changes',
   archive: 'archive',
   specs: 'specs',
+  roadmap: 'roadmap',
   search: 'search',
   validate: 'validate',
 };
@@ -21,6 +22,7 @@ const SECTION_PRESET_MAP: Record<ExplorerSection, ActivityPreset> = {
   'active-changes': 'home',
   archive: 'archive',
   specs: 'specs',
+  roadmap: 'roadmap',
   search: 'search',
   validate: 'validate',
 };
@@ -48,6 +50,7 @@ function createDefaultSectionState() {
     'active-changes': false,
     archive: true,
     specs: true,
+    roadmap: true,
     search: true,
     validate: true,
   } as Record<ExplorerSection, boolean>;
@@ -58,6 +61,7 @@ function createPresetSectionState(section: ExplorerSection) {
     'active-changes': section !== 'active-changes',
     archive: section !== 'archive',
     specs: section !== 'specs',
+    roadmap: section !== 'roadmap',
     search: section !== 'search',
     validate: section !== 'validate',
   } as Record<ExplorerSection, boolean>;

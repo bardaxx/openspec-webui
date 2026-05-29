@@ -81,6 +81,7 @@ function createData(openspecPath: string): OpenSpecData {
       },
       legacyProjectDoc: null,
       migrationState: 'config-only',
+      roadmap: null,
     },
     specs: [],
     changes: {

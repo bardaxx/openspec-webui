@@ -23,6 +23,7 @@ function createOpenSpecData(): OpenSpecData {
       },
       legacyProjectDoc: null,
       migrationState: 'config-only',
+      roadmap: null,
     },
     specs: [
       {
@@ -185,6 +186,50 @@ function createOpenSpecData(): OpenSpecData {
   };
 }
 
+function createRoadmapData(): OpenSpecData {
+  const data = createOpenSpecData();
+  data.project.roadmap = {
+    path: '/workspace/demo/openspec/roadmap.md',
+    title: 'Roadmap',
+    prd: 'Roadmap viewer support',
+    statusModel: 'Ready -> Spec Proposed -> Applying -> Applied -> Archived',
+    recommendedExecutionOrder: ['F01 - Roadmap Register In WebUI'],
+    compactedHistory: ['pending'],
+    postImplementationRealityCheck: [],
+    dependencies: [
+      {
+        sliceId: 'F01',
+        dependsOn: [],
+        blocks: ['F02'],
+        canRunInParallel: false,
+      },
+    ],
+    slices: [
+      {
+        id: 'F01',
+        title: 'Roadmap Register In WebUI',
+        status: 'Spec Proposed',
+        goal: 'Add roadmap support to openspec-webui with search integration.',
+        candidateChangeId: 'f01-roadmap-register-in-webui',
+        specLink: 'openspec/changes/f01-roadmap-register-in-webui/',
+        files: ['src/parser/index.ts'],
+        notes: 'Read-only lifecycle in the UI.',
+        progress: [
+          { label: 'Proposed', value: '2026-05-29', pending: false },
+        ],
+        dependency: {
+          sliceId: 'F01',
+          dependsOn: [],
+          blocks: ['F02'],
+          canRunInParallel: false,
+        },
+      },
+    ],
+    rawContent: '# Roadmap',
+  };
+  return data;
+}
+
 test('searchOpenSpec returns a spec for metadata name matches', () => {
   const results = searchOpenSpec(createOpenSpecData(), 'dashboard-change-sorting');
 
@@ -259,4 +304,16 @@ test('searchOpenSpec prefers content excerpts and does not duplicate metadata ma
   assert.equal(results[0]?.name, 'priority-check');
   assert.equal(results[0]?.matchSource, 'content');
   assert.match(results[0]?.excerpt ?? '', /Priority search content should win/);
+});
+
+test('searchOpenSpec returns roadmap slice matches with slice routing metadata', () => {
+  const results = searchOpenSpec(createRoadmapData(), 'search integration');
+
+  assert.equal(results.length, 1);
+  assert.equal(results[0]?.type, 'roadmap');
+  assert.equal(results[0]?.name, 'F01 - Roadmap Register In WebUI');
+  assert.equal(results[0]?.path, '/workspace/demo/openspec/roadmap.md');
+  assert.equal(results[0]?.matchSource, 'content');
+  assert.deepEqual(results[0]?.matchLocation, { roadmapSliceId: 'F01' });
+  assert.match(results[0]?.excerpt ?? '', /search integration/);
 });

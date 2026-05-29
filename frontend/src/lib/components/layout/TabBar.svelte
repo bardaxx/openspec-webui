@@ -15,6 +15,7 @@
     dashboard: { icon: LayoutDashboard, color: 'text-muted-foreground' },
     spec: { icon: getEntityVisual('spec').icon, color: getEntityVisual('spec').iconClass },
     change: { icon: getEntityVisual('active-change').icon, color: getEntityVisual('active-change').iconClass },
+    roadmap: { icon: getEntityVisual('roadmap').icon, color: getEntityVisual('roadmap').iconClass },
     settings: { icon: Settings, color: 'text-muted-foreground' },
   };
 

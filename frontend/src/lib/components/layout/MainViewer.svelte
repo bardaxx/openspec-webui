@@ -6,6 +6,7 @@
   import { tabStore } from '$lib/state/tabs.svelte.ts';
   import Dashboard from '$lib/views/Dashboard.svelte';
   import ChangeViewer from '$lib/views/ChangeViewer.svelte';
+  import RoadmapViewer from '$lib/views/RoadmapViewer.svelte';
   import SpecViewer from '$lib/views/SpecViewer.svelte';
   import SettingsView from './SettingsView.svelte';
   import TabBar from './TabBar.svelte';
@@ -43,6 +44,8 @@
         <div class="mx-auto max-w-7xl px-4 py-6 lg:px-6">
           {#if activePath === '/'}
             <Dashboard />
+          {:else if activePath === '/roadmap'}
+            <RoadmapViewer />
           {:else if specName}
             <SpecViewer specName={specName} />
           {:else if changeName}

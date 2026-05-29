@@ -67,6 +67,8 @@ test('search panel preserves clear control, result navigation, and change-kind s
   assert.match(source, /activeChanges\.value\.some\(\(change\) => change\.name === result\.name\)/);
   assert.match(source, /active=\{tabStore\.activeTab\?\.path === resultPath\}/);
   assert.match(source, /<ScrollArea\.Root class="min-h-0 flex-1" viewportClass="h-full">/);
+  assert.match(source, /result\.type === 'roadmap'/);
+  assert.match(source, /return 'roadmap'/);
 });
 
 test('search panel applies trailing validation icons only for resolved active changes and specs', async () => {
@@ -92,6 +94,9 @@ test('search store writes one-shot viewer-state navigation hints for content hit
   assert.match(source, /export interface SearchNavigationState/);
   assert.match(source, /result\.type === 'spec' && result\.matchSource === 'content'/);
   assert.match(source, /result\.type === 'change' && result\.matchSource === 'content' && result\.matchLocation/);
+  assert.match(source, /result\.type === 'roadmap' && result\.matchLocation\?\.roadmapSliceId/);
+  assert.match(source, /return 'roadmap:home'/);
+  assert.match(source, /return '\/roadmap'/);
   assert.match(source, /const searchNavigation = searchNavigationForResult\(result\);/);
   assert.match(source, /tabStore\.setViewerState\(tabId, \{[\s\S]*searchNavigation,[\s\S]*\}\)/);
 });

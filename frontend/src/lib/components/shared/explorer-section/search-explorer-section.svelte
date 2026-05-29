@@ -71,6 +71,10 @@
       return 'project';
     }
 
+    if (result.type === 'roadmap') {
+      return 'roadmap';
+    }
+
     if (archivedChanges.value.some((change) => change.name === result.name)) {
       return 'archived-change';
     }
@@ -115,6 +119,10 @@
         entityKind,
         deriveValidationTargetSummary(validationStore, { type: 'change', name: result.name }).state,
       );
+    }
+
+    if (entityKind === 'roadmap' || entityKind === 'project') {
+      return null;
     }
 
     return deriveValidationListIconState(entityKind, 'unknown');

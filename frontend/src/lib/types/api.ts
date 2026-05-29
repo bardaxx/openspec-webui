@@ -73,6 +73,48 @@ export interface Project {
     description: string;
   } | null;
   migrationState: 'config-only' | 'legacy-present' | 'migration-needed';
+  roadmap: Roadmap | null;
+}
+
+export type RoadmapSliceStatus = 'Ready' | 'Spec Proposed' | 'Applying' | 'Applied' | 'Archived' | 'Blocked' | string;
+
+export interface RoadmapProgressEntry {
+  label: string;
+  value: string;
+  pending: boolean;
+}
+
+export interface RoadmapDependency {
+  sliceId: string;
+  dependsOn: string[];
+  blocks: string[];
+  canRunInParallel: boolean | null;
+}
+
+export interface RoadmapSlice {
+  id: string;
+  title: string;
+  status: RoadmapSliceStatus;
+  goal: string;
+  candidateChangeId: string;
+  specLink: string;
+  files: string[];
+  notes: string;
+  progress: RoadmapProgressEntry[];
+  dependency: RoadmapDependency | null;
+}
+
+export interface Roadmap {
+  path: string;
+  title: string;
+  prd: string;
+  statusModel: string;
+  recommendedExecutionOrder: string[];
+  compactedHistory: string[];
+  postImplementationRealityCheck: string[];
+  slices: RoadmapSlice[];
+  dependencies: RoadmapDependency[];
+  rawContent: string;
 }
 
 export interface ProjectEntry {
@@ -207,10 +249,11 @@ export interface SearchMatchLocation {
   fileName?: string;
   specDeltaCapability?: string;
   otherFilePath?: string;
+  roadmapSliceId?: string;
 }
 
 export interface SearchResult {
-  type: 'spec' | 'change' | 'project';
+  type: 'spec' | 'change' | 'project' | 'roadmap';
   name: string;
   path: string;
   excerpt: string;

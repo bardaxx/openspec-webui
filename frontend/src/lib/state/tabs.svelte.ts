@@ -1,4 +1,4 @@
-export type TabType = 'dashboard' | 'spec' | 'change' | 'settings';
+export type TabType = 'dashboard' | 'spec' | 'change' | 'roadmap' | 'settings';
 
 import { FIXED_LABELS } from '$lib/uiText';
 
@@ -29,6 +29,17 @@ function createSettingsTab(): Tab {
     type: 'settings',
     name: FIXED_LABELS.common.settings,
     path: '/settings',
+    pinned: false,
+    preview: false,
+  };
+}
+
+function createRoadmapTab(): Tab {
+  return {
+    id: 'roadmap:home',
+    type: 'roadmap',
+    name: FIXED_LABELS.common.roadmap,
+    path: '/roadmap',
     pinned: false,
     preview: false,
   };
@@ -100,6 +111,10 @@ function createTabForPath(path: string): Tab {
       path: `/changes/${encodeURIComponent(name)}`,
       pinned: false,
     };
+  }
+
+  if (normalizedPath === '/roadmap') {
+    return createRoadmapTab();
   }
 
   return homeTab;

@@ -38,6 +38,10 @@ function pathForResult(result: SearchResult) {
     return `/changes/${encodeURIComponent(result.name)}`;
   }
 
+  if (result.type === 'roadmap') {
+    return '/roadmap';
+  }
+
   return '/';
 }
 
@@ -48,6 +52,10 @@ function tabIdForResult(result: SearchResult): string | null {
 
   if (result.type === 'change') {
     return `change:${result.name}`;
+  }
+
+  if (result.type === 'roadmap') {
+    return 'roadmap:home';
   }
 
   return null;
@@ -61,6 +69,13 @@ function searchNavigationForResult(result: SearchResult): SearchNavigationState 
   }
 
   if (result.type === 'change' && result.matchSource === 'content' && result.matchLocation) {
+    return {
+      requestKey: Date.now(),
+      matchLocation: result.matchLocation,
+    };
+  }
+
+  if (result.type === 'roadmap' && result.matchLocation?.roadmapSliceId) {
     return {
       requestKey: Date.now(),
       matchLocation: result.matchLocation,

@@ -8,6 +8,7 @@ import {
   FileText,
   Folder,
   Info,
+  Map,
   SquarePen,
   XCircle,
 } from '@lucide/svelte';
@@ -17,7 +18,7 @@ export type IconComponent = Component<{ class?: string }>;
 export type IconBoxVariant = 'info' | 'success' | 'muted' | 'warning' | 'danger';
 export type BadgeVariant = 'default' | 'secondary' | 'outline' | 'success' | 'warning' | 'info' | 'destructive';
 
-export type EntityKind = 'spec' | 'active-change' | 'archived-change' | 'project' | 'unknown';
+export type EntityKind = 'spec' | 'active-change' | 'archived-change' | 'project' | 'roadmap' | 'unknown';
 
 export interface EntityVisualMeta {
   icon: IconComponent;
@@ -59,6 +60,14 @@ export const entityVisuals: Record<EntityKind, EntityVisualMeta> = {
     iconBoxVariant: 'warning',
     badgeVariant: 'secondary',
     iconClass: 'text-warning',
+    muted: false,
+  },
+  roadmap: {
+    icon: Map,
+    label: FIXED_LABELS.search.types.roadmap,
+    iconBoxVariant: 'info',
+    badgeVariant: 'info',
+    iconClass: 'text-info',
     muted: false,
   },
   unknown: {

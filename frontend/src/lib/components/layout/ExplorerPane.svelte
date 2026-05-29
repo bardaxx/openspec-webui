@@ -10,11 +10,13 @@
     type ExplorerSortMode,
   } from '$lib/components/shared/explorer-section';
   import { InteractiveCard } from '$lib/components/shared/surface';
+  import ExplorerListItemButton from '$lib/components/shared/explorer-section/explorer-list-item-button.svelte';
   import * as ScrollArea from '$lib/components/ui/scroll-area';
   import { getWorkspaceCommands } from '$lib/commandShortcuts';
   import { activeChanges, archivedChanges, project, specs } from '$lib/state/appData.svelte.ts';
   import { commandPreferencesStore } from '$lib/state/commandPreferences.svelte.ts';
   import { layoutStore } from '$lib/state/layout.svelte.ts';
+  import { tabStore } from '$lib/state/tabs.svelte.ts';
   import CommandShortcutBar from '$lib/components/shared/CommandShortcutBar.svelte';
   import { FIXED_LABELS } from '$lib/uiText';
 
@@ -48,6 +50,12 @@
   let archiveSortMode = $state<ExplorerSortMode>('date');
   let specsSortMode = $state<ExplorerSortMode>('name');
 
+  function openRoadmap() {
+    layoutStore.focusSection('roadmap');
+    tabStore.open('/roadmap');
+    onItemSelected();
+  }
+
 </script>
 
 <aside class="flex h-full min-h-0 flex-col bg-card">
@@ -76,6 +84,22 @@
   {:else}
     <ScrollArea.Root class="min-h-0 flex-1" viewportClass="h-full">
       <div class="divide-y divide-border/70">
+        {#if project.value?.roadmap}
+          <div class="bg-card px-1 py-1.5">
+            <ExplorerListItemButton
+              items={[]}
+              kind="roadmap"
+              name={FIXED_LABELS.common.roadmap}
+              active={tabStore.activeTab?.path === '/roadmap'}
+              onclick={openRoadmap}
+            >
+              <div class="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                Browse roadmap slices, status, dependencies, and progress notes.
+              </div>
+            </ExplorerListItemButton>
+          </div>
+        {/if}
+
         <ActiveChangesExplorerSection
           changes={activeChanges.value}
           {onItemSelected}

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { Bookmark, ChevronDown, ChevronRight, LayoutDashboard, Calendar, CircleCheckBig, FileText, FolderPen, History, SquarePen, FlaskConical } from '@lucide/svelte';
+  import { Bookmark, ChevronDown, ChevronRight, LayoutDashboard, Calendar, CircleCheckBig, FileText, FolderPen, History, Map as MapIcon, SquarePen, FlaskConical } from '@lucide/svelte';
   import { Badge } from '$lib/components/ui/badge';
   import { Button } from '$lib/components/ui/button';
   import { Callout } from '$lib/components/shared/callout';
@@ -240,6 +240,7 @@
   }
 
   let planningContext = $derived(project.value?.planningContext ?? null);
+  let roadmap = $derived(project.value?.roadmap ?? null);
   let parsedPlanningContext = $derived.by(() =>
     isParsedPlanningContext(planningContext) ? planningContext : null
   );
@@ -257,9 +258,23 @@
         )
       : { variant: null, title: '' }
   );
+  let roadmapStatusCounts = $derived.by(() => {
+    const counts = new Map<string, number>();
+
+    for (const slice of roadmap?.slices ?? []) {
+      counts.set(slice.status, (counts.get(slice.status) ?? 0) + 1);
+    }
+
+    return Array.from(counts.entries()).sort((left, right) => left[0].localeCompare(right[0]));
+  });
 
   function getProjectSelectorAriaLabel() {
     return FIXED_LABELS.dashboard.openProjectSelector;
+  }
+
+  function openRoadmap() {
+    layoutStore.focusSection('roadmap');
+    tabStore.open('/roadmap');
   }
 
 </script>
@@ -554,6 +569,59 @@
             </InteractiveCard>
           </ItemContextMenu>
         {/each}
+      </div>
+    </SurfaceCard>
+  {/if}
+
+  {#if roadmap}
+    <SurfaceCard shadow="sm">
+      <SectionHeader>
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="space-y-2">
+            <h2 class="flex items-center gap-2 text-lg font-semibold text-foreground">
+              <MapIcon class="h-5 w-5 text-muted-foreground" />
+              {FIXED_LABELS.dashboard.roadmapSummary}
+            </h2>
+            <p class="text-sm text-muted-foreground">Track slice status, dependencies, and progress from the shared roadmap register.</p>
+          </div>
+          <Button variant="ghost" size="sm" onclick={openRoadmap}>
+            <MapIcon class="h-4 w-4" />
+            {FIXED_LABELS.common.roadmap}
+          </Button>
+        </div>
+      </SectionHeader>
+
+      <div class="grid gap-3 p-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)]">
+        <InsetPanel class="space-y-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <Badge variant="outline">{roadmap.slices.length} slices</Badge>
+            {#if roadmap.prd}
+              <span class="text-sm text-muted-foreground">{roadmap.prd}</span>
+            {/if}
+          </div>
+
+          {#if roadmap.recommendedExecutionOrder.length > 0}
+            <div class="space-y-2">
+              <div class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{FIXED_LABELS.viewer.roadmap.recommendedOrder}</div>
+              <ol class="space-y-1 text-sm text-foreground">
+                {#each roadmap.recommendedExecutionOrder as entry}
+                  <li>{entry}</li>
+                {/each}
+              </ol>
+            </div>
+          {/if}
+        </InsetPanel>
+
+        <InsetPanel class="space-y-2">
+          <div class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{FIXED_LABELS.viewer.roadmap.statusModel}</div>
+          <div class="text-sm text-foreground">{roadmap.statusModel}</div>
+
+          <div class="flex flex-wrap gap-2 pt-2">
+            {#each roadmapStatusCounts as [status, count]}
+              <Badge variant="secondary">{status}: {count}</Badge>
+            {/each}
+          </div>
+        </InsetPanel>
       </div>
     </SurfaceCard>
   {/if}

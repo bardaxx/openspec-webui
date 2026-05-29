@@ -25,6 +25,7 @@ export const FIXED_LABELS = {
     quoteCopy: 'Quote Copy',
     remove: 'Remove',
     retry: 'Retry',
+    roadmap: 'Roadmap',
     search: 'Search',
     settings: 'Settings',
     specs: 'Specs',
@@ -52,6 +53,7 @@ export const FIXED_LABELS = {
     types: {
       change: 'Change',
       project: 'Project',
+      roadmap: 'Roadmap',
       spec: 'Spec',
     },
   },
@@ -149,6 +151,8 @@ export const FIXED_LABELS = {
     activeChanges: 'Active Changes',
     tasks: 'Tasks',
     recentActivity: 'Recent Activity',
+    roadmap: 'Roadmap',
+    roadmapSummary: 'Roadmap Summary',
     planningContext: 'OpenSpec Planning Context',
     focusSection: 'Focus section',
     migrationNeeded: 'Migration needed',
@@ -173,6 +177,7 @@ export const FIXED_LABELS = {
     activeChanges: 'Active Changes',
     archive: 'Archive',
     specs: 'Specs',
+    roadmap: 'Roadmap',
     validate: 'Validation',
     sortBy: 'Sort by',
   },
@@ -231,6 +236,16 @@ export const FIXED_LABELS = {
     specification: 'Specification',
     specDeltas: 'Spec Deltas',
     otherFiles: 'Other Files',
+    roadmap: {
+      empty: 'No roadmap file is available for this project.',
+      recommendedOrder: 'Recommended Order',
+      dependencies: 'Dependencies',
+      progressLog: 'Progress Log',
+      files: 'Files',
+      goal: 'Goal',
+      statusModel: 'Status Model',
+      noSlices: 'No roadmap slices were parsed.',
+    },
   },
   tab: {
     preview: 'Preview',
@@ -272,6 +287,8 @@ export function getSearchResultTypeLabel(type: SearchResult['type']): string {
       return FIXED_LABELS.search.types.change;
     case 'project':
       return FIXED_LABELS.search.types.project;
+    case 'roadmap':
+      return FIXED_LABELS.search.types.roadmap;
   }
 }
 

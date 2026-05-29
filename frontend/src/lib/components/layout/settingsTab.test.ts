@@ -7,6 +7,7 @@ test('tabs.svelte.ts includes settings in TabType and defines a regular closeabl
 
   // TabType includes 'settings'
   assert.match(source, /type TabType = .*'settings'/);
+  assert.match(source, /type TabType = .*'roadmap'/);
 
   // createSettingsTab returns id 'settings:home' and path '/settings'
   assert.match(source, /id:\s*'settings:home'/);
@@ -21,6 +22,8 @@ test('tabs.svelte.ts includes settings in TabType and defines a regular closeabl
   // normalizePath maps /settings to home (non-routable) when preserveSettings is not set
   assert.match(source, /!options\?\.preserveSettings\s*&&\s*withLeadingSlash\s*===\s*'\/settings'/);
   assert.match(source, /createHomeTab\(\)\.path/);
+  assert.match(source, /id:\s*'roadmap:home'/);
+  assert.match(source, /path:\s*'\/roadmap'/);
 });
 
 test('tabs.svelte.ts keeps browser history handling compatible with non-routable settings tabs', async () => {
@@ -127,6 +130,8 @@ test('MainViewer.svelte renders SettingsView for settings tabs inside the same m
     'settings branch should wrap SettingsView in max-w-7xl, same as Dashboard');
   assert.match(settingsBlock, /<SettingsView/);
   assert.match(source, /initialSection\?: 'general' \| 'workflow' \| 'commands' \| 'validation' \| 'versions'/);
+  assert.match(source, /activePath === '\/roadmap'/);
+  assert.match(source, /<RoadmapViewer \/>/);
 });
 
 test('TabBar.svelte includes a settings icon mapping in its TAB_ICONS record', async () => {

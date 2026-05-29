@@ -34,7 +34,7 @@ Keep entries concise. Do not duplicate proposal/design/tasks content.
 ## Slices
 
 ### F01 - Roadmap Register In WebUI
-Status: `Ready`
+Status: `Spec Proposed`
 Goal: Add roadmap support to openspec-webui with structured parsing, explorer/dashboard exposure, dedicated viewer, and search integration.
 Candidate OpenSpec change id: `f01-roadmap-register-in-webui`
 Spec link: `openspec/changes/f01-roadmap-register-in-webui/`
@@ -46,10 +46,11 @@ Files:
 - `frontend/src/lib/views/Dashboard.svelte`
 Notes: Read-only lifecycle in UI; agent skills remain responsible for propose/apply/archive transitions.
 Progress:
-- Proposed: pending
+- Proposed: 2026-05-29 (`openspec/changes/f01-roadmap-register-in-webui/`)
 - Applying: pending
 - Applied: pending
 - Archived: pending
+- Verification: `openspec validate --all --strict` failed due to pre-existing unrelated spec failures (`activity-bar`, `command-preferences`, `dashboard-task-summary`, `project-context`, `project-selector-ui`, `settings-view`, `tabbed-viewer`, `ui-localization`, `validation-dashboard-summary`); change-local validation passed with `openspec validate f01-roadmap-register-in-webui --strict`.
 
 ### F02 - Roadmap UX Refinements
 Status: `Ready`

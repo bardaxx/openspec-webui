@@ -13,6 +13,7 @@ import type {
 import { parseProject } from './project.js';
 import { parseSpecs, parseSpec } from './specs.js';
 import { parseChanges, parseChangeByName } from './changes.js';
+import { parseRoadmap } from './roadmap.js';
 
 export interface OpenSpecData {
   project: Project;
@@ -65,14 +66,15 @@ export async function parseOpenSpec(openspecPath: string): Promise<ParseResult<O
   }
 
   // Parse all components
-  const [projectResult, specsResult, changesResult] = await Promise.all([
+  const [projectResult, specsResult, changesResult, roadmapResult] = await Promise.all([
     parseProject(openspecPath),
     parseSpecs(openspecPath),
     parseChanges(openspecPath),
+    parseRoadmap(openspecPath),
   ]);
 
-  errors.push(...projectResult.errors, ...specsResult.errors, ...changesResult.errors);
-  warnings.push(...projectResult.warnings, ...specsResult.warnings, ...changesResult.warnings);
+  errors.push(...projectResult.errors, ...specsResult.errors, ...changesResult.errors, ...roadmapResult.errors);
+  warnings.push(...projectResult.warnings, ...specsResult.warnings, ...changesResult.warnings, ...roadmapResult.warnings);
 
   if (!projectResult.data || !specsResult.data || !changesResult.data) {
     return { data: null, errors, warnings };
@@ -83,7 +85,10 @@ export async function parseOpenSpec(openspecPath: string): Promise<ParseResult<O
 
   return {
     data: {
-      project: projectResult.data,
+      project: {
+        ...projectResult.data,
+        roadmap: roadmapResult.data,
+      },
       specs: specsResult.data,
       changes: changesResult.data,
       stats,
@@ -178,6 +183,37 @@ export function searchOpenSpec(data: OpenSpecData, query: string): SearchResult[
 
     if (changeResult) {
       results.push(changeResult);
+    }
+  }
+
+  for (const slice of data.project.roadmap?.slices ?? []) {
+    const roadmapResult = searchDocument(
+      {
+        type: 'roadmap',
+        name: `${slice.id} - ${slice.title}`,
+        path: data.project.roadmap?.path ?? '/roadmap',
+        content: [slice.goal, slice.notes, ...slice.progress.map((entry) => `${entry.label}: ${entry.value}`)].join('\n'),
+        matchLocation: {
+          roadmapSliceId: slice.id,
+        },
+        metadata: [
+          {
+            source: 'name',
+            searchValue: [slice.id, slice.title, `${slice.id} - ${slice.title}`].join('\n'),
+            previewValue: slice.id,
+          },
+          {
+            source: 'path',
+            searchValue: [data.project.roadmap?.path ?? '', 'openspec/roadmap.md'].join('\n'),
+            previewValue: 'openspec/roadmap.md',
+          },
+        ],
+      },
+      normalizedQuery,
+    );
+
+    if (roadmapResult) {
+      results.push(roadmapResult);
     }
   }
 
@@ -433,3 +469,4 @@ export { parseProject } from './project.js';
 export { parseSpecs, parseSpec } from './specs.js';
 export { parseChanges, parseChangeByName } from './changes.js';
 export { parseTasks } from './tasks.js';
+export { parseRoadmap } from './roadmap.js';

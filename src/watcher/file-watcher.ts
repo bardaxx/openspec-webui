@@ -52,7 +52,7 @@ export function createFileWatcher(
       } else {
         entityId = parts[1]; // active change name
       }
-    } else if (parts[0] === 'project.md' || parts[0] === 'AGENTS.md' || parts[0] === 'config.yaml') {
+    } else if (parts[0] === 'project.md' || parts[0] === 'roadmap.md' || parts[0] === 'AGENTS.md' || parts[0] === 'config.yaml') {
       affectedEntity = 'project';
     } else {
       // Unsupported markdown file, treat as project
